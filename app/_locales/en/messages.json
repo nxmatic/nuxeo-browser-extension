@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "Nuxeo Extension",
+    "description": "The name of the application"
+  },
+  "appDescription": {
+    "message": "Manage your Nuxeo Servers",
+    "description": "The description of the application"
+  }
+}
