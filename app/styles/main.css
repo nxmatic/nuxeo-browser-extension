@@ -1,3 +1,252 @@
 body {
-  padding: 20px;
+  width: 500px;
+  background-color: #F5F5F5;
+}
+
+ul {
+  list-style-type: none;
+}
+
+button {
+  cursor: pointer;
+  width: 110px;
+  height: 21px;
+}
+
+.row {
+  display: -webkit-flex;
+  -webkit-align-items: center;
+  display: flex;
+  align-items: center;
+  clear: both;
+  margin-right: 40px;
+}
+
+.logo {
+  background-image: url("../images/nuxeo_small.png");
+  width: 30px;
+  height: 30px;
+}
+
+.server-main {
+  margin-left: -20px;
+  -webkit-flex: 5;
+  flex: 5;
+}
+
+.server-name, #row-1b, #row-1c {
+  font-size: 25px;
+}
+
+.current-active-server {
+  color: #F69C55;
+  font-style: italic;
+  -webkit-flex: 2;
+  flex: 2;
+  -webkit-align-self: center;
+  align-content: flex-end;
+}
+
+.server-menu {
+  margin-left: 35px;
+  -webkit-flex: 2;
+  flex: 2;
+}
+
+select {
+  width: 250px;
+}
+
+.icon {
+  height: 16px;
+}
+
+#fire-icon {
+  background-image: url("../images/fire.png");
+  width: 12px;
+  margin-right: 4px;
+}
+
+#studio-icon {
+  background-image: url("../images/studio.png");
+  width: 16px;
+}
+
+#package-icon {
+  background-image: url("../images/package.png");
+  width: 15px;
+  margin-right: 1px;
+}
+
+#jar-icon {
+  background-image: url("../images/jar.png");
+  width: 16px;
+}
+
+#log-icon {
+  background-image: url("../images/log.png");
+  width: 12px;
+  margin-right: 4px;
+}
+
+#download-icon {
+  background-image: url("../images/download.png");
+  width: 15px;
+  margin-right: 1px;
+}
+
+#doc-icon {
+  background-image: url("../images/doc.png");
+  width: 12px;
+  margin-right: 4px;
+}
+
+#restart-icon {
+  background-image: url("../images/restart.png");
+  width: 12px;
+  margin-right: 4px;
+}
+
+a.button {
+    -webkit-appearance: button;
+    -moz-appearance: button;
+    appearance: button;
+
+    text-decoration: none;
+    color: initial;
+    width: 110px;
+    height: 15px;
+    text-align: center;
+
+    font-size: 13px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+#delete-button {
+  background-color: red;
+  margin-left: 30px;
+  font: bold;
+}
+
+.select {
+  width: 50px;
+}
+
+#manage-servers-button {
+  -webkit-flex: 2;
+  flex: 2;
+
+  -webkit-align-self: center;
+  align-content: flex-end;
+}
+
+#row-3, #row-7 {
+  margin-top: 40px;
+}
+
+#row-4, #row-5, #row-6, #row-8 {
+  margin-top: 10px;
+}
+
+#row-7, #row-8, #row-9 {
+  font-size: 15px;
+  display: block;
+  float: left;
+  width: 100%;
+}
+
+#row-2, #row-8, #row-1b, #row-2b, #row-1c {
+  margin-bottom: 40px;
+}
+
+#row-10, #row-4b, #row-5b, #row-3c, #row-2c {
+  margin-bottom: 20px;
+}
+
+#studio-link-button {
+  -webkit-flex: 2;
+  flex: 2;
+
+  -webkit-align-self: center;
+  align-content: flex-end;
+}
+
+#row-3, #row-4, #row-5, #row-6 {
+  margin-left: 90px;
+}
+
+#row-7, #row-8, #row-9, #row-10, #row-2b, #studio-icon, #jar-icon, #download-icon, #restart-icon, #add-current-button {
+  margin-left: 50px;
+}
+
+.hot-reload, .studio-link, .view-packages, .view-bundles, .view-logs,
+.download-logs, .automation-doc, .restart {
+  margin-left: 10px;
+}
+
+.debug, .ui-dev-mode {
+    float: left;
+}
+
+.onoffswitch {
+    position: relative;
+    width: 90px;
+    -webkit-user-select:none; -moz-user-select:none; -ms-user-select: none;
+    float: right;
+    margin-right: 100px;
+}
+.onoffswitch-checkbox {
+    display: none;
+}
+.onoffswitch-label {
+    display: block; overflow: hidden; cursor: pointer;
+    border: 2px solid #8F8F8F; border-radius: 10px;
+}
+.onoffswitch-inner {
+    display: block; width: 200%; margin-left: -100%;
+    transition: margin 0.3s ease-in 0s;
+}
+.onoffswitch-inner:before, .onoffswitch-inner:after {
+    display: block; float: left; width: 50%; height: 17px; padding: 0; line-height: 17px;
+    font-size: 10px; color: white; font-family: Trebuchet, Arial, sans-serif; font-weight: bold;
+    box-sizing: border-box;
+}
+.onoffswitch-inner:before {
+    content: "ENABLED";
+    padding-left: 10px;
+    background-color: #173C7C; color: #FFFFFF;
+}
+.onoffswitch-inner:after {
+    content: "DISABLED";
+    padding-right: 10px;
+    background-color: #EEEEEE; color: #999999;
+    text-align: right;
+}
+.onoffswitch-switch {
+    display: block; width: 9px; margin: 4px;
+    background: #FFFFFF;
+    position: absolute; top: 0; bottom: 0;
+    right: 69px;
+    border: 2px solid #8F8F8F; border-radius: 10px;
+    transition: all 0.3s ease-in 0s;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+    margin-left: 0;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
+    right: 0px;
+}
+
+#row-5b, #row-3c {
+  float: right;
+}
+
+.labels li {
+  font-size: 15px;
+  margin-bottom: 14px;
+}
+
+.fields li {
+  margin-bottom: 10px;
 }

@@ -2,7 +2,10 @@
   "name": "nuxeo-extension",
   "private": true,
   "version": "0.0.0",
-  "dependencies": {},
+  "dependencies": {
+    "nuxeo": "^0.24.0",
+    "jquery": "^2.2.1"
+  },
   "devDependencies": {
     "chai": "^3.5.0",
     "mocha": "^2.4.5"
