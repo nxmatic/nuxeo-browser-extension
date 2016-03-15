@@ -10,16 +10,18 @@
   "default_locale": "en",
   "background": {
     "scripts": [
-      "scripts/chromereload.js",
       "scripts/background.js"
-    ]
+    ],
+    "persistent": false
   },
   "permissions": [
     "tabs",
     "http://*/*",
     "https://*/*",
     "activeTab",
-    "https://ajax.googleapis.com/"
+    "https://ajax.googleapis.com/",
+    "notifications",
+    "background"
   ],
   "options_ui": {
     "page": "options.html",
