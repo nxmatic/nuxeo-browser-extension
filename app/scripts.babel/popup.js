@@ -11,13 +11,11 @@ function getCurrentTabUrl(callback) {
     var url = tab.url;
     var path = '/nuxeo/';
     var n = url.indexOf(path);
-    url = url.substr(0,(n+path.length));
+    url = url.substr(0, (n + path.length));
     console.assert(typeof url === 'string', 'tab.url should be a string');
     callback(url);
   });
 };
-
-getCurrentTabUrl(function(url) {});
 
 var nuxeo;
 getCurrentTabUrl(function(url) {
@@ -47,5 +45,13 @@ $(document).ready(function() {
           bkg.notification('unknown_error', 'Unknown Error', 'An unknown error has occurred. Please try again later.', '../images/access_denied.png');
         };
       })
+  });
+});
+
+$(document).ready(function() {
+  $('#autodoc-button').click(function() {
+    chrome.tabs.create({
+      url: nuxeo._baseURL.concat('site/automation/doc/')
+    });
   });
 });
