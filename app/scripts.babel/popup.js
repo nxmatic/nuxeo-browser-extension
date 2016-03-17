@@ -52,12 +52,17 @@ $(document).ready(function() {
         };
       });
   });
-});
-
-$(document).ready(function() {
   $('#autodoc-button').click(function() {
     chrome.tabs.create({
       url: nuxeo._baseURL.concat('site/automation/doc/')
     });
   });
+  $('#debug-switch').click(function() {
+    nuxeo.operation('Traces.ToggleRecording')
+      .params({readOnly: false})
+      .execute()
+      .then(function(response) {
+        $('#debug-switch').attr('checked', response.value);
+      })
+    });
 });
