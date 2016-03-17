@@ -26,6 +26,12 @@ getCurrentTabUrl(function(url) {
       password: 'Administrator'
     }
   });
+  nuxeo.operation('Traces.ToggleRecording')
+    .params({readOnly: true})
+    .execute()
+    .then(function(response) {
+      $('#debug-switch').attr('checked', response.value);
+    });
 });
 
 $(document).ready(function() {
@@ -44,7 +50,7 @@ $(document).ready(function() {
         } else {
           bkg.notification('unknown_error', 'Unknown Error', 'An unknown error has occurred. Please try again later.', '../images/access_denied.png');
         };
-      })
+      });
   });
 });
 

@@ -212,12 +212,12 @@ a.button {
     font-size: 10px; color: white; font-family: Trebuchet, Arial, sans-serif; font-weight: bold;
     box-sizing: border-box;
 }
-.onoffswitch-inner:before {
+.onoffswitch-inner::before {
     content: "ENABLED";
     padding-left: 10px;
     background-color: #173C7C; color: #FFFFFF;
 }
-.onoffswitch-inner:after {
+.onoffswitch-inner::after {
     content: "DISABLED";
     padding-right: 10px;
     background-color: #EEEEEE; color: #999999;
