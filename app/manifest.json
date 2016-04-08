@@ -12,7 +12,7 @@
     "scripts": [
       "scripts/background.js"
     ],
-    "persistent": false
+    "persistent": true
   },
   "permissions": [
     "tabs",

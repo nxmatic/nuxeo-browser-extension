@@ -107,6 +107,13 @@ select {
   margin-right: 4px;
 }
 
+#loading-gif {
+  background-image: url("../images/loading-20.gif");
+  height: 20px;
+  width: 20px;
+  display: none;
+}
+
 a.button {
     -webkit-appearance: button;
     -moz-appearance: button;
@@ -240,6 +247,48 @@ a.button {
 
 #row-5b, #row-3c {
   float: right;
+}
+
+#json-search {
+  width: 390px;
+  float: left;
+}
+
+.json-title {
+  font-weight: bold;
+  text-decoration: underline;
+  color: #000099;
+}
+
+.json-title:hover {
+    color: blue;
+    cursor: pointer;
+}
+
+td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+table {
+  margin-left: 40px;
+  table-layout: fixed;
+  width: 90%;
+  white-space: nowrap;
+}
+
+#col1 {
+  width: 5%;
+}
+
+#col2 {
+  width: 30%;
+
+}
+
+#col3 {
+  width: 65%;
 }
 
 .labels li {
