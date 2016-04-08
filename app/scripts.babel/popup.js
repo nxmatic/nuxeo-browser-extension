@@ -112,6 +112,12 @@ $(document).ready(function() {
     });
   });
 
+  $('#studio-link-button').click(function() {
+    chrome.tabs.create({
+      url: 'https://connect.nuxeo.com/nuxeo/site/studio/ide/'
+    });
+  });
+
   $('#debug-switch').click(function() {
     nuxeo.operation('Traces.ToggleRecording')
       .params({readOnly: false})
