@@ -106,16 +106,37 @@ $(document).ready(function() {
     });
   });
 
+  $('#studio-link-button').click(function() {
+    chrome.tabs.create({
+      url: 'https://connect.nuxeo.com/nuxeo/site/studio/ide/'
+    });
+  });
+
   $('#autodoc-button').click(function() {
     chrome.tabs.create({
       url: nuxeo._baseURL.concat('site/automation/doc/')
     });
   });
 
-  $('#studio-link-button').click(function() {
-    chrome.tabs.create({
-      url: 'https://connect.nuxeo.com/nuxeo/site/studio/ide/'
-    });
+  $('#restart-button').click(function() {
+    var restart = confirm('Are you sure you want to restart the server?');
+    if (restart) {
+      chrome.runtime.getBackgroundPage(function(bkg){
+        nuxeo.fetch({
+          method: 'POST',
+          schemas: [],
+          enrichers: [],
+          fetchProperties: [],
+          url: nuxeo._baseURL.concat('site/connectClient/uninstall/restart'),
+        })
+          .then(function(){
+            bkg.notification('error', 'Something went wrong...', 'Please try again later.', '../images/access_denied.png');
+          })
+          .catch(function(e) {
+            bkg.notification('success', 'Success!', 'Nuxeo server is restarting...', '../images/nuxeo-128.png');
+          });
+      });
+    };
   });
 
   $('#debug-switch').click(function() {
