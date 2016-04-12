@@ -32,7 +32,8 @@
     {
       "matches": [
         "http://*/*",
-        "https://*/*"
+        "https://*/*",
+        "<all_urls>"
       ],
       "js": [
         "scripts/contentscript.js"
