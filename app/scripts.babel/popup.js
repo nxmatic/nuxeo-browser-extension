@@ -9,6 +9,10 @@ function getCurrentTabUrl(callback) {
   chrome.tabs.query(queryInfo, function(tabs) {
     var tab = tabs[0];
     var url = tab.url;
+    var nxPattern = /^https?:\/\/[\w:\.]+\/\w+\/(?:nxdoc|nxpath|nxsearch|nxadmin|nxhome|nxdam|nxdamid|site\/\w+)\/\w+/;
+    if (!nxPattern.test(url)){
+      $('body').load('goto-nuxeo.html');
+    };
     var path = '/nuxeo/';
     var n = url.indexOf(path);
     url = url.substr(0, (n + path.length));
@@ -33,6 +37,7 @@ getCurrentTabUrl(function(url) {
     .then(function(response) {
       $('#debug-switch').attr('checked', response.value);
     });
+  $('a.server-name-url').html(nuxeo._baseURL);
 });
 
 $(document).ready(function() {

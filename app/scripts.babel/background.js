@@ -18,3 +18,18 @@ function notification(idP, titleP, messageP, img) {
     console.log(chrome.runtime.lastError);
   });
 }
+
+chrome.runtime.onInstalled.addListener(function() {
+  chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
+      chrome.declarativeContent.onPageChanged.addRules([
+        {
+          conditions: [
+            new chrome.declarativeContent.PageStateMatcher({
+              pageUrl: { urlMatches: '^https?:\/\/[\w\.]+\/\w+\/(?:nxdoc|nxpath|nxsearch|nxadmin|nxhome|nxdam|nxdamid|site\/\w+)\/\w+' }
+            })
+          ],
+          actions: [ new chrome.declarativeContent.ShowPageAction() ]
+        }
+      ]);
+    });
+  });

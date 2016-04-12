@@ -21,7 +21,8 @@
     "activeTab",
     "https://ajax.googleapis.com/",
     "notifications",
-    "background"
+    "background",
+    "declarativeContent"
   ],
   "options_ui": {
     "page": "options.html",
@@ -43,7 +44,7 @@
   "omnibox": {
     "keyword": "OMNIBOX-KEYWORD"
   },
-  "browser_action": {
+  "page_action": {
     "default_icon": {
       "19": "images/nuxeo-19.png",
       "38": "images/nuxeo-38.png"
