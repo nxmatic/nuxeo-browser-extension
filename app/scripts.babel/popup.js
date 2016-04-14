@@ -9,9 +9,9 @@ function getCurrentTabUrl(callback) {
   chrome.tabs.query(queryInfo, function(tabs) {
     var tab = tabs[0];
     var url = tab.url;
-    var path = '/nuxeo/';
-    var n = url.indexOf(path);
-    url = url.substr(0, (n + path.length));
+    var nxPattern = /(^https?:\/\/[A-Za-z_\.0-9:-]+\/[A-Za-z_\.0-9-]+\/)(?:(?:nxdoc|nxpath|nxsearch|nxadmin|nxhome|nxdam|nxdamid|site\/[A-Za-z_\.0-9-]+)\/[A-Za-z_\.0-9-]+|view_documents.faces)/;
+    var matchGroup = nxPattern.exec(url);
+    url = matchGroup[1];
     console.assert(typeof url === 'string', 'tab.url should be a string');
     callback(url);
   });
@@ -45,8 +45,10 @@ $(document).ready(function() {
     var left = (screen.width/2)-(w/2);
     var top = (screen.height/2)-(h/2);
     jsonString = JSON.stringify(jsonObject, undefined, 2);
-    jsonString = btoa(jsonString);
-    chrome.windows.create({'url': 'data:application/json;base64,' + jsonString, 'type': 'popup', 'width': w, 'height': h, 'left': left, 'top': top} , function(window) {});
+    chrome.runtime.getBackgroundPage(function(bkg){
+      bkg._text = jsonString;
+      chrome.windows.create({'url': 'json.html', 'type': 'popup', 'width': w, 'height': h, 'left': left, 'top': top} , function(window) {});
+    });
   };
 
   function debounce(fn, delay) {
