@@ -107,19 +107,24 @@ $(document).ready(function() {
   };
 
   $('#hot-reload-button').click(function() {
+    $('#loading').css({'display': 'block', 'bottom': '115px', 'right':'400px'});
     chrome.runtime.getBackgroundPage(function(bkg){
       nuxeo.operation('Service.HotReloadStudioSnapshot').execute()
         .then(function() {
           bkg.notification('success', 'Success!', 'A Hot Reload has successfully been completed.', '../images/nuxeo-128.png');
+          $('#loading').css('display', 'none');
         })
         .catch(function(e) {
           var err = e.response.status;
           if (err >= 500) {
             bkg.notification('access_denied', 'Access denied!', 'You must have Administrator rights to perform this function.', '../images/access_denied.png');
+            $('#loading').css('display', 'none');
           } else if (err >= 300 && err < 500) {
             bkg.notification('bad_login', 'Bad Login', 'Your Login and/or Password are incorrect', '../images/access_denied.png');
+            $('#loading').css('display', 'none');
           } else {
             bkg.notification('unknown_error', 'Unknown Error', 'An unknown error has occurred. Please try again later.', '../images/access_denied.png');
+            $('#loading').css('display', 'none');
           };
         });
     });
@@ -140,6 +145,7 @@ $(document).ready(function() {
   $('#restart-button').click(function() {
     var restart = confirm('Are you sure you want to restart the server?');
     if (restart) {
+      $('#loading').css({'display': 'block', 'top': '25px', 'left':'400px'});
       chrome.runtime.getBackgroundPage(function(bkg){
         nuxeo.fetch({
           method: 'POST',
@@ -149,9 +155,11 @@ $(document).ready(function() {
           url: nuxeo._baseURL.concat('site/connectClient/uninstall/restart'),
         })
           .then(function(){
+            $('#loading').css('display', 'none');
             bkg.notification('error', 'Something went wrong...', 'Please try again later.', '../images/access_denied.png');
           })
           .catch(function(e) {
+            $('#loading').css('display', 'none');
             bkg.notification('success', 'Success!', 'Nuxeo server is restarting...', '../images/nuxeo-128.png');
           });
       });
@@ -199,7 +207,8 @@ $(document).ready(function() {
         sortBy: 'dc:modified'
       })
       .then(function(res) {
-        $('#json-search-results').append('<thead><tr><th id="col1"></th><th id="col2">Title</th><th id="col3">Path</th></tr></thead><tbody></tbody>');
+        $('#json-search-results').append('<thead><tr><th id="col1"></th><th id="col2"><span class="tablehead">TITLE</span></th><th id="col3"><span class="tablehead">PATH</span></th></tr></thead><tbody></tbody>');
+        $('table').css('margin-top', '20px');
         res.forEach(getResults);
           $('.json-title').click(function(event) {
             event.preventDefault();

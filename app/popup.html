@@ -28,141 +28,130 @@
     <!-- endbuild -->
   </head>
   <body>
+    <div class="nav-link">
+      <a href="about.html">About</a>
+    </div>
     <div class="container" id="main-page">
 
-      <div class="row" id="row-1">
-        <div class="logo">
+      <div class="heading">
+        <div class="row">
+          <div class="logo">
+          </div>
+          <div class="server-main">
+            <ul>
+              <li class="server-name">Connected to Nuxeo Server:</li>
+              <li><a class="server-name-url" href="#"></a></li>
+            </ul>
+          </div>
         </div>
-        <div class="server-main">
-          <ul>
-            <li class="server-name">Nuxeo Server</li>
-            <li><a class="server-name-url" href="#"></a></li>
-          </ul>
-        </div>
-<!--    <div class="current-active-server">
-          (Current Active Server)
+
+  <!--  <div class="row">
+          <div class="server-menu">
+            <form>
+              <select>
+                <option value="Server Name">Server Name</option>
+                <option value="Server 1">Server 1</option>
+                <option value="Server 2">Server 2</option>
+                <option value="Server 3">Server 3</option>
+              </select>
+              <button class="select">Select</button>
+            </form>
+          </div>
+          <div class="manage-servers">
+            <a href="manage-servers.html" class="button" id="manage-servers-button">Manage Servers...</a>
+          </div>
         </div>      -->
       </div>
 
-<!--  <div class="row" id="row-2">
-        <div class="server-menu">
-          <form>
-            <select>
-              <option value="Server Name">Server Name</option>
-              <option value="Server 1">Server 1</option>
-              <option value="Server 2">Server 2</option>
-              <option value="Server 3">Server 3</option>
-            </select>
-            <button class="select">Select</button>
-          </form>
+      <div class="buttons">
+        <div class="row">
+          <div class="hot-reload">
+            <a class="button" id="hot-reload-button"><span>Hot Reload</span></a>
+          </div>
+          <div class="studio-link">
+            <a class="button" id="studio-link-button"><span>Go to Studio</span></a>
+          </div>
         </div>
-        <div class="manage-servers">
-          <a href="manage-servers.html" class="button" id="manage-servers-button">Manage Servers...</a>
-        </div>
-      </div>      -->
 
-      <div class="row" id="row-3">
-        <div id="fire-icon" class="icon">
+  <!--  <div class="row">
+          <div class="view-packages">
+            <a class="button" id="view-packages-button">View Packages</a>
+          </div>
+          <div class="view-bundles">
+            <a class="button" id="view-bundles-button">View Bundles</a>
+          </div>
         </div>
-        <div class="hot-reload">
-          <button id="hot-reload-button">Hot Reload</button>
-        </div>
-        <div id="studio-icon" class="icon">
-        </div>
-        <div class="studio-link">
-          <button id="studio-link-button">Go to Studio</button>
+
+        <div class="row">
+          <div class="view-logs">
+            <a class="button" id="view-logs-button">View Logs</a>
+          </div>
+          <div class="download-logs">
+            <a class="button" id="download-logs-button">Download Logs</a>
+          </div>
+        </div>      -->
+
+        <div class="row">
+          <div class="automation-doc">
+            <a class="button" id="autodoc-button"><span>Automation Doc</span></a>
+          </div>
+          <div class="restart">
+            <a class="button" id="restart-button"><span>Restart</span></a>
+          </div>
         </div>
       </div>
 
-      <div class="row" id="row-4">
-        <div id="package-icon" class="icon">
+      <div class="toggles">
+        <div class="row">
+          <div class="debug">
+            Automation Call Tracing
+          </div>
+          <div class="onoffswitch">
+            <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="debug-switch">
+            <label class="onoffswitch-label" for="debug-switch">
+              <span class="onoffswitch-inner"></span>
+              <span class="onoffswitch-switch"></span>
+            </label>
+          </div>
         </div>
-        <div class="view-packages">
-          <button id="view-packages-button">View Packages</button>
-        </div>
-        <div id="jar-icon" class="icon">
-        </div>
-        <div class="view-bundles">
-          <button id="view-bundles-button">View Bundles</button>
-        </div>
+
+<!--    <div class="row">
+          <div class="ui-dev-mode">
+            UI Development Mode
+          </div>
+          <div class="onoffswitch">
+            <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="devmode-switch">
+            <label class="onoffswitch-label" for="devmode-switch">
+              <span class="onoffswitch-inner"></span>
+              <span class="onoffswitch-switch"></span>
+            </label>
+          </div>
+        </div>        -->
       </div>
 
-      <div class="row" id="row-5">
-        <div id="log-icon" class="icon">
+      <div class="search">
+        <div class="row">
+          <div class="export">
+          Export JSON
+          </div>
         </div>
-        <div class="view-logs">
-          <button id="view-logs-button">View Logs</button>
+
+        <div class="row">
+          <div>
+            <form>
+              <input type="search" id="json-search" placeholder="Enter path, GUID or file name..." results="5">
+            </form>
+          </div>
+          <div id="loading-gif">
+          </div>
         </div>
-        <div id="download-icon" class="icon">
-        </div>
-        <div class="download-logs">
-          <button id="download-logs-button">Download Logs</button>
-        </div>
+
+        <table = id="json-search-results">
+        </table>
       </div>
 
-      <div class="row" id="row-6">
-        <div id="doc-icon" class="icon">
-        </div>
-        <div class="automation-doc">
-          <button id="autodoc-button">AutomationDoc</button>
-        </div>
-        <div id="restart-icon" class="icon">
-        </div>
-        <div class="restart">
-          <button id="restart-button">Restart</button>
-        </div>
-      </div>
-
-      <div class="row" id="row-7">
-        <div class="debug">
-          Automation Call Tracing
-        </div>
-        <div class="onoffswitch">
-          <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="debug-switch">
-          <label class="onoffswitch-label" for="debug-switch">
-            <span class="onoffswitch-inner"></span>
-            <span class="onoffswitch-switch"></span>
-          </label>
-        </div>
-      </div>
-
-      <div class="row" id="row-8">
-        <div class="ui-dev-mode">
-          UI Development Mode
-        </div>
-        <div class="onoffswitch">
-          <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="devmode-switch">
-          <label class="onoffswitch-label" for="devmode-switch">
-            <span class="onoffswitch-inner"></span>
-            <span class="onoffswitch-switch"></span>
-          </label>
-        </div>
-      </div>
-
-      <div class="row" id="row-9">
-        <div>
-        Export JSON
-        </div>
-      </div>
-
-      <div class="row" id="row-10">
-        <div>
-          <form>
-            <input type="search" id="json-search" placeholder="Enter path, GUID or file name...">
-          </form>
-        </div>
-        <div id="loading-gif">
-        </div>
-      </div>
-
-      <div id="row-11">
-        <a href="about.html">About</a>
-      </div>
-
-      <table = id="json-search-results">
-
-      </table>
-
+    </div>
+    <div id="loading">
     </div>
     <!-- build:js scripts/popup-vendor.js -->
     <!-- bower:js -->

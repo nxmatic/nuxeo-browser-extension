@@ -14,19 +14,84 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+
+/* CONTENTS
+*
+* General
+* Headings
+* Buttons
+* Toggles
+* Search
+* About Page
+
+*/
+
+/*==============================================================================
+GENERAL
+==============================================================================*/
 body {
-  width: 500px;
-  background-color: #F5F5F5;
+ margin: 0;
+ padding: 5px;
+ border-top: 5px solid #213f7d;
+ font-family: Arial;
+ width: 500px;
+ background-color: #fff;
+ color: #213f7d;
+}
+
+table {
+  table-layout: fixed;
+  width: 100%;
+  white-space: nowrap;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+thead {
+  text-align: left;
+}
+
+th {
+  background-color: #00adff;
+  color: #fff;
+  line-height: 20px;
+}
+
+table th:first-child{
+  border-radius: 24px 0 0 24px;
+}
+
+table th:last-child{
+  border-radius: 0 24px 24px 0;
+}
+
+tbody:before {
+  content: "-";
+  display: block;
+  line-height: 5px;
+  color: transparent;
+}
+
+tr {
+  line-height: 25px;
+}
+
+tr:nth-child(even) {
+  background-color: #eee;
+}
+
+td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 ul {
   list-style-type: none;
 }
 
-button {
-  cursor: pointer;
-  width: 110px;
-  height: 21px;
+.container {
+  padding: 10px 40px 30px 40px;
 }
 
 .row {
@@ -35,8 +100,39 @@ button {
   display: flex;
   align-items: center;
   clear: both;
-  margin-right: 40px;
+  padding: 5px 0;
 }
+
+.toggles,
+.search {
+  display: block;
+  float: left;
+  width: 100%;
+}
+
+.heading,
+.buttons,
+.toggles,
+.search {
+  margin: 0 0 30px;
+}
+
+.nav-link {
+  text-align: right;
+}
+
+.nav-link a {
+ text-decoration: none;
+ color: #213f7d;
+}
+
+.nav-link a:hover {
+  color: #00adff;
+}
+
+/*==============================================================================
+HEADINGS
+==============================================================================*/
 
 .logo {
   background-image: url("../images/nuxeo_small.png");
@@ -50,85 +146,171 @@ button {
   flex: 5;
 }
 
-.server-name, #row-1b, #row-1c {
-  font-size: 25px;
+.server-name {
+  font-size: 15px;
 }
 
-.current-active-server {
-  color: #F69C55;
-  font-style: italic;
-  -webkit-flex: 2;
-  flex: 2;
-  -webkit-align-self: center;
-  align-content: flex-end;
+.server-name-url {
+  font-size: 20px;
+  font-weight: bold;
+  color: #213f7d;
 }
 
-.server-menu {
-  margin-left: 35px;
-  -webkit-flex: 2;
-  flex: 2;
+/*==============================================================================
+BUTTONS
+==============================================================================*/
+.buttons{
+  margin-left: 10px;
 }
 
-select {
-  width: 250px;
+a.button {
+  text-decoration: none;
+  border: 0 none;
+  border-radius: 24px;
+  width: 115px;
+  padding: 10px 12px;
+  margin: 10px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 0 0 160px;
+  text-align: center;
+  line-height: 1.3;
+  font-size: 14px;
+  text-transform: none;
+  font-weight: 500;
+  transition: all 60ms ease-in-out;
+  background: #213f7d;
+  color: #fff;
 }
 
-.icon {
-  height: 16px;
+a.button:hover {
+  opacity: .95;
+  transition: all 60ms ease;
 }
 
-.title {
-  margin-left: 20px;
+a.button:active {
+  opacity: .75;
+  transform: scale(.97);
+  transition: all 60ms ease;
 }
 
-.description, #row-3d, #row-4d, #row-5d {
-  margin-left: 50px;
+.hot-reload,
+.studio-link,
+.view-packages,
+.view-bundles,
+.view-logs,
+.download-logs,
+.automation-doc,
+.restart {
+  margin-left: 30px;
 }
 
-#fire-icon {
-  background-image: url("../images/fire.png");
-  width: 12px;
-  margin-right: 4px;
+#loading {
+  display: none;
+  position: fixed;
+  z-index: 100;
+  background: transparent url('../images/loading_big.gif') no-repeat center;
+  opacity: 1;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  top: 0;
 }
 
-#studio-icon {
-  background-image: url("../images/studio.png");
-  width: 16px;
+/*==============================================================================
+TOGGLES
+==============================================================================*/
+.debug,
+.ui-dev-mode,
+.export {
+  width: 190px;
+  font-size: 16px;
 }
 
-#package-icon {
-  background-image: url("../images/package.png");
-  width: 15px;
-  margin-right: 1px;
+.onoffswitch {
+  position: relative;
+  width: 90px;
+  -webkit-user-select:none; -moz-user-select:none;
+  float: right;
+  margin-left: 140px;
+}
+.onoffswitch-checkbox {
+  display: none;
+}
+.onoffswitch-label {
+  display: block;
+  overflow: hidden;
+  cursor: pointer;
+  border: none;
+  border-radius: 10px;
+}
+.onoffswitch-inner {
+  display: block;
+  width: 200%;
+  margin-left: -100%;
+  transition: margin 0.3s ease-in 0s;
+}
+.onoffswitch-inner::before,
+.onoffswitch-inner::after {
+  display: block;
+  float: left;
+  width: 50%;
+  height: 20px;
+  padding: 0;
+  line-height: 20px;
+  font-size: 10px;
+  color: #fff;
+  font-family: Trebuchet, Arial, sans-serif;
+  font-weight: bold;
+  box-sizing: border-box;
+}
+.onoffswitch-inner::before {
+  content: "ENABLED";
+  padding-left: 10px;
+  background-color: #00adff; color: #fff;
+}
+.onoffswitch-inner::after {
+  content: "DISABLED";
+  padding-right: 10px;
+  background-color: #ddd; color: #999;
+  text-align: right;
+}
+.onoffswitch-switch {
+  display: block;
+  width: 11px;
+  margin: 4px;
+  background: #fff;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 69px;
+  border: none;
+  border-radius: 10px;
+  transition: all 0.3s ease-in 0s;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+  margin-left: 0;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
+  right: 0;
 }
 
-#jar-icon {
-  background-image: url("../images/jar.png");
-  width: 16px;
+/*==============================================================================
+SEARCH
+==============================================================================*/
+#json-search {
+  margin-top: 0;
+  border-radius: 24px;
+  border:1px solid #ddd;
+  height: 25px;
+  width: 420px;
+  float: left;
 }
 
-#log-icon {
-  background-image: url("../images/log.png");
-  width: 12px;
-  margin-right: 4px;
-}
-
-#download-icon {
-  background-image: url("../images/download.png");
-  width: 15px;
-  margin-right: 1px;
-}
-
-#doc-icon {
-  background-image: url("../images/doc.png");
-  width: 12px;
-  margin-right: 4px;
-}
-
-#restart-icon {
-  background-image: url("../images/restart.png");
-  width: 12px;
-  margin-right: 4px;
+#json-search:focus {
+  outline: none;
 }
 
 #loading-gif {
@@ -136,178 +318,12 @@ select {
   height: 20px;
   width: 20px;
   display: none;
+  margin-right: -200px;
 }
 
-a.button {
-    -webkit-appearance: button;
-    -moz-appearance: button;
-    appearance: button;
-
-    text-decoration: none;
-    color: initial;
-    width: 110px;
-    height: 15px;
-    text-align: center;
-
-    font-size: 13px;
-    padding-top: 3px;
-    padding-bottom: 3px;
-}
-
-#delete-button {
-  background-color: red;
-  margin-left: 30px;
-  font: bold;
-}
-
-.select {
-  width: 50px;
-}
-
-#manage-servers-button {
-  -webkit-flex: 2;
-  flex: 2;
-
-  -webkit-align-self: center;
-  align-content: flex-end;
-}
-
-#row-3, #row-7 {
-  margin-top: 40px;
-}
-
-#row-4, #row-5, #row-6, #row-8 {
-  margin-top: 10px;
-}
-
-#row-7, #row-8, #row-9 {
-  font-size: 15px;
-  display: block;
-  float: left;
-  width: 100%;
-}
-
-#row-2, #row-8, #row-1b, #row-2b, #row-1c {
-  margin-bottom: 40px;
-}
-
-#row-10, #row-4b, #row-5b, #row-3c, #row-2c {
-  margin-bottom: 20px;
-}
-
-#studio-link-button {
-  -webkit-flex: 2;
-  flex: 2;
-
-  -webkit-align-self: center;
-  align-content: flex-end;
-}
-
-#row-3, #row-4, #row-5, #row-6 {
-  margin-left: 90px;
-}
-
-#row-7, #row-8, #row-9, #row-10, #row-2b, #studio-icon, #jar-icon, #download-icon, #restart-icon, #add-current-button {
-  margin-left: 50px;
-}
-
-#row-9 {
-  margin-top: 40px;
-}
-
-#row-11 {
-  text-align: right;
-}
-
-.hot-reload, .studio-link, .view-packages, .view-bundles, .view-logs,
-.download-logs, .automation-doc, .restart {
-  margin-left: 10px;
-}
-
-.debug, .ui-dev-mode {
-    float: left;
-}
-
-.onoffswitch {
-    position: relative;
-    width: 90px;
-    -webkit-user-select:none; -moz-user-select:none; -ms-user-select: none;
-    float: right;
-    margin-right: 100px;
-}
-.onoffswitch-checkbox {
-    display: none;
-}
-.onoffswitch-label {
-    display: block; overflow: hidden; cursor: pointer;
-    border: 2px solid #8F8F8F; border-radius: 10px;
-}
-.onoffswitch-inner {
-    display: block; width: 200%; margin-left: -100%;
-    transition: margin 0.3s ease-in 0s;
-}
-.onoffswitch-inner:before, .onoffswitch-inner:after {
-    display: block; float: left; width: 50%; height: 17px; padding: 0; line-height: 17px;
-    font-size: 10px; color: white; font-family: Trebuchet, Arial, sans-serif; font-weight: bold;
-    box-sizing: border-box;
-}
-.onoffswitch-inner::before {
-    content: "ENABLED";
-    padding-left: 10px;
-    background-color: #173C7C; color: #FFFFFF;
-}
-.onoffswitch-inner::after {
-    content: "DISABLED";
-    padding-right: 10px;
-    background-color: #EEEEEE; color: #999999;
-    text-align: right;
-}
-.onoffswitch-switch {
-    display: block; width: 9px; margin: 4px;
-    background: #FFFFFF;
-    position: absolute; top: 0; bottom: 0;
-    right: 69px;
-    border: 2px solid #8F8F8F; border-radius: 10px;
-    transition: all 0.3s ease-in 0s;
-}
-.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
-    margin-left: 0;
-}
-.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
-    right: 0px;
-}
-
-#row-5b, #row-3c {
-  float: right;
-}
-
-#json-search {
-  width: 390px;
-  float: left;
-}
-
-.json-title {
-  font-weight: bold;
-  text-decoration: underline;
-  color: #000099;
-}
-
-.json-title:hover {
-    color: blue;
-    cursor: pointer;
-}
-
-td {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-table {
-  margin-left: 40px;
-  table-layout: fixed;
-  width: 90%;
-  white-space: nowrap;
+/* SEARCH RESULTS ------------------------------------------------------------*/
+.export {
+  margin-bottom: -5px;
 }
 
 #col1 {
@@ -315,19 +331,33 @@ table {
 }
 
 #col2 {
-  width: 30%;
-
+  width: 25%;
 }
 
 #col3 {
-  width: 65%;
+  width: 70%;
 }
 
-.labels li {
+.json-title {
+  font-weight: bold;
+  text-decoration: none;
+  color: inherit;
+}
+
+.json-title:hover {
+  color: #00adff;
+  cursor: pointer;
+}
+
+/*==============================================================================
+ABOUT PAGE
+==============================================================================*/
+
+.title {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.description {
   font-size: 15px;
-  margin-bottom: 14px;
-}
-
-.fields li {
-  margin-bottom: 10px;
 }
