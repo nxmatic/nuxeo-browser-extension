@@ -16,6 +16,8 @@ limitations under the License.
 
 'use strict';
 
+var studioExt = {}
+
 function getCurrentTabUrl(callback) {
   var queryInfo = {
     active: true,
@@ -29,6 +31,10 @@ function getCurrentTabUrl(callback) {
     var matchGroup = nxPattern.exec(url);
     url = matchGroup[1];
     console.assert(typeof url === 'string', 'tab.url should be a string');
+    studioExt.server = {
+      url: url,
+      tabId: tab.id
+    }
     callback(url);
   });
 };
@@ -58,7 +64,7 @@ $(document).ready(function() {
     jsonString = JSON.stringify(jsonObject, undefined, 2);
     chrome.runtime.getBackgroundPage(function(bkg){
       bkg._text = jsonString;
-      chrome.tabs.create({'url': 'json.html', 'active': true});
+      chrome.tabs.create({url: 'json.html', active: true, openerTabId: studioExt.server.tabId});
     });
   };
 
@@ -133,13 +139,15 @@ $(document).ready(function() {
 
   $('#studio-link-button').click(function() {
     chrome.tabs.create({
-      url: 'https://connect.nuxeo.com/nuxeo/site/studio/ide/'
+      url: 'https://connect.nuxeo.com/nuxeo/site/studio/ide/',
+      openerTabId: studioExt.server.tabId
     });
   });
 
   $('#autodoc-button').click(function() {
     chrome.tabs.create({
-      url: nuxeo._baseURL.concat('site/automation/doc/')
+      url: nuxeo._baseURL.concat('site/automation/doc/'),
+      openerTabId: studioExt.server.tabId
     });
   });
 
