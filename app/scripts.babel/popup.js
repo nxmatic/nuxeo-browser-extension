@@ -58,7 +58,7 @@ $(document).ready(function() {
     jsonString = JSON.stringify(jsonObject, undefined, 2);
     chrome.runtime.getBackgroundPage(function(bkg){
       bkg._text = jsonString;
-      chrome.windows.create({'url': 'json.html', 'type': 'popup', 'width': w, 'height': h, 'left': left, 'top': top} , function(window) {});
+      chrome.tabs.create({'url': 'json.html', 'active': true});
     });
   };
 
