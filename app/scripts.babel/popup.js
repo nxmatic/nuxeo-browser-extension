@@ -110,17 +110,23 @@ $(document).ready(function() {
           $('#loading').css('display', 'none');
         })
         .catch(function(e) {
-          var err = e.response.status;
-          if (err >= 500) {
-            bkg.notification('access_denied', 'Access denied!', 'You must have Administrator rights to perform this function.', '../images/access_denied.png');
-            $('#loading').css('display', 'none');
-          } else if (err >= 300 && err < 500) {
-            bkg.notification('bad_login', 'Bad Login', 'Your Login and/or Password are incorrect', '../images/access_denied.png');
-            $('#loading').css('display', 'none');
-          } else {
-            bkg.notification('unknown_error', 'Unknown Error', 'An unknown error has occurred. Please try again later.', '../images/access_denied.png');
-            $('#loading').css('display', 'none');
-          };
+          e.response.json().then(function(json) {
+            var msg = json.message;
+            var err = e.response.status;
+            if (msg == null) {
+              bkg.notification('no_hot_reload', 'Hot Reload Operation not found.', 'Your current version of Nuxeo does not support the Hot Reload function.', '../images/access_denied.png');
+              $('#loading').css('display', 'none');
+            } else if (err >= 500) {
+              bkg.notification('access_denied', 'Access denied!', 'You must have Administrator rights to perform this function.', '../images/access_denied.png');
+              $('#loading').css('display', 'none');
+            } else if (err >= 300 && err < 500) {
+              bkg.notification('bad_login', 'Bad Login', 'Your Login and/or Password are incorrect', '../images/access_denied.png');
+              $('#loading').css('display', 'none');
+            } else {
+              bkg.notification('unknown_error', 'Unknown Error', 'An unknown error has occurred. Please try again later.', '../images/access_denied.png');
+              $('#loading').css('display', 'none');
+            };
+          });
         });
     });
   });
