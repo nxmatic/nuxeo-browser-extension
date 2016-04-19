@@ -174,7 +174,8 @@ $(document).ready(function() {
     }
   });
 
-  $('#debug-switch').click(function() {
+  $('#debug-switch').click(function(event) {
+    event.preventDefault();
     nuxeo.operation('Traces.ToggleRecording')
       .params({readOnly: false})
       .execute()
@@ -194,6 +195,7 @@ $(document).ready(function() {
     var input = $('#json-search').val();
     if (input == '') {
       $('#json-search-results').empty();
+      $('#loading-gif').css('display', 'none');
     } else if (uuidPattern.test(input)) {
       getJsonFromGuid(input);
       $('#loading-gif').css('display', 'none');
@@ -219,7 +221,6 @@ $(document).ready(function() {
           var uid = doc.uid;
           showSearchResults(icon, title, path, uid);
         });
-
         $('.json-title').click(function(event) {
           event.preventDefault();
           getJsonFromGuid(event.target.id);
