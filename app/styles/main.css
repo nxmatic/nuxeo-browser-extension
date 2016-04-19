@@ -90,11 +90,11 @@ ul {
   list-style-type: none;
 }
 
-.container {
+.nxcontainer {
   padding: 10px 40px 30px 40px;
 }
 
-.row {
+.nxrow {
   display: -webkit-flex;
   -webkit-align-items: center;
   display: flex;
