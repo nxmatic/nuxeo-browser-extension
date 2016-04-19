@@ -137,19 +137,26 @@ $(document).ready(function() {
     });
   });
 
-  $('#restart-button').click(function() {
-    var restart = confirm('Are you sure you want to restart the server?');
-    if (restart) {
-      $('#loading').css({'display': 'block', 'top': '25px', 'left':'400px'});
-      chrome.runtime.getBackgroundPage(function(bkg){
+  $('#restart-button').confirm({
+    title: 'Warning!',
+    text: 'Are you sure you want to restart the server?',
+    confirmButton: 'Restart',
+    cancelButton: 'Cancel',
+    confirm: function() {
+      $('#loading').css({
+        'display': 'block',
+        'top': '25px',
+        'left': '400px'
+      });
+      chrome.runtime.getBackgroundPage(function(bkg) {
         nuxeo.fetch({
-          method: 'POST',
-          schemas: [],
-          enrichers: [],
-          fetchProperties: [],
-          url: nuxeo._baseURL.concat('site/connectClient/uninstall/restart'),
-        })
-          .then(function(){
+            method: 'POST',
+            schemas: [],
+            enrichers: [],
+            fetchProperties: [],
+            url: nuxeo._baseURL.concat('site/connectClient/uninstall/restart'),
+          })
+          .then(function() {
             $('#loading').css('display', 'none');
             bkg.notification('error', 'Something went wrong...', 'Please try again later.', '../images/access_denied.png');
           })
@@ -158,7 +165,7 @@ $(document).ready(function() {
             bkg.notification('success', 'Success!', 'Nuxeo server is restarting...', '../images/nuxeo-128.png');
           });
       });
-    };
+    }
   });
 
   $('#debug-switch').click(function() {
