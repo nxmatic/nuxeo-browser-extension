@@ -36,12 +36,7 @@ function getCurrentTabUrl(callback) {
 var nuxeo;
 getCurrentTabUrl(function(url) {
   nuxeo = new Nuxeo({
-    baseURL: url,
-    auth: {
-      method: 'basic',
-      username: 'Administrator',
-      password: 'Administrator'
-    }
+    baseURL: url
   });
   nuxeo.operation('Traces.ToggleRecording')
     .params({readOnly: true})
