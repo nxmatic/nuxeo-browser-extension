@@ -18,6 +18,17 @@ limitations under the License.
 
 var studioExt = {}
 
+function debounce(fn, delay) {
+  var timer = null;
+  return function () {
+    var context = this, args = arguments;
+    clearTimeout(timer);
+    timer = setTimeout(function () {
+      fn.apply(context, args);
+    }, delay);
+  };
+};
+
 function getCurrentTabUrl(callback) {
   var queryInfo = {
     active: true,
@@ -66,17 +77,6 @@ $(document).ready(function() {
       bkg._text = jsonString;
       chrome.tabs.create({url: 'json.html', active: true, openerTabId: studioExt.server.tabId});
     });
-  };
-
-  function debounce(fn, delay) {
-    var timer = null;
-    return function () {
-      var context = this, args = arguments;
-      clearTimeout(timer);
-      timer = setTimeout(function () {
-        fn.apply(context, args);
-      }, delay);
-    };
   };
 
   function getJsonFromPath(input) {

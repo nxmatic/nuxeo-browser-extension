@@ -3,16 +3,28 @@
   <head>
     <meta charset="utf-8">
     <title></title>
+    <!-- build:css styles/json-highlight.css -->
     <link rel="stylesheet" href="styles/mono-blue.css">
+    <!-- endbuild -->
   </head>
   <body>
     <pre><code class="json" id="json-string">
 
     </code></pre>
+    <!-- build:js scripts/json-vendor.js -->
+    <!-- bower:js -->
     <script src="libs/highlight.js"></script>
     <script src="bower_components/nuxeo/dist/nuxeo.js"></script>
     <script src="bower_components/jquery/dist/jquery.js"></script>
+    <!-- endbower -->
+    <!-- endbuild -->
+
+    <!-- build:js scripts/background.js -->
     <script src="scripts/background.js"></script>
+    <!-- endbuild -->
+
+    <!-- build:js scripts/json.js -->
     <script src="scripts/json.js"></script>
+    <!-- endbuild -->
   </body>
 </html>
