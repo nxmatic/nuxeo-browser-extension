@@ -49,7 +49,7 @@ getCurrentTabUrl(function(url) {
     .then(function(response) {
       $('#debug-switch').attr('checked', response.value);
     });
-  $('a.server-name-url').html(nuxeo._baseURL);
+  $('div.server-name-url').html(nuxeo._baseURL);
 });
 
 $(document).ready(function() {
