@@ -176,7 +176,6 @@ $(document).ready(function() {
 
   $('#json-search').keyup(debounce(function() {
     $('#json-search-results').empty();
-    $('#loading-gif').css('display', 'none');
     var uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     var pathPattern = /^\//;
     var input = $('#json-search').val();
@@ -184,17 +183,12 @@ $(document).ready(function() {
       $('#json-search-results').empty();
     } else if (uuidPattern.test(input)) {
       getJsonFromGuid(input);
+      $('#loading-gif').css('display', 'none');
     } else if (pathPattern.test(input)) {
-        getJsonFromPath(input);
+      getJsonFromPath(input);
+      $('#loading-gif').css('display', 'none');
     } else {
       var jsonQuery = 'SELECT * FROM Document WHERE ecm:fulltext = "' + input + '"';
-      var getResults = function(doc) {
-        var icon = doc.get('common:icon');
-        var title = doc.get('dc:title');
-        var path = doc.path;
-        var uid = doc.uid;
-        showSearchResults(icon, title, path, uid);
-      }
       nuxeo.repository()
       .schemas(['dublincore', 'common'])
       .query({
@@ -204,15 +198,29 @@ $(document).ready(function() {
       .then(function(res) {
         $('#json-search-results').append('<thead><tr><th id="col1"></th><th id="col2"><span class="tablehead">TITLE</span></th><th id="col3"><span class="tablehead">PATH</span></th></tr></thead><tbody></tbody>');
         $('table').css('margin-top', '20px');
-        res.forEach(getResults);
-          $('.json-title').click(function(event) {
-            event.preventDefault();
-            getJsonFromGuid(event.target.id);
-          });
+
+        res.forEach(function(doc) {
+          var icon = doc.get('common:icon');
+          var title = doc.get('dc:title');
+          var path = doc.path;
+          var uid = doc.uid;
+          showSearchResults(icon, title, path, uid);
+        });
+
+        $('.json-title').click(function(event) {
+          event.preventDefault();
+          getJsonFromGuid(event.target.id);
+        });
+        $('#loading-gif').css('display', 'none');
       })
       .catch(function(error) {
-        throw new Error(error);
+        error.response.json().then(function(json) {
+          chrome.runtime.getBackgroundPage(function(bkg) {
+            bkg.notification('error', json.code, json.message, '../images/access_denied.png');
+          });
+          $('#loading-gif').css('display', 'none');
+        });
       });
     };
-  }, 750));
+  }, 1000));
 });
