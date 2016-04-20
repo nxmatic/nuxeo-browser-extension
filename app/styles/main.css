@@ -351,6 +351,15 @@ SEARCH
   cursor: pointer;
 }
 
+#export-current {
+  text-align:left;
+  font-size: 14px;
+  display: none;
+  font-weight: bold;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
 /*==============================================================================
 ABOUT PAGE
 ==============================================================================*/

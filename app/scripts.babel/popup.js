@@ -29,55 +29,20 @@ function debounce(fn, delay) {
   };
 };
 
-function getCurrentTabUrl(callback) {
-  var queryInfo = {
-    active: true,
-    currentWindow: true
-  };
-
-  chrome.tabs.query(queryInfo, function(tabs) {
-    var tab = tabs[0];
-    var url = tab.url;
-    var nxPattern = /(^https?:\/\/[A-Za-z_\.0-9:-]+\/[A-Za-z_\.0-9-]+\/)(?:(?:nxdoc|nxpath|nxsearch|nxadmin|nxhome|nxdam|nxdamid|site\/[A-Za-z_\.0-9-]+)\/[A-Za-z_\.0-9-]+|view_documents\.faces|view_domains\.faces|view_home\.faces)/;
-    var matchGroup = nxPattern.exec(url);
-    url = matchGroup[1];
-    console.assert(typeof url === 'string', 'tab.url should be a string');
-    studioExt.server = {
-      url: url,
-      tabId: tab.id
-    }
-    callback(url);
-  });
-};
-
-var nuxeo;
-getCurrentTabUrl(function(url) {
-  nuxeo = new Nuxeo({
-    baseURL: url
-  });
-  nuxeo.operation('Traces.ToggleRecording')
-    .params({readOnly: true})
-    .execute()
-    .then(function(response) {
-      $('#debug-switch').attr('checked', response.value);
-    });
-  $('div.server-name-url').html(nuxeo._baseURL);
-});
-
 $(document).ready(function() {
-
-  var openJsonWindow = function(jsonObject) {
-    var jsonString;
-    var w = 600;
-    var h = 800;
-    var left = (screen.width/2)-(w/2);
-    var top = (screen.height/2)-(h/2);
-    jsonString = JSON.stringify(jsonObject, undefined, 2);
-    chrome.runtime.getBackgroundPage(function(bkg){
-      bkg._text = jsonString;
-      chrome.tabs.create({url: 'json.html', active: true, openerTabId: studioExt.server.tabId});
+  var nuxeo;
+  getCurrentTabUrl(function(url) {
+    nuxeo = new Nuxeo({
+      baseURL: url
     });
-  };
+    nuxeo.operation('Traces.ToggleRecording')
+      .params({readOnly: true})
+      .execute()
+      .then(function(response) {
+        $('#debug-switch').attr('checked', response.value);
+      });
+    $('div.server-name-url').html(nuxeo._baseURL);
+  });
 
   function getJsonFromPath(input) {
     nuxeo.request('/path/' + input)
@@ -97,6 +62,54 @@ $(document).ready(function() {
       .catch(function(error) {
         throw new Error(error);
       });
+  };
+
+  function getCurrentTabUrl(callback) {
+    var queryInfo = {
+      active: true,
+      currentWindow: true
+    };
+
+    chrome.tabs.query(queryInfo, function(tabs) {
+      var tab = tabs[0];
+      var url = tab.url;
+      var uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      var pathPattern = /^\//;
+      var nxPattern = /(^https?:\/\/[A-Za-z_\.0-9:-]+\/[A-Za-z_\.0-9-]+\/)(?:(?:nxdoc|nxpath|nxsearch|nxadmin|nxhome|nxdam|nxdamid|site\/[A-Za-z_\.0-9-]+)\/[A-Za-z_\.0-9-]+|view_documents\.faces|view_domains\.faces|view_home\.faces)/;
+      var docPattern = /nxpath\/[A-Za-z_\.0-9-]+(\/[A-Za-z_\.0-9-\/]+)|(?:nxdoc[\/A-Za-z_\.0-9]+)([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})/;
+      var matchGroupDoc = docPattern.exec(url);
+
+      if (matchGroupDoc) {
+        var docPath = matchGroupDoc[1];
+        $('#export-current').css('display', 'block');
+        $('#export-current').click(function(event) {
+          if (uuidPattern.test(docPath)) {
+            getJsonFromGuid(docPath);
+          } else if (pathPattern.test(docPath)) {
+            getJsonFromPath(docPath);
+          }
+          $('#export-current').css('display', 'none');
+        });
+      };
+
+      var matchGroup = nxPattern.exec(url);
+      url = matchGroup[1];
+      console.assert(typeof url === 'string', 'tab.url should be a string');
+      callback(url);
+    });
+  };
+
+  var openJsonWindow = function(jsonObject) {
+    var jsonString;
+    var w = 600;
+    var h = 800;
+    var left = (screen.width/2)-(w/2);
+    var top = (screen.height/2)-(h/2);
+    jsonString = JSON.stringify(jsonObject, undefined, 2);
+    chrome.runtime.getBackgroundPage(function(bkg){
+      bkg._text = jsonString;
+      chrome.tabs.create({url: 'json.html', active: true, openerTabId: studioExt.server.tabId});
+    });
   };
 
   function showSearchResults(icon, title, path, uid) {
