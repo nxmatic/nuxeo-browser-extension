@@ -95,6 +95,12 @@ $(document).ready(function() {
       var matchGroup = nxPattern.exec(url);
       url = matchGroup[1];
       console.assert(typeof url === 'string', 'tab.url should be a string');
+
+      studioExt.server = {
+        url: url,
+        tabId: tab.id
+      }
+
       callback(url);
     });
   };
