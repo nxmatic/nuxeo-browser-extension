@@ -61,10 +61,44 @@ gulp.task('html',  () => {
     .pipe(gulp.dest('dist'));
 });
 
-gulp.task('chromeManifest', () => {
+gulp.task('bump', () => {
   return gulp.src('app/manifest.json')
     .pipe($.chromeManifest({
       buildnumber: true,
+      background: {
+        target: 'scripts/background.js',
+        exclude: [
+          'scripts/chromereload.js'
+        ]
+      }
+  }))
+  .pipe(gulp.dest('app'));
+});
+
+gulp.task('release', (cb) => {
+  let manifest = require('./app/manifest.json');
+  let [major, minor, build] = manifest.version.split('\.')
+  let version = `${major}.${parseInt(minor) + 1}.0`
+
+  gulp.src('app/manifest.json')
+    .pipe($.chromeManifest({
+      buildnumber: version,
+      background: {
+        target: 'scripts/background.js',
+        exclude: [
+          'scripts/chromereload.js'
+        ]
+      }
+  }))
+  .pipe(gulp.dest('app'));
+
+  runSequence('build', 'package', cb);
+});
+
+gulp.task('chromeManifest', () => {
+  return gulp.src('app/manifest.json')
+    .pipe($.chromeManifest({
+      buildnumber: false,
       background: {
         target: 'scripts/background.js',
         exclude: [
@@ -117,7 +151,7 @@ gulp.task('wiredep', () => {
     .pipe(gulp.dest('app'));
 });
 
-gulp.task('package', function () {
+gulp.task('package', ['bump'], function () {
   var manifest = require('./dist/manifest.json');
   return gulp.src('dist/**')
       .pipe($.zip('Nuxeo Extension-' + manifest.version + '.zip'))
