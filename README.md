@@ -17,7 +17,7 @@ Actions include:
 
 # Installation
 
-- From the Chrome Web Store: install [Nuxeo Chrome Extension](#).
+- From the Chrome Web Store: install [Nuxeo Chrome Extension](https://chrome.google.com/webstore/detail/nuxeo-extension/kncphbjdicjganncpalklkllihdidcmh).
 
 ## Requirements
 
