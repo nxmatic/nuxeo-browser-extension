@@ -46,7 +46,7 @@
 			"19": "images/nuxeo-19.png",
 			"38": "images/nuxeo-38.png"
 		},
-		"default_title": "Nuxeo Extension",
+		"default_title": "Nuxeo Chrome Dev Tools",
 		"default_popup": "popup.html"
 	}
 }
