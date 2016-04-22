@@ -204,7 +204,6 @@ $(document).ready(function() {
   });
 
   $('#debug-switch').click(function(event) {
-    event.preventDefault();
     nuxeo.operation('Traces.ToggleRecording')
       .params({readOnly: false})
       .execute()
