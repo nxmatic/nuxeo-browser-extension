@@ -1,4 +1,4 @@
-Nuxeo Chrome Extension
+Nuxeo Chrome Dev Tools
 ======================
 
 # About
