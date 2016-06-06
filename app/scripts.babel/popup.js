@@ -135,6 +135,7 @@ $(document).ready(function() {
         .then(function() {
           bkg.notification('success', 'Success!', 'A Hot Reload has successfully been completed.', '../images/nuxeo-128.png');
           $('#loading').css('display', 'none');
+          chrome.tabs.reload();
         })
         .catch(function(e) {
           e.response.json().then(function(json) {
