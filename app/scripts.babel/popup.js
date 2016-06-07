@@ -160,6 +160,14 @@ $(document).ready(function() {
     });
   });
 
+  $('#explorer-link').click(function() {
+    console.log('clicked!');
+    chrome.tabs.create({
+      url: 'https://explorer.nuxeo.com',
+      openerTabId: studioExt.server.tabId
+    });
+  });
+
   $('#restart-button').confirm({
     title: 'Warning!',
     text: 'Are you sure you want to restart the server?',

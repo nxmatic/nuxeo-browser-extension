@@ -22,7 +22,7 @@ limitations under the License.
 * Buttons
 * Toggles
 * Search
-* About Page
+* About & Useful Links Pages
 
 */
 
@@ -186,11 +186,17 @@ a.button {
   color: #fff;
 }
 
+a.useful-link {
+  cursor: pointer;
+}
+
+a.useful-link:hover,
 a.button:hover {
   opacity: .95;
   transition: all 60ms ease;
 }
 
+a.useful-link:active,
 a.button:active {
   opacity: .75;
   transform: scale(.97);
@@ -204,7 +210,9 @@ a.button:active {
 .view-logs,
 .download-logs,
 .automation-doc,
-.restart {
+.restart,
+.api-playground,
+.useful-links {
   margin-left: 30px;
 }
 
@@ -361,10 +369,11 @@ SEARCH
 }
 
 /*==============================================================================
-ABOUT PAGE
+ABOUT & USEFUL LINKS PAGE
 ==============================================================================*/
 
-.title {
+.title,
+.useful-link {
   font-size: 20px;
   font-weight: bold;
 }
