@@ -141,7 +141,6 @@ $(document).ready(function() {
   };
 
   $('#hot-reload-button').click(function() {
-    $('#loading').css({'display': 'block', 'bottom': '115px', 'right':'400px'});
     chrome.runtime.getBackgroundPage(function(bkg){
       bkg.bkgHotReload(startLoadingHR, stopLoading);
     });
