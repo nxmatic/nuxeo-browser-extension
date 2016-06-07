@@ -128,12 +128,18 @@ $(document).ready(function() {
     $('tbody').append('<tr class="search-result">'+ icon_tag + title_tag + path_tag + '</tr>');
   };
 
+  var position;
+
   function startLoadingHR() {
-      $('#loading').css({'display': 'block', 'bottom': '115px', 'right':'400px'});
+      var a = $('a#hot-reload-button');
+      position = a.position();
+      $('#loading').css({'display': 'block', 'top': position.top, 'left': (position.left-50)});
     };
 
   function startLoadingRS() {
-    $('#loading').css({'display': 'block', 'top': '25px', 'left': '400px'});
+      var a = $('a#restart-button');
+      position = a.position();
+      $('#loading').css({'display': 'block', 'top': position.top, 'left': (position.left+140)});
   };
 
   function stopLoading() {

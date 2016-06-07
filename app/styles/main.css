@@ -219,13 +219,11 @@ a.button:active {
 #loading {
   display: none;
   position: fixed;
+  height: 55px;
+  width: 54px;
   z-index: 100;
   background: transparent url('../images/loading_big.gif') no-repeat center;
   opacity: 1;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  top: 0;
 }
 
 /*==============================================================================
