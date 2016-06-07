@@ -128,34 +128,22 @@ $(document).ready(function() {
     $('tbody').append('<tr class="search-result">'+ icon_tag + title_tag + path_tag + '</tr>');
   };
 
+  function startLoadingHR() {
+      $('#loading').css({'display': 'block', 'bottom': '115px', 'right':'400px'});
+    };
+
+  function startLoadingRS() {
+    $('#loading').css({'display': 'block', 'top': '25px', 'left': '400px'});
+  };
+
+  function stopLoading() {
+      $('#loading').css('display', 'none');
+  };
+
   $('#hot-reload-button').click(function() {
     $('#loading').css({'display': 'block', 'bottom': '115px', 'right':'400px'});
     chrome.runtime.getBackgroundPage(function(bkg){
-      nuxeo.operation('Service.HotReloadStudioSnapshot').execute()
-        .then(function() {
-          bkg.notification('success', 'Success!', 'A Hot Reload has successfully been completed.', '../images/nuxeo-128.png');
-          $('#loading').css('display', 'none');
-          chrome.tabs.reload();
-        })
-        .catch(function(e) {
-          e.response.json().then(function(json) {
-            var msg = json.message;
-            var err = e.response.status;
-            if (msg == null) {
-              bkg.notification('no_hot_reload', 'Hot Reload Operation not found.', 'Your current version of Nuxeo does not support the Hot Reload function.', '../images/access_denied.png');
-              $('#loading').css('display', 'none');
-            } else if (err >= 500) {
-              bkg.notification('access_denied', 'Access denied!', 'You must have Administrator rights to perform this function.', '../images/access_denied.png');
-              $('#loading').css('display', 'none');
-            } else if (err >= 300 && err < 500) {
-              bkg.notification('bad_login', 'Bad Login', 'Your Login and/or Password are incorrect', '../images/access_denied.png');
-              $('#loading').css('display', 'none');
-            } else {
-              bkg.notification('unknown_error', 'Unknown Error', 'An unknown error has occurred. Please try again later.', '../images/access_denied.png');
-              $('#loading').css('display', 'none');
-            };
-          });
-        });
+      bkg.bkgHotReload(startLoadingHR, stopLoading);
     });
   });
 
@@ -179,27 +167,8 @@ $(document).ready(function() {
     confirmButton: 'Restart',
     cancelButton: 'Cancel',
     confirm: function() {
-      $('#loading').css({
-        'display': 'block',
-        'top': '25px',
-        'left': '400px'
-      });
       chrome.runtime.getBackgroundPage(function(bkg) {
-        nuxeo.fetch({
-            method: 'POST',
-            schemas: [],
-            enrichers: [],
-            fetchProperties: [],
-            url: nuxeo._baseURL.concat('site/connectClient/uninstall/restart'),
-          })
-          .then(function() {
-            $('#loading').css('display', 'none');
-            bkg.notification('error', 'Something went wrong...', 'Please try again later.', '../images/access_denied.png');
-          })
-          .catch(function(e) {
-            $('#loading').css('display', 'none');
-            bkg.notification('success', 'Success!', 'Nuxeo server is restarting...', '../images/nuxeo-128.png');
-          });
+        bkg.restart(startLoadingRS, stopLoading);
       });
     }
   });
