@@ -33,66 +33,78 @@ chrome.runtime.getBackgroundPage(function(bkg) {
     };
   };
 
+  function registerLink(element, url) {
+    $(element).click(function() {
+      chrome.tabs.create({
+        url: url,
+        openerTabId: bkg.studioExt.server.tabId
+      });
+    });
+  };
+
+  function checkStudioProject(nuxeo) {
+
+    let script = `import groovy.json.JsonOutput;
+    import org.nuxeo.connect.packages.PackageManager;
+    import org.nuxeo.connect.client.we.StudioSnapshotHelper;
+    import org.nuxeo.ecm.admin.runtime.RuntimeInstrospection;
+    import org.nuxeo.runtime.api.Framework;
+
+    def pm = Framework.getLocalService(PackageManager.class);
+    def snapshotPkg = StudioSnapshotHelper.getSnapshot(pm.listRemoteAssociatedStudioPackages());
+    def pkgName = snapshotPkg == null ? null : snapshotPkg.getName();
+    def bundles = RuntimeInstrospection.getInfo();
+
+    println JsonOutput.toJson([studio: pkgName, bundles: bundles]);`;
+
+    let blob = new Nuxeo.Blob({
+      content: new Blob([script]),
+      name: 'script',
+      type: 'text/plain',
+      size: script.length
+    });
+
+    nuxeo.operation('RunInputScript').params({
+      type: 'groovy'
+    }).input(blob).execute().then((res) => {
+      return res.text();
+    }).then((text) => {
+      var json = JSON.parse(text);
+      pkgName = json['studio'];
+      if (pkgName) {
+        registerLink('#studio-link-button', ('https://connect.nuxeo.com/nuxeo/site/studio/ide?project=').concat(pkgName));
+        $('#hot-reload-button').click(function() {
+          bkg.bkgHotReload(startLoadingHR, stopLoading);
+        });
+      } else {
+        $('#studio-link-button, #hot-reload-button').attr('class', 'inactive-button');
+        $('#studio-link-button, #hot-reload-button').click(function() {
+          bkg.notification('no_studio_project', 'No associated Studio project', 'If you\'d like to use this function, please associate your Nuxeo server with a studio project' , '../images/access_denied.png');
+        });
+      }
+    }).catch((e) => {
+      console.log(e);
+    })
+  };
+
   $(document).ready(function() {
     var nuxeo;
     bkg.getCurrentTabUrl(function(url) {
+
       nuxeo = new Nuxeo({
         baseURL: url
       });
+
+      checkStudioProject(nuxeo);
+
       nuxeo.operation('Traces.ToggleRecording')
         .params({readOnly: true})
         .execute()
         .then(function(response) {
           $('#debug-switch').attr('checked', response.value);
         });
+
       $('div.server-name-url').html(nuxeo._baseURL);
-
-      let script = `import groovy.json.JsonOutput;
-      import org.nuxeo.connect.packages.PackageManager;
-      import org.nuxeo.connect.client.we.StudioSnapshotHelper;
-      import org.nuxeo.ecm.admin.runtime.RuntimeInstrospection;
-      import org.nuxeo.runtime.api.Framework;
-
-      def pm = Framework.getLocalService(PackageManager.class);
-      def snapshotPkg = StudioSnapshotHelper.getSnapshot(pm.listRemoteAssociatedStudioPackages());
-      def pkgName = snapshotPkg == null ? null : snapshotPkg.getName();
-      def bundles = RuntimeInstrospection.getInfo();
-
-      println JsonOutput.toJson([studio: pkgName, bundles: bundles]);`;
-
-      let blob = new Nuxeo.Blob({
-        content: new Blob([script]),
-        name: 'script',
-        type: 'text/plain',
-        size: script.length
-      });
-      nuxeo.operation('RunInputScript').params({
-        type: 'groovy'
-      }).input(blob).execute().then((res) => {
-        return res.text();
-      }).then((text) => {
-        var json = JSON.parse(text);
-        pkgName = json['studio'];
-        if (pkgName) {
-          $('#studio-link-button').click(function() {
-            chrome.tabs.create({
-              url: ('https://connect.nuxeo.com/nuxeo/site/studio/ide?project=').concat(pkgName),
-              openerTabId: bkg.studioExt.server.tabId
-            });
-          });
-          $('#hot-reload-button').click(function() {
-            bkg.bkgHotReload(startLoadingHR, stopLoading);
-          });
-        } else {
-          $('#studio-link-button, #hot-reload-button').attr('class', 'inactive-button');
-          $('#studio-link-button, #hot-reload-button').click(function() {
-            bkg.notification('no_studio_project', 'No associated Studio project', 'If you\'d like to use this function, please associate your Nuxeo server with a studio project' , '../images/access_denied.png');
-          });
-        }
-
-      }).catch((e) => {
-        console.log(e);
-      })
 
       registerLink('#autodoc-button', nuxeo._baseURL.concat('site/automation/doc/'));
       registerLink('#explorer-link', 'https://explorer.nuxeo.com');
@@ -174,15 +186,6 @@ chrome.runtime.getBackgroundPage(function(bkg) {
 
     function stopLoading() {
         $('#loading').css('display', 'none');
-    };
-
-    function registerLink(element, url) {
-      $(element).click(function() {
-        chrome.tabs.create({
-          url: url,
-          openerTabId: bkg.studioExt.server.tabId
-        });
-      });
     };
 
     $('#restart-button').confirm({
