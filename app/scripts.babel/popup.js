@@ -143,6 +143,7 @@ chrome.runtime.getBackgroundPage(function(bkg) {
     };
 
     $('#studio-link-button').click(function() {
+      var pkgName;
       let script = `import groovy.json.JsonOutput;
       import org.nuxeo.connect.packages.PackageManager;
       import org.nuxeo.connect.client.we.StudioSnapshotHelper;
@@ -167,7 +168,13 @@ chrome.runtime.getBackgroundPage(function(bkg) {
       }).input(blob).execute().then((res) => {
         return res.text();
       }).then((text) => {
-        console.log(text);
+        var json = JSON.parse(text);
+        pkgName = json['studio'];
+        chrome.tabs.create({
+          url: ('https://connect.nuxeo.com/nuxeo/site/studio/ide?project=').concat(pkgName),
+          openerTabId: bkg.studioExt.server.tabId
+        });
+
       }).catch((e) => {
         console.log(e);
       })
