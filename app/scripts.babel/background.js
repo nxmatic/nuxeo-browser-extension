@@ -21,6 +21,7 @@ chrome.runtime.onInstalled.addListener(details => {
 });
 
 var studioExt = {};
+var tabUrl;
 
 function notification(idP, titleP, messageP, img) {
   chrome.notifications.create(idP, {
@@ -33,18 +34,18 @@ function notification(idP, titleP, messageP, img) {
   });
 };
 
-function nuxeoURL(callback) {
+function getCurrentTabUrl(callback) {
   var queryInfo = {
     active: true,
     currentWindow: true
   };
 
   chrome.tabs.query(queryInfo, function(tabs) {
+    var url;
     var tab = tabs[0];
-    var url = tab.url;
+    tabUrl = tab.url;
     var nxPattern = /(^https?:\/\/[A-Za-z_\.0-9:-]+\/[A-Za-z_\.0-9-]+\/)(?:(?:nxdoc|nxpath|nxsearch|nxadmin|nxhome|nxdam|nxdamid|site\/[A-Za-z_\.0-9-]+)\/[A-Za-z_\.0-9-]+|view_documents\.faces|view_domains\.faces|view_home\.faces)/;
-    var matchGroup = nxPattern.exec(url);
-
+    var matchGroup = nxPattern.exec(tabUrl);
     url = matchGroup[1];
     console.assert(typeof url === 'string', 'tab.url should be a string');
 
@@ -91,7 +92,7 @@ window.bkgHotReload = function(startLoadingHR, stopLoading) {
 
 window.restart = function(startLoadingRS, stopLoading) {
     var nuxeo;
-    nuxeoURL(function(url) {
+    getCurrentTabUrl(function(url) {
       nuxeo = new Nuxeo({
         baseURL: url
       });

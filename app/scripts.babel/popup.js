@@ -16,70 +16,47 @@ limitations under the License.
 
 'use strict';
 
-var studioExt = {}
+var studioExt = {};
+var tabUrl;
 
-function debounce(fn, delay) {
-  var timer = null;
-  return function () {
-    var context = this, args = arguments;
-    clearTimeout(timer);
-    timer = setTimeout(function () {
-      fn.apply(context, args);
-    }, delay);
-  };
-};
+chrome.runtime.getBackgroundPage(function(bkg) {
 
-$(document).ready(function() {
-  var nuxeo;
-  getCurrentTabUrl(function(url) {
-    nuxeo = new Nuxeo({
-      baseURL: url
-    });
-    nuxeo.operation('Traces.ToggleRecording')
-      .params({readOnly: true})
-      .execute()
-      .then(function(response) {
-        $('#debug-switch').attr('checked', response.value);
-      });
-    $('div.server-name-url').html(nuxeo._baseURL);
-  });
-
-  function getJsonFromPath(input) {
-    nuxeo.request('/path/' + input)
-      .schemas('*')
-      .enrichers({ document: ['acls', 'permissions'] })
-      .get()
-      .then(openJsonWindow)
-      .catch(function(error) {
-        throw new Error(error);
-      });
-  };
-
-  function getJsonFromGuid(input) {
-    nuxeo.request('/id/' + input)
-      .schemas('*')
-      .enrichers({ document: ['acls', 'permissions'] })
-      .get()
-      .then(openJsonWindow)
-      .catch(function(error) {
-        throw new Error(error);
-      });
-  };
-
-  function getCurrentTabUrl(callback) {
-    var queryInfo = {
-      active: true,
-      currentWindow: true
+  function debounce(fn, delay) {
+    var timer = null;
+    return function () {
+      var context = this, args = arguments;
+      clearTimeout(timer);
+      timer = setTimeout(function () {
+        fn.apply(context, args);
+      }, delay);
     };
+  };
 
-    chrome.tabs.query(queryInfo, function(tabs) {
-      var tab = tabs[0];
-      var url = tab.url;
+  $(document).ready(function() {
+    var nuxeo;
+    bkg.getCurrentTabUrl(function(url) {
+      nuxeo = new Nuxeo({
+        baseURL: url
+      });
+      nuxeo.operation('Traces.ToggleRecording')
+        .params({readOnly: true})
+        .execute()
+        .then(function(response) {
+          $('#debug-switch').attr('checked', response.value);
+        });
+      $('div.server-name-url').html(nuxeo._baseURL);
+
+      registerLink('#studio-link-button', 'https://connect.nuxeo.com/nuxeo/site/studio/ide/');
+      registerLink('#autodoc-button', nuxeo._baseURL.concat('site/automation/doc/'));
+      registerLink('#explorer-link', 'https://explorer.nuxeo.com');
+      registerLink('#nxql-link', 'https://doc.nuxeo.com/display/NXDOC/NXQL');
+
       var uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
       var pathPattern = /^\//;
-      var nxPattern = /(^https?:\/\/[A-Za-z_\.0-9:-]+\/[A-Za-z_\.0-9-]+\/)(?:(?:nxdoc|nxpath|nxsearch|nxadmin|nxhome|nxdam|nxdamid|site\/[A-Za-z_\.0-9-]+)\/[A-Za-z_\.0-9-]+|view_documents\.faces|view_domains\.faces|view_home\.faces)/;
       var docPattern = /nxpath\/[A-Za-z_\.0-9-]+(\/[A-Za-z\.0-9_\-\/%~:?#]+)|(?:nxdoc[\/A-Za-z_\.0-9]+)([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})/;
-      var matchGroupDoc = docPattern.exec(url);
+      var matchGroupDoc = docPattern.exec(bkg.tabUrl);
+
+      console.log(matchGroupDoc);
 
       if (matchGroupDoc) {
         var docPath = matchGroupDoc[1];
