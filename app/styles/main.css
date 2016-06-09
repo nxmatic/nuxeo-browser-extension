@@ -192,7 +192,7 @@ a.useful-link {
 
 a.useful-link:hover,
 a.button:hover {
-  opacity: .95;
+  opacity: .90;
   transition: all 60ms ease;
 }
 

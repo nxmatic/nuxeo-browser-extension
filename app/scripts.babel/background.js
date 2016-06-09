@@ -58,13 +58,13 @@ function getCurrentTabUrl(callback) {
   });
 };
 
-window.bkgHotReload = function(startLoadingHR, stopLoading) {
+window.bkgHotReload = function(startLoading, stopLoading) {
   var nuxeo;
-  nuxeoURL(function(url) {
+  getCurrentTabUrl(function(url) {
     nuxeo = new Nuxeo({
       baseURL: url
     });
-    startLoadingHR();
+    startLoading();
     nuxeo.operation('Service.HotReloadStudioSnapshot').execute()
       .then(function() {
         notification('success', 'Success!', 'A Hot Reload has successfully been completed.', '../images/nuxeo-128.png');
