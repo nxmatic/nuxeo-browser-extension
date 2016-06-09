@@ -46,7 +46,7 @@ chrome.runtime.getBackgroundPage(function(bkg) {
         });
       $('div.server-name-url').html(nuxeo._baseURL);
 
-      registerLink('#studio-link-button', 'https://connect.nuxeo.com/nuxeo/site/studio/ide/');
+      // registerLink('#studio-link-button', 'https://connect.nuxeo.com/nuxeo/site/studio/ide/');
       registerLink('#autodoc-button', nuxeo._baseURL.concat('site/automation/doc/'));
       registerLink('#explorer-link', 'https://explorer.nuxeo.com');
       registerLink('#nxql-link', 'https://doc.nuxeo.com/display/NXDOC/NXQL');
@@ -55,8 +55,6 @@ chrome.runtime.getBackgroundPage(function(bkg) {
       var pathPattern = /^\//;
       var docPattern = /nxpath\/[A-Za-z_\.0-9-]+(\/[A-Za-z\.0-9_\-\/%~:?#]+)|(?:nxdoc[\/A-Za-z_\.0-9]+)([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})/;
       var matchGroupDoc = docPattern.exec(bkg.tabUrl);
-
-      console.log(matchGroupDoc);
 
       if (matchGroupDoc) {
         var docPath = matchGroupDoc[1];
@@ -143,6 +141,40 @@ chrome.runtime.getBackgroundPage(function(bkg) {
         });
       });
     };
+
+    $('#studio-link-button').click(function() {
+
+      var script = `
+      import groovy.json.JsonOutput;
+      import org.nuxeo.connect.packages.PackageManager;
+      import org.nuxeo.connect.client.we.StudioSnapshotHelper;
+      import org.nuxeo.ecm.admin.runtime.RuntimeInstrospection;
+      import org.nuxeo.runtime.api.Framework;
+      def pm = Framework.getLocalService(PackageManager.class);
+      def snapshotPkg = StudioSnapshotHelper.getSnapshot(pm.listRemoteAssociatedStudioPackages());
+      def pkgName = snapshotPkg == null ? null : snapshotPkg.getName();
+      def bundles = RuntimeInstrospection.getInfo();
+      println JsonOutput.toJson([studio: pkgName, bundles: bundles]);
+      `;
+
+      var blob = new Nuxeo.Blob({
+        name: 'script',
+        content: script,
+        mimeType: 'text/plain',
+        size: 0,
+      });
+      nuxeo.operation('RunInputScript').params({
+        type: 'groovy'
+      }).input(blob).execute().then((res) => {
+        console.log(blob);
+        console.log(script);
+        return res.text();
+      }).then((text) => {
+        console.log(text);
+      }).catch((e) => {
+        console.log(e);
+      })
+    })
 
     $('#restart-button').confirm({
       title: 'Warning!',
