@@ -143,38 +143,35 @@ chrome.runtime.getBackgroundPage(function(bkg) {
     };
 
     $('#studio-link-button').click(function() {
-
-      var script = `
-      import groovy.json.JsonOutput;
+      let script = `import groovy.json.JsonOutput;
       import org.nuxeo.connect.packages.PackageManager;
       import org.nuxeo.connect.client.we.StudioSnapshotHelper;
       import org.nuxeo.ecm.admin.runtime.RuntimeInstrospection;
       import org.nuxeo.runtime.api.Framework;
+
       def pm = Framework.getLocalService(PackageManager.class);
       def snapshotPkg = StudioSnapshotHelper.getSnapshot(pm.listRemoteAssociatedStudioPackages());
       def pkgName = snapshotPkg == null ? null : snapshotPkg.getName();
       def bundles = RuntimeInstrospection.getInfo();
-      println JsonOutput.toJson([studio: pkgName, bundles: bundles]);
-      `;
 
-      var blob = new Nuxeo.Blob({
+      println JsonOutput.toJson([studio: pkgName, bundles: bundles]);`;
+
+      let blob = new Nuxeo.Blob({
+        content: new Blob([script]),
         name: 'script',
-        content: script,
-        mimeType: 'text/plain',
-        size: 0,
+        type: 'text/plain',
+        size: script.length
       });
       nuxeo.operation('RunInputScript').params({
         type: 'groovy'
       }).input(blob).execute().then((res) => {
-        console.log(blob);
-        console.log(script);
         return res.text();
       }).then((text) => {
         console.log(text);
       }).catch((e) => {
         console.log(e);
       })
-    })
+    });
 
     $('#restart-button').confirm({
       title: 'Warning!',
