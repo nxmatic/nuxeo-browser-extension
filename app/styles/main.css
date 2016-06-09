@@ -164,14 +164,14 @@ BUTTONS
   margin-left: 10px;
 }
 
-a.button {
+a.button,
+a.inactive-button {
   text-decoration: none;
   border: 0 none;
   border-radius: 24px;
   width: 130px;
   padding: 10px 12px;
   margin: 10px;
-  cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -182,8 +182,17 @@ a.button {
   text-transform: none;
   font-weight: 500;
   transition: all 60ms ease-in-out;
-  background: #213f7d;
   color: #fff;
+}
+
+a.button {
+  background: #213f7d;
+  cursor: pointer;
+}
+
+a.inactive-button {
+  background: #ddd;
+  cursor: default;
 }
 
 a.useful-link {
