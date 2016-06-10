@@ -107,8 +107,16 @@ chrome.runtime.getBackgroundPage(function(bkg) {
       $('div.server-name-url').html(nuxeo._baseURL);
 
       registerLink('#autodoc-button', nuxeo._baseURL.concat('site/automation/doc/'));
+      registerLink('#api-pg-link', 'http://nuxeo.github.io/api-playground/');
       registerLink('#explorer-link', 'https://explorer.nuxeo.com');
       registerLink('#nxql-link', 'https://doc.nuxeo.com/display/NXDOC/NXQL');
+      registerLink('#el-scripting-link', 'https://doc.nuxeo.com/display/NXDOC/Understand+Expression+and+Scripting+Languages+Used+in+Nuxeo');
+      registerLink('#mvel-link', 'https://doc.nuxeo.com/display/NXDOC/Use+of+MVEL+in+Automation+Chains');
+      registerLink('#workflow-variables-link', 'https://doc.nuxeo.com/display/NXDOC/Variables+Available+in+the+Automation+Context');
+      registerLink('#escalation-rules-link', 'https://doc.nuxeo.com/display/NXDOC/Escalation+Service');
+      registerLink('#nxelements-link', 'https://elements.nuxeo.com/');
+      registerLink('#nxlayouts-link', 'http://showcase.nuxeo.com/nuxeo/layoutDemo/');
+      registerLink('#style-guide-link', 'http://showcase.nuxeo.com/nuxeo/styleGuide/');
 
       var uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
       var pathPattern = /^\//;

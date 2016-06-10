@@ -117,11 +117,18 @@ ul {
   margin: 0 0 35px;
 }
 
-.nav-link {
-  text-align: right;
+#useful-links {
+  text-align: left;
+  margin-right: 365px;
 }
 
+.nav-link {
+  text-align: left;
+}
+
+.useful-links,
 .nav-link a {
+ font-size: 15px;
  text-decoration: none;
  color: #213f7d;
 }
@@ -236,8 +243,7 @@ a.button:active {
 TOGGLES
 ==============================================================================*/
 .debug,
-.ui-dev-mode,
-.useful-links {
+.ui-dev-mode {
   width: 190px;
   font-size: 16px;
 }
@@ -344,7 +350,8 @@ TOGGLES
 }
 
 a.useful-link {
-  font-size: 16px;
+  font-size: 15px;
+  padding: 5px;
 }
 
 /*==============================================================================
