@@ -183,13 +183,13 @@ chrome.runtime.getBackgroundPage(function(bkg) {
     function startLoadingHR() {
         var a = $('a#hot-reload-button');
         position = a.position();
-        $('#loading').css({'display': 'block', 'top': position.top, 'left': (position.left-50)});
+        $('#loading').css({'display': 'block', 'top': (position.top-5), 'left': (position.left-50)});
       };
 
     function startLoadingRS() {
         var a = $('a#restart-button');
         position = a.position();
-        $('#loading').css({'display': 'block', 'top': position.top, 'left': (position.left+140)});
+        $('#loading').css({'display': 'block', 'top': (position.top-5), 'left': (position.left+140)});
     };
 
     function stopLoading() {
