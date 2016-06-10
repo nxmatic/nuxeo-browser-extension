@@ -199,7 +199,6 @@ a.useful-link {
   cursor: pointer;
 }
 
-a.useful-link:hover,
 a.button:hover {
   opacity: .90;
   transition: all 60ms ease;
@@ -219,9 +218,7 @@ a.button:active {
 .view-logs,
 .download-logs,
 .automation-doc,
-.restart,
-.api-playground,
-.useful-links {
+.restart {
   margin-left: 30px;
 }
 
@@ -318,6 +315,38 @@ TOGGLES
   right: 0;
 }
 
+#useful-links {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #ddd;
+    min-width: 250px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+}
+
+.dropdown-content a {
+    color: #213f7d;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content a:hover {
+  background-color: #f1f1f1;
+}
+
+#useful-links:hover .dropdown-content {
+    display: block;
+}
+
+a.useful-link {
+  font-size: 16px;
+}
+
 /*==============================================================================
 SEARCH
 ==============================================================================*/
@@ -383,10 +412,14 @@ SEARCH
 ABOUT & USEFUL LINKS PAGE
 ==============================================================================*/
 
-.title,
-.useful-link {
+.title {
   font-size: 20px;
   font-weight: bold;
+}
+
+.useful-link:hover {
+  color: #00adff;
+  transition: all 60ms ease;
 }
 
 .description {
