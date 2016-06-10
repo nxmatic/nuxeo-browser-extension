@@ -6,12 +6,13 @@ Nuxeo Chrome Dev Tools
 This project aims to put some of the more commonly performed actions in the Nuxeo
 Platform at the administrator's fingertips in a convenient popup window.
 
-Actions include:
+Features include:
 * Hot Reload on related Studio project
 * Link to Studio project
 * Link to Automation Documentation
 * Restart server
 * Toggle Automation Call Tracing
+* Useful Links menu
 * Export JSON (search with path, GUID or file name)
 * One-click JSON export of document in current active tab
 
@@ -27,6 +28,7 @@ Actions include:
 
 * Multiple Nuxeo projects are not supported.
 * The extension is only active when a Nuxeo instance in the current active tab.
+* The Hot Reload and Go To Studio buttons are only active when a Studio project is associated with the current Nuxeo server.
 
 ## Build
 
