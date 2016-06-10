@@ -33,6 +33,24 @@ chrome.runtime.getBackgroundPage(function(bkg) {
     };
   };
 
+  var position;
+
+  function startLoadingHR() {
+      var a = $('a#hot-reload-button');
+      position = a.position();
+      $('#loading').css({'display': 'block', 'top': (position.top-5), 'left': (position.left-50)});
+    };
+
+  function startLoadingRS() {
+      var a = $('a#restart-button');
+      position = a.position();
+      $('#loading').css({'display': 'block', 'top': (position.top-5), 'left': (position.left+140)});
+  };
+
+  function stopLoading() {
+      $('#loading').css('display', 'none');
+  };
+
   function registerLink(element, url) {
     $(element).click(function() {
       chrome.tabs.create({
@@ -176,24 +194,6 @@ chrome.runtime.getBackgroundPage(function(bkg) {
       var title_tag = '<td class="json-title" id="' + uid + '">' + title + '</td>';
       var path_tag = '<td class="json-path">' + path + '</td>';
       $('tbody').append('<tr class="search-result">'+ icon_tag + title_tag + path_tag + '</tr>');
-    };
-
-    var position;
-
-    function startLoadingHR() {
-        var a = $('a#hot-reload-button');
-        position = a.position();
-        $('#loading').css({'display': 'block', 'top': (position.top-5), 'left': (position.left-50)});
-      };
-
-    function startLoadingRS() {
-        var a = $('a#restart-button');
-        position = a.position();
-        $('#loading').css({'display': 'block', 'top': (position.top-5), 'left': (position.left+140)});
-    };
-
-    function stopLoading() {
-        $('#loading').css('display', 'none');
     };
 
     $('#restart-button').confirm({
