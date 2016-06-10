@@ -11,7 +11,7 @@
 	"background": {
 		"scripts": [
 			"bower_components/nuxeo/dist/nuxeo.js",
-			"scripts/background.js"
+			"scripts/bkg.js"
 		],
 		"persistent": true
 	},
