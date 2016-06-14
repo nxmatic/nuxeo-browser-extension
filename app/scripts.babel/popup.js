@@ -64,12 +64,14 @@ chrome.runtime.getBackgroundPage(function(bkg) {
   var position;
 
   function startLoadingHR() {
+      _gaq.push(['_trackEvent', 'hot-reload-button', 'clicked']);
       var a = $('a#hot-reload-button');
       position = a.position();
       $('#loading').css({'display': 'block', 'top': (position.top-5), 'left': (position.left-50)});
     };
 
   function startLoadingRS() {
+      _gaq.push(['_trackEvent', 'restart-button', 'clicked']);
       var a = $('a#restart-button');
       position = a.position();
       $('#loading').css({'display': 'block', 'top': (position.top-5), 'left': (position.left+140)});
@@ -117,8 +119,15 @@ chrome.runtime.getBackgroundPage(function(bkg) {
     }).then((text) => {
       var json = JSON.parse(text);
       pkgName = json['studio'];
+      var studioUrl = ('https://connect.nuxeo.com/nuxeo/site/studio/ide?project=').concat(pkgName);
       if (pkgName) {
-        registerLink('#studio-link-button', ('https://connect.nuxeo.com/nuxeo/site/studio/ide?project=').concat(pkgName));
+        $('#studio-link-button').click(function() {
+          _gaq.push(['_trackEvent', 'studio-link-button', 'clicked']);
+          chrome.tabs.create({
+            url: studioUrl,
+            openerTabId: bkg.studioExt.server.tabId
+          });
+        });
         $('#hot-reload-button').click(function() {
           bkg.bkgHotReload(startLoadingHR, stopLoading);
         });
