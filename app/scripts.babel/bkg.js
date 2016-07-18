@@ -111,8 +111,31 @@ window.restart = function(startLoadingRS, stopLoading) {
         .catch(function(e) {
           notification('success', 'Success!', 'Nuxeo server is restarting...', '../images/nuxeo-128.png');
           stopLoading();
+          setTimeout(function() {
+            chrome.tabs.reload(studioExt.server.tabId);;
+          }, 4000);
         });
     });
+}
+
+window.reindex = function(startLoadingES, stopLoading) {
+  var nuxeo;
+  getCurrentTabUrl(function(url) {
+    nuxeo = new Nuxeo({
+      baseURL: url
+    });
+    startLoadingES();
+    nuxeo.operation('Elasticsearch.Index').execute()
+      .then(function() {
+        notification('success', 'Success!', 'Your repository index has been rebuilt.', '../images/nuxeo-128.png');
+        stopLoading();
+      })
+      .catch(function(e) {
+        notification('error', 'Something went wrong...', 'Please try again later.', '../images/access_denied.png');
+        stopLoading();
+      })
+
+  })
 }
 
 chrome.runtime.onInstalled.addListener(function() {

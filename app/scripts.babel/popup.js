@@ -77,6 +77,13 @@ chrome.runtime.getBackgroundPage(function(bkg) {
       $('#loading').css({'display': 'block', 'top': (position.top-5), 'left': (position.left+140)});
   };
 
+  function startLoadingES() {
+      _gaq.push(['_trackEvent', 'reindex-button', 'clicked']);
+      var a = $('a#reindex-button');
+      position = a.position();
+      $('#loading').css({'display': 'block', 'top': (position.top-5), 'left': (position.left-50)});
+  };
+
   function stopLoading() {
       $('#loading').css('display', 'none');
   };
@@ -163,6 +170,7 @@ chrome.runtime.getBackgroundPage(function(bkg) {
 
       registerLink('#autodoc-button', nuxeo._baseURL.concat('site/automation/doc/'));
       registerLink('#api-pg-link', 'http://nuxeo.github.io/api-playground/');
+      registerLink('#api-button', 'http://nuxeo.github.io/api-playground/');
       registerLink('#explorer-link', 'https://explorer.nuxeo.com');
       registerLink('#nxql-link', 'https://doc.nuxeo.com/display/NXDOC/NXQL');
       registerLink('#el-scripting-link', 'https://doc.nuxeo.com/display/NXDOC/Understand+Expression+and+Scripting+Languages+Used+in+Nuxeo');
@@ -241,6 +249,10 @@ chrome.runtime.getBackgroundPage(function(bkg) {
       confirm: function() {
         bkg.restart(startLoadingRS, stopLoading);
       }
+    });
+
+    $('#reindex-button').click(function() {
+      bkg.reindex(startLoadingES, stopLoading);
     });
 
     $('#debug-switch').click(function(event) {

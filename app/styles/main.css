@@ -225,7 +225,9 @@ a.button:active {
 .view-logs,
 .download-logs,
 .automation-doc,
-.restart {
+.restart,
+.reindex-es,
+.api-play {
   margin-left: 30px;
 }
 
