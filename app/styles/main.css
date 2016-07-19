@@ -114,7 +114,7 @@ ul {
 .buttons,
 .toggles,
 .search {
-  margin: 0 0 35px;
+  margin: 0 0 25px;
 }
 
 #useful-links {
@@ -184,7 +184,7 @@ a.inactive-button {
   align-items: center;
   flex: 0 0 160px;
   text-align: center;
-  line-height: 1.3;
+  line-height: 1.1;
   font-size: 14px;
   text-transform: none;
   font-weight: 500;
@@ -397,6 +397,21 @@ form {
   margin-bottom: -5px;
 }
 
+.no-result {
+  float: left;
+  display: none;
+  font-weight: bold;
+  white-space: nowrap;
+  width: 450px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#search-term {
+  color: #00adff;
+  font-style: italic;
+}
+
 #col1 {
   width: 5%;
 }
@@ -424,7 +439,7 @@ form {
   text-align:left;
   display: none;
   font-weight: bold;
-  margin-top: 25px;
+  margin-top: 15px;
   cursor: pointer;
 }
 
