@@ -150,6 +150,16 @@ chrome.runtime.getBackgroundPage(function(bkg) {
   };
 
   $(document).ready(function() {
+
+    var jsonsearch = $('input#json-search');
+    position = jsonsearch.position();
+    $('#searchclear').css({'top': (position.top-420), 'left': (position.left+355)});
+
+    $('#searchclear').click(function(){
+      $('#json-search').val('');
+      $('.no-result').css('display', 'none');
+    });
+
     var nuxeo;
     bkg.getCurrentTabUrl(function(url) {
 
@@ -265,7 +275,9 @@ chrome.runtime.getBackgroundPage(function(bkg) {
     });
 
     $('#json-search').keydown(function() {
-      $('#loading-gif').css('display', 'inline');
+      var jsonsearch = $('input#json-search');
+      position = jsonsearch.position();
+      $('#loading-gif').css({'display': 'inline', 'top': (position.top+2), 'left': (position.left-25)});
     });
 
     $('#json-search').keyup(debounce(function() {
@@ -274,6 +286,7 @@ chrome.runtime.getBackgroundPage(function(bkg) {
       var pathPattern = /^\//;
       var input = $('#json-search').val();
       if (input == '') {
+        $('.no-result').css('display', 'none');
         $('#json-search-results').empty();
         $('#loading-gif').css('display', 'none');
       } else if (uuidPattern.test(input)) {

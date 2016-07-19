@@ -359,6 +359,10 @@ a.useful-link {
 /*==============================================================================
 SEARCH
 ==============================================================================*/
+form {
+  height: 25px;
+}
+
 #json-search {
   margin-top: 0;
   border-radius: 24px;
@@ -372,12 +376,20 @@ SEARCH
   outline: none;
 }
 
+#searchclear {
+    height: 14px;
+    margin: auto;
+    font-size: 14px;
+    cursor: pointer;
+    color: #ccc;
+}
+
 #loading-gif {
+  position: fixed;
   background-image: url("../images/loading-20.gif");
   height: 20px;
-  width: 20px;
+  min-width: 20px;
   display: none;
-  margin-right: -200px;
 }
 
 /* SEARCH RESULTS ------------------------------------------------------------*/
