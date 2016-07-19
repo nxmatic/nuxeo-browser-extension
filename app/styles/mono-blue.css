@@ -1,6 +1,11 @@
 /*
   Five-color theme from a single blue hue.
 */
+
+.json {
+  font-size: 14px;
+}
+
 .hljs {
   display: block;
   overflow-x: auto;
