@@ -127,7 +127,7 @@ window.reindex = function(startLoadingES, stopLoading) {
     startLoadingES();
     nuxeo.operation('Elasticsearch.Index').execute()
       .then(function() {
-        notification('success', 'Success!', 'Your repository index has been rebuilt.', '../images/nuxeo-128.png');
+        notification('success', 'Success!', 'Your repository index is rebuilding.', '../images/nuxeo-128.png');
         stopLoading();
       })
       .catch(function(e) {
