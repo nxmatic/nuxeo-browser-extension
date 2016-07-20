@@ -363,11 +363,17 @@ form {
   height: 25px;
 }
 
+.search-container {
+  position: relative;
+}
+
 #json-search {
+  padding-left: 5px;
+  text-indent: 7px;
   margin-top: 0;
   border-radius: 24px;
   border:1px solid #ddd;
-  height: 25px;
+  height: 30px;
   width: 420px;
   float: left;
 }
@@ -377,15 +383,20 @@ form {
 }
 
 #searchclear {
+    position: absolute;
     height: 14px;
     margin: auto;
     font-size: 14px;
     cursor: pointer;
     color: #ccc;
+    right: 8px;
+    top: 8px;
 }
 
 #loading-gif {
-  position: fixed;
+  position: absolute;
+  top: 5px;
+  left: 5px;
   background-image: url("../images/loading-20.gif");
   height: 20px;
   min-width: 20px;

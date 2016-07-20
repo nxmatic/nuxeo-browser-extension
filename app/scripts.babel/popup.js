@@ -151,10 +151,6 @@ chrome.runtime.getBackgroundPage(function(bkg) {
 
   $(document).ready(function() {
 
-    var jsonsearch = $('input#json-search');
-    position = jsonsearch.position();
-    $('#searchclear').css({'top': (position.top-420), 'left': (position.left+355)});
-
     $('#searchclear').click(function(){
       $('#json-search').val('');
       $('.no-result').css('display', 'none');
@@ -275,9 +271,7 @@ chrome.runtime.getBackgroundPage(function(bkg) {
     });
 
     $('#json-search').keydown(function() {
-      var jsonsearch = $('input#json-search');
-      position = jsonsearch.position();
-      $('#loading-gif').css({'display': 'inline', 'top': (position.top+2), 'left': (position.left-25)});
+      $('#loading-gif').css({'display': 'inline'});
     });
 
     $('#json-search').keyup(debounce(function() {
