@@ -11,6 +11,8 @@ Features include:
 * Link to Studio project
 * Link to Automation Documentation
 * Restart server
+* Rebuild Elasticsearch Index
+* Connect to API Playground
 * Toggle Automation Call Tracing
 * Useful Links menu
 * Export JSON (search with path, GUID or file name)
@@ -29,6 +31,7 @@ Features include:
 * Multiple Nuxeo projects are not supported.
 * The extension is only active when a Nuxeo instance in the current active tab.
 * The Hot Reload and Go To Studio buttons are only active when a Studio project is associated with the current Nuxeo server.
+* [CORS config](https://doc.nuxeo.com/pages/viewpage.action?pageId=14257084) must be activated in your Nuxeo server to connect to your repository on API Playground.
 
 ## Build
 
