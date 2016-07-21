@@ -174,9 +174,11 @@ chrome.runtime.getBackgroundPage(function(bkg) {
 
       $('div.server-name-url').html(nuxeo._baseURL);
 
+      var serverURL = nuxeo._baseURL.replace(/\/$/, "");
+
       registerLink('#autodoc-button', nuxeo._baseURL.concat('site/automation/doc/'));
       registerLink('#api-pg-link', 'http://nuxeo.github.io/api-playground/');
-      registerLink('#api-button', 'http://nuxeo.github.io/api-playground/');
+      registerLink('#api-button', ('http://nuxeo.github.io/api-playground/#/').concat(serverURL));
       registerLink('#explorer-link', 'https://explorer.nuxeo.com');
       registerLink('#nxql-link', 'https://doc.nuxeo.com/display/NXDOC/NXQL');
       registerLink('#el-scripting-link', 'https://doc.nuxeo.com/display/NXDOC/Understand+Expression+and+Scripting+Languages+Used+in+Nuxeo');
