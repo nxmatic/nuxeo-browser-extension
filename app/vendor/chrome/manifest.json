@@ -1,0 +1,54 @@
+{
+	"name": "__MSG_appName__",
+	"version": "0.12.1",
+	"manifest_version": 2,
+	"content_security_policy": "script-src 'self' https://ssl.google-analytics.com; object-src 'self'",
+	"description": "__MSG_appDescription__",
+	"icons": {
+		"16": "images/nuxeo-16.png",
+		"128": "images/nuxeo-128.png"
+	},
+	"default_locale": "en",
+	"background": {
+		"scripts": [
+      "../../bower_components/nuxeo/dist/nuxeo.js",
+      "../../scripts/bkg.js"
+		],
+		"persistent": true
+	},
+	"permissions": [
+		"tabs",
+		"http://*/*",
+		"https://*/*",
+		"activeTab",
+		"https://ajax.googleapis.com/",
+		"notifications",
+		"background",
+		"declarativeContent"
+	],
+	"content_scripts": [
+		{
+			"matches": [
+				"http://*/*",
+				"https://*/*",
+				"<all_urls>"
+			],
+			"js": [
+				"../../scripts/contentscript.js"
+			],
+			"run_at": "document_end",
+			"all_frames": false
+		}
+	],
+	"omnibox": {
+		"keyword": "OMNIBOX-KEYWORD"
+	},
+	"page_action": {
+		"default_icon": {
+			"19": "images/nuxeo-19.png",
+			"38": "images/nuxeo-38.png"
+		},
+		"default_title": "Nuxeo Chrome Dev Tools",
+		"default_popup": "popup.html"
+	}
+}

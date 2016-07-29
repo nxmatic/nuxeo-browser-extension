@@ -17,7 +17,8 @@ gulp.task('extras', () => {
   ], {
     base: 'app',
     dot: true
-  }).pipe(gulp.dest('dist'));
+  }).pipe(gulp.dest('dist/chrome'))
+    .pipe(gulp.dest('dist/firefox'));
 });
 
 function lint(files, options) {
@@ -47,7 +48,19 @@ gulp.task('images', () => {
       console.log(err);
       this.end();
     })))
-    .pipe(gulp.dest('dist/images'));
+    .pipe(gulp.dest('dist/chrome/images'))
+    .pipe(gulp.dest('dist/firefox/images'));
+});
+
+// Copying MANIFEST.JSON TWICE -- when adding again, don't forget 'build' task
+// gulp.task('chrome', () => {
+//   return gulp.src('app/vendor/chrome/*')
+//     .pipe(gulp.dest('dist/chrome'));
+// });
+
+gulp.task('firefox', () => {
+  return gulp.src('app/vendor/firefox/*')
+    .pipe(gulp.dest('dist/firefox'));
 });
 
 gulp.task('html',  () => {
@@ -58,11 +71,12 @@ gulp.task('html',  () => {
     .pipe($.sourcemaps.write())
     .pipe($.useref({searchPath: ['.tmp', 'app', '.']}))
     .pipe($.if('*.html', $.minifyHtml({conditionals: true, loose: true})))
-    .pipe(gulp.dest('dist'));
+    .pipe(gulp.dest('dist/chrome'))
+    .pipe(gulp.dest('dist/firefox'));
 });
 
 gulp.task('bump', () => {
-  return gulp.src('app/manifest.json')
+  return gulp.src('app/vendor/chrome/manifest.json')
     .pipe($.chromeManifest({
       buildnumber: true,
       background: {
@@ -72,15 +86,15 @@ gulp.task('bump', () => {
         ]
       }
   }))
-  .pipe(gulp.dest('app'));
+  .pipe(gulp.dest('app/vendor/chrome'));
 });
 
 gulp.task('release', (cb) => {
-  let manifest = require('./app/manifest.json');
+  let manifest = require('./app/vendor/chrome/manifest.json');
   let [major, minor, build] = manifest.version.split('\.')
   let version = `${major}.${parseInt(minor) + 1}.0`
 
-  gulp.src('app/manifest.json')
+  gulp.src('app/vendor/chrome/manifest.json')
     .pipe($.chromeManifest({
       buildnumber: version,
       background: {
@@ -90,13 +104,13 @@ gulp.task('release', (cb) => {
         ]
       }
   }))
-  .pipe(gulp.dest('app'));
+  .pipe(gulp.dest('app/vendor/chrome'));
 
   runSequence('build', 'package', cb);
 });
 
 gulp.task('chromeManifest', () => {
-  return gulp.src('app/manifest.json')
+  return gulp.src('app/vendor/chrome/manifest.json')
     .pipe($.chromeManifest({
       buildnumber: false,
       background: {
@@ -110,7 +124,7 @@ gulp.task('chromeManifest', () => {
   .pipe($.if('*.js', $.sourcemaps.init()))
   .pipe($.if('*.js', $.uglify()))
   .pipe($.if('*.js', $.sourcemaps.write('.')))
-  .pipe(gulp.dest('dist'));
+  .pipe(gulp.dest('dist/chrome'));
 });
 
 gulp.task('babel', () => {
@@ -132,7 +146,8 @@ gulp.task('watch', ['lint', 'babel', 'html'], () => {
     'app/libs/**/*.js',
     'app/images/**/*',
     'app/styles/**/*',
-    'app/_locales/**/*.json'
+    'app/_locales/**/*.json',
+    'app/vendor/**/*'
   ]).on('change', $.livereload.reload);
 
   gulp.watch('app/scripts.babel/**/*.js', ['lint', 'babel']);
@@ -148,19 +163,20 @@ gulp.task('wiredep', () => {
     .pipe(wiredep({
       ignorePath: /^(\.\.\/)*\.\./
     }))
-    .pipe(gulp.dest('app'));
+    .pipe(gulp.dest('app/chrome'))
+    .pipe(gulp.dest('app/firefox'));
 });
 
 gulp.task('package', ['bump'], function () {
-  var manifest = require('./dist/manifest.json');
-  return gulp.src('dist/**')
+  var manifest = require('./dist/chrome/manifest.json');
+  return gulp.src('dist/chrome/**')
       .pipe($.zip('Nuxeo Extension-' + manifest.version + '.zip'))
       .pipe(gulp.dest('package'));
 });
 
 gulp.task('build', (cb) => {
   runSequence(
-    'lint', 'babel', 'chromeManifest',
+    'lint', 'babel', 'chromeManifest', 'firefox',
     ['html', 'images', 'extras'],
     'size', cb);
 });

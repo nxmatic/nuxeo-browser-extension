@@ -174,7 +174,7 @@ chrome.runtime.getBackgroundPage(function(bkg) {
 
       $('div.server-name-url').html(nuxeo._baseURL);
 
-      var serverURL = nuxeo._baseURL.replace(/\/$/, "");
+      var serverURL = nuxeo._baseURL.replace(/\/$/, '');
 
       registerLink('#autodoc-button', nuxeo._baseURL.concat('site/automation/doc/'));
       registerLink('#api-pg-link', 'http://nuxeo.github.io/api-playground/');
