@@ -1,6 +1,8 @@
 Nuxeo Chrome Dev Tools
 ======================
 
+[![Build Status](https://qa.nuxeo.org/jenkins/buildStatus/icon?job=client/nuxeo-chrome-extension-master)](https://qa.nuxeo.org/jenkins/view/All/job/Client/job/nuxeo-chrome-extension-master/)
+
 # About
 
 This project aims to put some of the more commonly performed actions in the Nuxeo
