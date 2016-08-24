@@ -75,6 +75,11 @@ gulp.task('html',  () => {
     .pipe(gulp.dest('dist/firefox'));
 });
 
+gulp.task('content', () => {
+  return gulp.src('scripts/contentscript.js')
+    .pipe(gulp.dest('dist/chrome/scripts'));
+});
+
 gulp.task('bump', () => {
   return gulp.src('app/vendor/chrome/manifest.json')
     .pipe($.chromeManifest({
@@ -176,7 +181,7 @@ gulp.task('package', ['bump'], function () {
 
 gulp.task('build', (cb) => {
   runSequence(
-    'lint', 'babel', 'chromeManifest', 'firefox',
+    'lint', 'babel', 'chromeManifest', 'firefox', 'content',
     ['html', 'images', 'extras'],
     'size', cb);
 });

@@ -384,13 +384,12 @@ form {
 
 #searchclear {
     position: absolute;
-    height: 14px;
+    height: 20px;
     margin: auto;
-    font-size: 14px;
+    font-size: 20px;
     cursor: pointer;
     color: #ccc;
     right: 8px;
-    top: 8px;
 }
 
 #loading-gif {

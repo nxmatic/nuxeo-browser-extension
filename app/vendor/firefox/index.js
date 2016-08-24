@@ -6,9 +6,9 @@ var button = ToggleButton({
   id: "nuxeo-ff-dev-tools",
   label: "Nuxeo FF Dev Tools",
   icon: {
-    "16": "./nuxeo-16.png",
-    "32": "./nuxeo-32.png",
-    "64": "./nuxeo-64.png"
+    "16": "./../images/nuxeo-16.png",
+    "32": "./../images/nuxeo-32.png",
+    "64": "./../images/nuxeo-64.png"
   },
   onChange: handleChange
 });
@@ -17,6 +17,7 @@ var panel = panels.Panel({
   width: 510,
   height: 520,
   contentURL: self.data.url("../popup.html"),
+  contentScriptFile: self.data.url("../scripts/popup.js"),
   onHide: handleHide
 });
 
