@@ -4,13 +4,33 @@ import gulpLoadPlugins from 'gulp-load-plugins';
 import del from 'del';
 import runSequence from 'run-sequence';
 import {stream as wiredep} from 'wiredep';
+import es from 'event-stream';
 
 const $ = gulpLoadPlugins();
+
+function pipe(src, transforms, dest) {
+	if (typeof transforms === 'string') {
+		dest = transforms;
+		transforms = null;
+	}
+
+	var stream = gulp.src(src);
+	transforms && transforms.forEach(function(transform) {
+		stream = stream.pipe(transform);
+	});
+
+	if (dest) {
+		stream = stream.pipe(gulp.dest(dest));
+	}
+
+	return stream;
+}
 
 gulp.task('extras', () => {
   return gulp.src([
     'app/*.*',
     'app/_locales/**',
+    'app/libs/**',
     '!app/scripts.babel',
     '!app/*.json',
     '!app/*.html',
@@ -53,10 +73,18 @@ gulp.task('images', () => {
 });
 
 // Copying MANIFEST.JSON TWICE -- when adding again, don't forget 'build' task
-// gulp.task('chrome', () => {
-//   return gulp.src('app/vendor/chrome/*')
-//     .pipe(gulp.dest('dist/chrome'));
-// });
+gulp.task('chrome', () => {
+  return es.merge(
+    pipe('app/libs/**/*', 'dist/chrome/libs'),
+    pipe('app/images/**/*', 'dist/chrome/images'),
+    pipe('app/scripts/**/*', 'dist/chrome/scripts'),
+    pipe('app/styles/**/*', 'dist/chrome/styles'),
+    pipe('app/vendor/chrome/browser.js', 'dist/chrome/scripts'),
+		pipe('app/vendor/chrome/manifest.json', 'dist/chrome/')
+  );
+  // return gulp.src('app/vendor/chrome/*')
+  //   .pipe(gulp.dest('dist/chrome'));
+});
 
 gulp.task('firefox', () => {
   return gulp.src('app/vendor/firefox/*')
@@ -75,10 +103,10 @@ gulp.task('html',  () => {
     .pipe(gulp.dest('dist/firefox'));
 });
 
-gulp.task('content', () => {
-  return gulp.src('scripts/contentscript.js')
-    .pipe(gulp.dest('dist/chrome/scripts'));
-});
+// gulp.task('content', () => {
+//   return gulp.src('scripts/contentscript.js')
+//     .pipe(gulp.dest('dist/chrome/scripts'));
+// });
 
 gulp.task('bump', () => {
   return gulp.src('app/vendor/chrome/manifest.json')
@@ -121,7 +149,10 @@ gulp.task('chromeManifest', () => {
       background: {
         target: 'scripts/background.js',
         exclude: [
-          'scripts/chromereload.js'
+          'scripts/chromereload.js',
+  				'../../dist/chrome/scripts/browser.js',
+  				'../../dist/chrome/scripts/contentscript.js',
+  				'../../dist/chrome/scripts/popup.js'
         ]
       }
   }))
@@ -142,7 +173,7 @@ gulp.task('babel', () => {
 
 gulp.task('clean', del.bind(null, ['.tmp', 'dist']));
 
-gulp.task('watch', ['lint', 'babel', 'html'], () => {
+gulp.task('watch', ['lint', 'babel', 'html', 'chrome', 'firefox'], () => {
   $.livereload.listen();
 
   gulp.watch([
@@ -181,7 +212,7 @@ gulp.task('package', ['bump'], function () {
 
 gulp.task('build', (cb) => {
   runSequence(
-    'lint', 'babel', 'chromeManifest', 'firefox', 'content',
+    'lint', 'babel', 'chrome', 'firefox',
     ['html', 'images', 'extras'],
     'size', cb);
 });
