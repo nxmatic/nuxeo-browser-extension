@@ -50,7 +50,9 @@ limitations under the License.
     jsonSearch.addEventListener('click', trackButtonClick);
   });
 
-  app.runtime.getBackgroundPage(function(bkg) {
+	console.log(app.browser);
+
+  app.browser.getBackgroundPage(function(bkg) {
 
     function debounce(fn, delay) {
       var timer = null;
@@ -92,7 +94,7 @@ limitations under the License.
 
     function registerLink(element, url) {
       $(element).click(function() {
-        app.tabs.create({
+        app.browser.createTabs({
           url: url,
           openerTabId: bkg.studioExt.server.tabId
         });
@@ -132,7 +134,7 @@ limitations under the License.
         if (pkgName) {
           $('#studio-link-button').click(function() {
             _gaq.push(['_trackEvent', 'studio-link-button', 'clicked']);
-            app.tabs.create({
+            app.browser.createTabs({
               url: studioUrl,
               openerTabId: bkg.studioExt.server.tabId
             });
@@ -240,7 +242,7 @@ limitations under the License.
         var top = (screen.height/2)-(h/2);
         jsonString = JSON.stringify(jsonObject, undefined, 2);
         bkg._text = jsonString;
-        app.tabs.create({url: 'json.html', active: true, openerTabId: bkg.studioExt.server.tabId});
+        app.browser.createTabs({url: 'json.html', active: true, openerTabId: bkg.studioExt.server.tabId});
       };
 
       function showSearchResults(icon, title, path, uid) {

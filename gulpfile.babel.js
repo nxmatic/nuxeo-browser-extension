@@ -5,6 +5,7 @@ import del from 'del';
 import runSequence from 'run-sequence';
 import {stream as wiredep} from 'wiredep';
 import es from 'event-stream';
+import concat from 'gulp-concat'
 
 const $ = gulpLoadPlugins();
 
@@ -72,6 +73,13 @@ gulp.task('images', () => {
     .pipe(gulp.dest('dist/firefox/images'));
 });
 
+gulp.task('background', () => {
+  return gulp.src(['app/bower_components/nuxeo/dist/nuxeo.js', 'app/scripts/bkg.js'])
+    .pipe(concat('background.js'))
+    .pipe(gulp.dest('dist/chrome/scripts/'))
+    .pipe(gulp.dest('dist/firefox/scripts/'));
+});
+
 // Copying MANIFEST.JSON TWICE -- when adding again, don't forget 'build' task
 gulp.task('chrome', () => {
   return es.merge(
@@ -79,8 +87,7 @@ gulp.task('chrome', () => {
     pipe('app/images/**/*', 'dist/chrome/images'),
     pipe('app/scripts/**/*', 'dist/chrome/scripts'),
     pipe('app/styles/**/*', 'dist/chrome/styles'),
-    pipe('app/vendor/chrome/browser.js', 'dist/chrome/scripts'),
-		pipe('app/vendor/chrome/manifest.json', 'dist/chrome/')
+    pipe('app/vendor/chrome/browser.js', 'dist/chrome/scripts')
   );
   // return gulp.src('app/vendor/chrome/*')
   //   .pipe(gulp.dest('dist/chrome'));
@@ -149,18 +156,14 @@ gulp.task('chromeManifest', () => {
       background: {
         target: 'scripts/background.js',
         exclude: [
-          'scripts/chromereload.js',
-  				'../../dist/chrome/scripts/browser.js',
-  				'../../dist/chrome/scripts/contentscript.js',
-  				'../../dist/chrome/scripts/popup.js'
+          'scripts/chromereload.js'
         ]
       }
   }))
-  .pipe($.if('*.css', $.minifyCss({compatibility: '*'})))
+  .pipe($.if('*.css$', $.minifyCss({compatibility: '*'})))
   .pipe($.if('*.js', $.sourcemaps.init()))
-  .pipe($.if('*.js', $.uglify()))
-  .pipe($.if('*.js', $.sourcemaps.write('.')))
-  .pipe(gulp.dest('dist/chrome'));
+  .pipe($.if('*.js$', $.uglify()))
+  .pipe($.if('*.js', $.sourcemaps.write('.')));
 });
 
 gulp.task('babel', () => {
@@ -173,7 +176,7 @@ gulp.task('babel', () => {
 
 gulp.task('clean', del.bind(null, ['.tmp', 'dist']));
 
-gulp.task('watch', ['lint', 'babel', 'html', 'chrome', 'firefox'], () => {
+gulp.task('watch', ['lint', 'babel', 'html', 'chrome', 'firefox', 'background'], () => {
   $.livereload.listen();
 
   gulp.watch([
@@ -212,7 +215,7 @@ gulp.task('package', ['bump'], function () {
 
 gulp.task('build', (cb) => {
   runSequence(
-    'lint', 'babel', 'chrome', 'firefox',
+    'lint', 'babel', 'chrome', 'firefox', 'background',
     ['html', 'images', 'extras'],
     'size', cb);
 });

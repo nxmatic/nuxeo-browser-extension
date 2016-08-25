@@ -34,9 +34,9 @@
 				"<all_urls>"
 			],
 			"js": [
-				"../../dist/chrome/scripts/browser.js",
-				"../../dist/chrome/scripts/contentscript.js",
-				"../../dist/chrome/scripts/popup.js"
+				"../../../dist/chrome/scripts/browser.js",
+				"../../../dist/chrome/scripts/contentscript.js",
+				"../../../dist/chrome/scripts/popup.js"
 			],
 			"run_at": "document_end",
 			"all_frames": false
