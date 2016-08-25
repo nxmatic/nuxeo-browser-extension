@@ -4,16 +4,16 @@
 	app.browser = {
 		name: 'Chrome',
 
-		getBackgroundPage: function() {
-			return chrome.runtime.getBackgroundPage;
+		getBackgroundPage: function(cb) {
+			return chrome.runtime.getBackgroundPage(cb);
 		},
 
 		getUrl: function (url) {
 			return chrome.extension.getURL(url);
 		},
 
-		createTabs: function() {
-			return chrome.tabs.create;
+		createTabs: function(createProperties) {
+			return chrome.tabs.create(createProperties);
 		}
 	};
 })(window);
