@@ -50,10 +50,7 @@ limitations under the License.
     jsonSearch.addEventListener('click', trackButtonClick);
   });
 
-	console.log(app.browser);
-
   app.browser.getBackgroundPage(function(bkg) {
-
     function debounce(fn, delay) {
       var timer = null;
       return function () {
@@ -102,7 +99,6 @@ limitations under the License.
     };
 
     function checkStudioProject(nuxeo) {
-
       let script = `import groovy.json.JsonOutput;
       import org.nuxeo.connect.packages.PackageManager;
       import org.nuxeo.connect.client.we.StudioSnapshotHelper;

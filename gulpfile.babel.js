@@ -76,6 +76,7 @@ gulp.task('images', () => {
 gulp.task('background', () => {
   return gulp.src(['app/bower_components/nuxeo/dist/nuxeo.js', 'app/scripts/bkg.js'])
     .pipe(concat('background.js'))
+    .pipe($.if('*.js', $.uglify()))
     .pipe(gulp.dest('dist/chrome/scripts/'))
     .pipe(gulp.dest('dist/firefox/scripts/'));
 });
@@ -87,7 +88,8 @@ gulp.task('chrome', () => {
     pipe('app/images/**/*', 'dist/chrome/images'),
     pipe('app/scripts/**/*', 'dist/chrome/scripts'),
     pipe('app/styles/**/*', 'dist/chrome/styles'),
-    pipe('app/vendor/chrome/browser.js', 'dist/chrome/scripts')
+    pipe('app/vendor/chrome/browser.js', 'dist/chrome/scripts'),
+    pipe('app/vendor/chrome/manifest.json', 'dist/chrome')
   );
   // return gulp.src('app/vendor/chrome/*')
   //   .pipe(gulp.dest('dist/chrome'));
@@ -147,23 +149,6 @@ gulp.task('release', (cb) => {
   .pipe(gulp.dest('app/vendor/chrome'));
 
   runSequence('build', 'package', cb);
-});
-
-gulp.task('chromeManifest', () => {
-  return gulp.src('app/vendor/chrome/manifest.json')
-    .pipe($.chromeManifest({
-      buildnumber: false,
-      background: {
-        target: 'scripts/background.js',
-        exclude: [
-          'scripts/chromereload.js'
-        ]
-      }
-  }))
-  .pipe($.if('*.css$', $.minifyCss({compatibility: '*'})))
-  .pipe($.if('*.js', $.sourcemaps.init()))
-  .pipe($.if('*.js$', $.uglify()))
-  .pipe($.if('*.js', $.sourcemaps.write('.')));
 });
 
 gulp.task('babel', () => {

@@ -25,22 +25,6 @@
 		"background",
 		"declarativeContent"
 	],
-	"content_scripts": [
-		{
-			"matches": [
-				"http://*/*",
-				"https://*/*",
-				"<all_urls>"
-			],
-			"js": [
-				"scripts/contentscript.js",
-				"scripts/browser.js",
-				"scripts/popup.js"
-			],
-			"run_at": "document_start",
-			"all_frames": false
-		}
-	],
 	"omnibox": {
 		"keyword": "OMNIBOX-KEYWORD"
 	},
