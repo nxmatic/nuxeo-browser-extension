@@ -1,6 +1,6 @@
 {
 	"name": "__MSG_appName__",
-	"version": "0.12.1",
+	"version": "0.11.1",
 	"manifest_version": 2,
 	"content_security_policy": "script-src 'self' https://ssl.google-analytics.com; object-src 'self'",
 	"description": "__MSG_appDescription__",
@@ -11,8 +11,7 @@
 	"default_locale": "en",
 	"background": {
 		"scripts": [
-      "../../bower_components/nuxeo/dist/nuxeo.js",
-      "../../scripts/bkg.js"
+			"scripts/background.js"
 		],
 		"persistent": true
 	},
@@ -34,11 +33,11 @@
 				"<all_urls>"
 			],
 			"js": [
-				"../../../dist/chrome/scripts/browser.js",
-				"../../../dist/chrome/scripts/contentscript.js",
-				"../../../dist/chrome/scripts/popup.js"
+				"scripts/contentscript.js",
+				"scripts/browser.js",
+				"scripts/popup.js"
 			],
-			"run_at": "document_end",
+			"run_at": "document_start",
 			"all_frames": false
 		}
 	],
