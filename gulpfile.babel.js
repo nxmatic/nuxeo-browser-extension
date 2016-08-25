@@ -96,8 +96,17 @@ gulp.task('chrome', () => {
 });
 
 gulp.task('firefox', () => {
-  return gulp.src('app/vendor/firefox/*')
-    .pipe(gulp.dest('dist/firefox'));
+  return es.merge(
+    pipe('app/libs/**/*', 'dist/firefox/libs'),
+    pipe('app/images/**/*', 'dist/firefox/images'),
+    pipe('app/scripts/**/*', 'dist/firefox/scripts'),
+    pipe('app/styles/**/*', 'dist/firefox/styles'),
+    pipe('app/vendor/firefox/browser.js', 'dist/firefox/scripts'),
+    pipe('app/vendor/firefox/index.js', 'dist/firefox'),
+    pipe('app/vendor/firefox/package.json', 'dist/firefox')
+  );
+  // return gulp.src('app/vendor/firefox/*')
+  //   .pipe(gulp.dest('dist/firefox'));
 });
 
 gulp.task('html',  () => {

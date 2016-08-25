@@ -19,16 +19,7 @@
   },
   "background": {
     "scripts": [
-			"bower_components/nuxeo/dist/nuxeo.js",
-			"scripts/bkg.js"]
-  },
-  "content_scripts": {
-    "matches": [
-      "http://*/*",
-      "https://*/*",
-      "<all_urls>"
-    ],
-    "js": ["scripts/popup.js"]
+			"scripts/background.js"]
   },
   "browser_action": {
     "browser_style": true,
