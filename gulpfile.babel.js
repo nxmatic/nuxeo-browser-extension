@@ -103,7 +103,7 @@ gulp.task('firefox', () => {
     pipe('app/styles/**/*', 'dist/firefox/styles'),
     pipe('app/vendor/firefox/browser.js', 'dist/firefox/scripts'),
     pipe('app/vendor/firefox/index.js', 'dist/firefox'),
-    pipe('app/vendor/firefox/package.json', 'dist/firefox')
+    pipe('app/vendor/firefox/manifest.json', 'dist/firefox')
   );
   // return gulp.src('app/vendor/firefox/*')
   //   .pipe(gulp.dest('dist/firefox'));

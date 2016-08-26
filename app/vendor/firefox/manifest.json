@@ -10,11 +10,12 @@
     "48": "images/nuxeo-48.png",
     "96": "images/nuxeo-96.png"
   },
+  "default_locale": "en",
   "applications": {
     "gecko": {
-      "id": "nuxeoffdevtools",
+      "id": "devtools@nuxeo.com",
       "strict_min_version": "45.0",
-      "strict_max_version": "50.*"
+      "strict_max_version": "51.*"
     }
   },
   "background": {
@@ -22,8 +23,12 @@
 			"scripts/background.js"]
   },
   "browser_action": {
-    "browser_style": true,
-    "default_icon": "images/nuxeo-32.png",
+    "default_icon": {
+      "16": "images/nuxeo-16.png",
+      "19": "images/nuxeo-19.png",
+      "32": "images/nuxeo-32.png",
+      "38": "images/nuxeo-38.png"
+    },
     "default_title": "Nuxeo FF Dev Tools",
     "default_popup": "popup.html"
   },
@@ -33,8 +38,7 @@
 		"https://*/*",
 		"activeTab",
 		"https://ajax.googleapis.com/",
-		"notifications",
-		"declarativeContent"
+		"notifications"
   ]
 
 }
