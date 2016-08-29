@@ -8,8 +8,10 @@
 			return bkg(chrome.extension.getBackgroundPage());
 		},
 
-		createTabs: function(createProperties) {
-			return chrome.tabs.create(createProperties);
+		createTabs: function(url, tabId) {
+			return chrome.tabs.create({
+				url: url
+			});
 		}
 
 	};

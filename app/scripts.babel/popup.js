@@ -91,17 +91,7 @@ limitations under the License.
 
     function registerLink(element, url) {
       $(element).click(function() {
-				if (app.browser.name == 'Chrome') {
-	        app.browser.createTabs({
-	          url: url,
-	          openerTabId: bkg.studioExt.server.tabId
-	        });
-				} else {
-	        app.browser.createTabs({
-	          url: url
-	        });
-				}
-
+				app.browser.createTabs(url, bkg.studioExt.server.tabId);
       });
     };
 
@@ -137,17 +127,7 @@ limitations under the License.
         if (pkgName) {
           $('#studio-link-button').click(function() {
             _gaq.push(['_trackEvent', 'studio-link-button', 'clicked']);
-						if (app.browser.name == 'Chrome') {
-							app.browser.createTabs({
-								url: studioUrl,
-								openerTabId: bkg.studioExt.server.tabId
-							});
-						} else {
-							app.browser.createTabs({
-								url: studioUrl
-							});
-						}
-
+						app.browser.createTabs(studioUrl, bkg.studioExt.server.tabId);
           });
           $('#hot-reload-button').click(function() {
             bkg.bkgHotReload(startLoadingHR, stopLoading);
@@ -252,12 +232,7 @@ limitations under the License.
         var top = (screen.height/2)-(h/2);
         jsonString = JSON.stringify(jsonObject, undefined, 2);
         bkg._text = jsonString;
-				if (app.browser.name == 'Chrome') {
-					app.browser.createTabs({url: 'json.html', active: true, openerTabId: bkg.studioExt.server.tabId});
-				} else {
-					app.browser.createTabs({url: 'json.html', active: true});
-				}
-
+				app.browser.createTabs('json.html', bkg.studioExt.server.tabId);
       };
 
       function showSearchResults(icon, title, path, uid) {
