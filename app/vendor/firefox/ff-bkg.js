@@ -3,7 +3,6 @@ function pageActionOnNuxeo(tabInfo) {
   var currentUrl = tabInfo.url;
   var isNuxeo = currentUrl.match(re);
   if (isNuxeo){
-    console.log("IS NUXEO");
     chrome.pageAction.show(tabInfo.id);
   };
 };

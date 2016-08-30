@@ -12,6 +12,10 @@
 			return chrome.tabs.create({
 				url: url
 			});
+		},
+
+		adjustJsonSearchIndent: function() {
+			return $('#json-search').css('text-indent', '25px');
 		}
 
 	};

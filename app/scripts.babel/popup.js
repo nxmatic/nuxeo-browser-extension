@@ -48,6 +48,7 @@ limitations under the License.
     debug.addEventListener('click', trackButtonClick);
     exportCurrent.addEventListener('click', trackButtonClick);
     jsonSearch.addEventListener('click', trackButtonClick);
+		app.browser.adjustJsonSearchIndent();
   });
 
   app.browser.getBackgroundPage(function(bkg) {
@@ -148,6 +149,7 @@ limitations under the License.
       $('#searchclear').click(function(){
         $('#json-search').val('');
         $('.no-result').css('display', 'none');
+				$('#json-search-results').empty();
       });
 
       var nuxeo;
