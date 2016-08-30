@@ -296,27 +296,27 @@ limitations under the License.
             sortBy: 'dc:modified'
           })
           .then(function(res) {
-            if (res.length > 0) {
-              $('#json-search-results').append('<thead><tr><th id="col1"></th><th id="col2"><span class="tablehead">TITLE</span></th><th id="col3"><span class="tablehead">PATH</span></th></tr></thead><tbody></tbody>');
-              $('table').css('margin-top', '20px');
-
-              res.forEach(function(doc) {
-                var icon = doc.get('common:icon');
-                var title = doc.get('dc:title');
-                var path = doc.path;
-                var uid = doc.uid;
-                showSearchResults(icon, title, path, uid);
-              });
-              $('.json-title').click(function(event) {
-                event.preventDefault();
-                getJsonFromGuid(event.target.id);
-              });
-              $('#loading-gif').css('display', 'none');
-            } else {
-              $('.no-result span').text(input);
-              $('.no-result').css('display', 'block');
-              $('#loading-gif').css('display', 'none');
-            }
+						if (res.length > 0) {
+				      $('#json-search-results').append('<thead><tr><th id="col1"></th><th id="col2"><span class="tablehead">TITLE</span></th><th id="col3"><span class="tablehead">PATH</span></th></tr></thead><tbody></tbody>');
+				      $('table').css('margin-top', '20px');
+				      res.forEach(function(doc) {
+								$('body').css('height');  // serves no purpose except to reactivate scrollbars
+				        var icon = doc.get('common:icon');
+				        var title = doc.get('dc:title');
+				        var path = doc.path;
+				        var uid = doc.uid;
+								showSearchResults(icon, title, path, uid);
+				      });
+							$('.json-title').click(function(event) {
+								event.preventDefault();
+								getJsonFromGuid(event.target.id);
+							});
+				      $('#loading-gif').css('display', 'none');
+				    } else {
+				      $('.no-result span').text(input);
+				      $('.no-result').css('display', 'block');
+				      $('#loading-gif').css('display', 'none');
+				    };
           })
           .catch(function(error) {
             error.response.json().then(function(json) {
