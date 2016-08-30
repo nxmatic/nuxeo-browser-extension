@@ -14,9 +14,10 @@
 				openerTabId: tabId
 			});
 		},
-		
+
 		adjustJsonSearchIndent: function() {
 			return $('#json-search').css('text-indent', '7px');
 		}
+
 	};
 })(window);
