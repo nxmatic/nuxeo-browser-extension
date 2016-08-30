@@ -22,7 +22,7 @@
     "scripts": [
 			"scripts/background.js"]
   },
-  "browser_action": {
+  "page_action": {
     "default_icon": {
       "16": "images/nuxeo-16.png",
       "19": "images/nuxeo-19.png",

@@ -14,26 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-'use strict';
-
-// chrome.runtime.onInstalled.addListener(details => {
-//   console.log('previousVersion', details.previousVersion);
-// });
-
-// chrome.runtime.onInstalled.addListener(function() {
-//   chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
-//     chrome.declarativeContent.onPageChanged.addRules([
-//       {
-//         conditions: [
-//           new chrome.declarativeContent.PageStateMatcher({
-//             pageUrl: { urlMatches: '^https?://[A-Za-z_\.0-9:-]+/[A-Za-z_\.0-9-]+/(?:(?:nxdoc|nxpath|nxsearch|nxadmin|nxhome|nxdam|nxdamid|site/[A-Za-z_\.0-9-]+)/[A-Za-z_\.0-9-]+|view_documents\.faces|view_domains\.faces|view_home\.faces)' }
-//           })
-//         ],
-//         actions: [ new chrome.declarativeContent.ShowPageAction() ]
-//       }
-//     ]);
-//   });
-// });
 
 var window = window || {};
 var studioExt = window.studioExt = window.studioExt || {};

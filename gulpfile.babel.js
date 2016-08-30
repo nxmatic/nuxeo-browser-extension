@@ -73,11 +73,17 @@ gulp.task('images', () => {
     .pipe(gulp.dest('dist/firefox/images'));
 });
 
-gulp.task('background', () => {
-  return gulp.src(['app/bower_components/nuxeo/dist/nuxeo.js', 'app/scripts/bkg.js'])
+gulp.task('background-chrome', () => {
+  return gulp.src(['app/bower_components/nuxeo/dist/nuxeo.js', 'app/vendor/chrome/chrome-bkg.js', 'app/scripts/bkg.js'])
     .pipe(concat('background.js'))
-    .pipe($.if('*.js', $.uglify()))
-    .pipe(gulp.dest('dist/chrome/scripts/'))
+    .pipe($.if('*.js$', $.uglify()))
+    .pipe(gulp.dest('dist/chrome/scripts/'));
+});
+
+gulp.task('background-ff', () => {
+  return gulp.src(['app/bower_components/nuxeo/dist/nuxeo.js', 'app/vendor/firefox/ff-bkg.js', 'app/scripts/bkg.js'])
+    .pipe(concat('background.js'))
+    .pipe($.if('*.js$', $.uglify()))
     .pipe(gulp.dest('dist/firefox/scripts/'));
 });
 
@@ -170,7 +176,7 @@ gulp.task('babel', () => {
 
 gulp.task('clean', del.bind(null, ['.tmp', 'dist']));
 
-gulp.task('watch', ['lint', 'babel', 'html', 'chrome', 'firefox', 'background'], () => {
+gulp.task('watch', ['lint', 'babel', 'html', 'chrome', 'firefox', 'background-chrome', 'background-ff'], () => {
   $.livereload.listen();
 
   gulp.watch([
@@ -209,7 +215,7 @@ gulp.task('package', ['bump'], function () {
 
 gulp.task('build', (cb) => {
   runSequence(
-    'lint', 'babel', 'chrome', 'firefox', 'background',
+    'lint', 'babel', 'chrome', 'firefox', 'background-chrome', 'background-ff',
     ['html', 'images', 'extras'],
     'size', cb);
 });
