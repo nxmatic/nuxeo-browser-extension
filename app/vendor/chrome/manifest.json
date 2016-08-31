@@ -11,7 +11,9 @@
 	"default_locale": "en",
 	"background": {
 		"scripts": [
-			"scripts/background.js"
+			"../../../app/bower_components/nuxeo/dist/nuxeo.js",
+			"../../../app/vendor/firefox/ff-bkg.js",
+			"../../../app/scripts/bkg.js"
 		],
 		"persistent": true
 	},

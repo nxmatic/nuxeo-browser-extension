@@ -300,7 +300,7 @@ limitations under the License.
 				      $('#json-search-results').append('<thead><tr><th id="col1"></th><th id="col2"><span class="tablehead">TITLE</span></th><th id="col3"><span class="tablehead">PATH</span></th></tr></thead><tbody></tbody>');
 				      $('table').css('margin-top', '20px');
 				      res.forEach(function(doc) {
-								$('body').css('height');  // serves no purpose except to reactivate scrollbars
+								$('body').css('height');  // workaround to reactivate scrollbars in FF popup
 				        var icon = doc.get('common:icon');
 				        var title = doc.get('dc:title');
 				        var path = doc.path;
