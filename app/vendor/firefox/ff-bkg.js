@@ -13,8 +13,10 @@ function getInfoForTab(tabs) {
   }
 }
 
-function onTabChange(activeInfo) {
+function onChange(tabInfo) {
   chrome.tabs.query({currentWindow: true, active: true}, getInfoForTab);
 };
 
-chrome.tabs.onActivated.addListener(onTabChange);
+var target = "<all_urls>";
+chrome.webRequest.onCompleted.addListener(onChange, {urls: [target]});
+
