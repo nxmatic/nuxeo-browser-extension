@@ -12,7 +12,7 @@
 	"background": {
 		"scripts": [
 			"../../../app/bower_components/nuxeo/dist/nuxeo.js",
-			"../../../app/vendor/firefox/ff-bkg.js",
+			"../../../app/vendor/chrome/chrome-bkg.js",
 			"../../../app/scripts/bkg.js"
 		],
 		"persistent": true
