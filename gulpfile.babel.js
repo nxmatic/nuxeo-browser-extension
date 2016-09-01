@@ -119,6 +119,7 @@ gulp.task('release-chrome', (cb) => {
 
 	gulp.src('app/vendor/chrome/manifest.json')
     .pipe($.chromeManifest({
+      buildnumber: version,
       background: {
 				target: 'scripts/background.js'
 			}
@@ -141,6 +142,7 @@ gulp.task('release-ff', (cb) => {
 
 	gulp.src('app/vendor/firefox/manifest.json')
     .pipe($.chromeManifest({
+      buildnumber: version,
       background: {
 				target: 'scripts/background.js'
 			}
@@ -162,6 +164,14 @@ gulp.task('clean', del.bind(null, ['.tmp', 'dist']));
 
 gulp.task('watch', ['lint', 'babel', 'html', 'chrome', 'firefox'], () => {
   $.livereload.listen();
+
+	gulp.src('app/vendor/chrome/manifest.json')
+		.pipe($.chromeManifest({
+			background: {
+				target: 'scripts/background.js'
+			}
+		}))
+	.pipe(gulp.dest('dist/chrome'));
 
   gulp.watch([
     'app/*.html',
@@ -193,30 +203,28 @@ gulp.task('wiredep', () => {
 gulp.task('package-chrome', function () {
   var manifest = require('./dist/chrome/manifest.json');
   return gulp.src('dist/chrome/**')
-      .pipe($.zip('Nuxeo Dev Tools-' + manifest.version + '.zip'))
+      .pipe($.zip('NuxeoDevTools-Chrome-' + manifest.version + '.zip'))
       .pipe(gulp.dest('package/chrome'));
 });
 
 gulp.task('package-ff', function () {
   var manifest = require('./dist/firefox/manifest.json');
   return gulp.src('dist/firefox/**')
-      .pipe($.zip('Nuxeo Dev Tools-' + manifest.version + '.zip'))
+      .pipe($.zip('NuxeoDevTools-FF-' + manifest.version + '.zip'))
       .pipe(gulp.dest('package/firefox'));
 });
 
 gulp.task('build-chrome', (cb) => {
-  let manifest = require('./app/vendor/chrome/manifest.json');
-  let [major, minor, build] = manifest.version.split('\.')
-  let version = `${major}.${minor}.${parseInt(build) + 1}`
 
   gulp.src('app/vendor/chrome/manifest.json')
     .pipe($.chromeManifest({
-      buildnumber: version
+      buildnumber: true
 		}))
   .pipe(gulp.dest('app/vendor/chrome'));
 
 	gulp.src('app/vendor/chrome/manifest.json')
     .pipe($.chromeManifest({
+	    buildnumber: true,
       background: {
 				target: 'scripts/background.js'
 			}
@@ -229,19 +237,16 @@ gulp.task('build-chrome', (cb) => {
 });
 
 gulp.task('build-ff', (cb) => {
-  let manifest = require('./app/vendor/firefox/manifest.json');
-  let [major, minor, build] = manifest.version.split('\.')
-  let version = `${major}.${minor}.${parseInt(build) + 1}`
 
   gulp.src('app/vendor/firefox/manifest.json')
     .pipe($.chromeManifest({
-      buildnumber: version
+      buildnumber: true
 		}))
   .pipe(gulp.dest('app/vendor/firefox'));
 
 	gulp.src('app/vendor/firefox/manifest.json')
     .pipe($.chromeManifest({
-			buildnumber: version,
+			buildnumber: true,
       background: {
 				target: 'scripts/background.js'
 			}
