@@ -1,6 +1,6 @@
 {
 	"name": "__MSG_appName__",
-	"version": "0.11.1",
+	"version": "0.12.0",
 	"manifest_version": 2,
 	"content_security_policy": "script-src 'self' https://ssl.google-analytics.com; object-src 'self'",
 	"description": "__MSG_appDescription__",
@@ -11,8 +11,9 @@
 	"default_locale": "en",
 	"background": {
 		"scripts": [
-			"bower_components/nuxeo/dist/nuxeo.js",
-			"scripts/bkg.js"
+			"../../../app/bower_components/nuxeo/dist/nuxeo.js",
+			"../../../app/vendor/firefox/ff-bkg.js",
+			"../../../app/scripts/bkg.js"
 		],
 		"persistent": true
 	},
@@ -25,20 +26,6 @@
 		"notifications",
 		"background",
 		"declarativeContent"
-	],
-	"content_scripts": [
-		{
-			"matches": [
-				"http://*/*",
-				"https://*/*",
-				"<all_urls>"
-			],
-			"js": [
-				"scripts/contentscript.js"
-			],
-			"run_at": "document_end",
-			"all_frames": false
-		}
 	],
 	"omnibox": {
 		"keyword": "OMNIBOX-KEYWORD"

@@ -14,13 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-'use strict';
 
-chrome.runtime.onInstalled.addListener(details => {
-  console.log('previousVersion', details.previousVersion);
-});
-
-var studioExt = {};
+var window = window || {};
+var studioExt = window.studioExt = window.studioExt || {};
 var tabUrl;
 
 function notification(idP, titleP, messageP, img) {
@@ -49,7 +45,8 @@ function getCurrentTabUrl(callback) {
     url = matchGroup[1];
     console.assert(typeof url === 'string', 'tab.url should be a string');
 
-    studioExt.server = {
+
+    window.studioExt.server = {
       url: url,
       tabId: tab.id
     }
@@ -68,7 +65,7 @@ window.bkgHotReload = function(startLoading, stopLoading) {
     nuxeo.operation('Service.HotReloadStudioSnapshot').execute()
       .then(function() {
         notification('success', 'Success!', 'A Hot Reload has successfully been completed.', '../images/nuxeo-128.png');
-        chrome.tabs.reload(studioExt.server.tabId);
+        chrome.tabs.reload(window.studioExt.server.tabId);
         stopLoading();
       })
       .catch(function(e) {
@@ -138,17 +135,3 @@ window.reindex = function(startLoadingES, stopLoading) {
   })
 }
 
-chrome.runtime.onInstalled.addListener(function() {
-  chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
-    chrome.declarativeContent.onPageChanged.addRules([
-      {
-        conditions: [
-          new chrome.declarativeContent.PageStateMatcher({
-            pageUrl: { urlMatches: '^https?://[A-Za-z_\.0-9:-]+/[A-Za-z_\.0-9-]+/(?:(?:nxdoc|nxpath|nxsearch|nxadmin|nxhome|nxdam|nxdamid|site/[A-Za-z_\.0-9-]+)/[A-Za-z_\.0-9-]+|view_documents\.faces|view_domains\.faces|view_home\.faces)' }
-          })
-        ],
-        actions: [ new chrome.declarativeContent.ShowPageAction() ]
-      }
-    ]);
-  });
-});

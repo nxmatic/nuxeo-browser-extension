@@ -17,7 +17,7 @@
     limitations under the License.
     -->
     <meta charset="utf-8">
-    <title>Nuxeo Chrome Dev Tools Popup</title>
+    <title>Nuxeo Dev Tools</title>
 
     <!-- build:css styles/popup-vendor.css -->
     <!-- bower:css -->
@@ -38,6 +38,7 @@
     <!-- endbower -->
     <!-- endbuild -->
 
+    <script src="scripts/browser.js"></script>
     <!-- build:js scripts/popup.js -->
     <script src="scripts/popup.js"></script>
     <!-- endbuild -->
@@ -184,7 +185,7 @@
             <form class="search-container">
               <div id="loading-gif"></div>
               <input type="search" id="json-search" class="form" placeholder="Enter path, GUID or file name..." results="5" />
-              <span id="searchclear" class="glyphicon glyphicon-remove-circle"></span>
+              <span id="searchclear">&#8855;</span>
             </form>
           </div>
         </div>
