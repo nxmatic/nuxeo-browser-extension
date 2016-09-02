@@ -1,4 +1,4 @@
-Nuxeo Chrome Dev Tools
+Nuxeo Dev Tools
 ======================
 
 [![Build Status](https://qa.nuxeo.org/jenkins/buildStatus/icon?job=client/nuxeo-chrome-extension-master)](https://qa.nuxeo.org/jenkins/view/All/job/Client/job/nuxeo-chrome-extension-master/)
@@ -26,12 +26,12 @@ Features include:
 
 ## Requirements
 
-* Nuxeo 8.2
+* Nuxeo 8.2 +
 
 ## Limitations
 
 * Multiple Nuxeo projects are not supported.
-* The extension is only active when a Nuxeo instance in the current active tab.
+* The extension is only active when a Nuxeo instance is in the current active tab.
 * The Hot Reload and Go To Studio buttons are only active when a Studio project is associated with the current Nuxeo server.
 * [CORS config](https://doc.nuxeo.com/pages/viewpage.action?pageId=14257084) must be activated in your Nuxeo server to connect to your repository on API Playground.
 
@@ -42,7 +42,8 @@ Features include:
 $ git clone git@github.com:nuxeo/nuxeo-chrome-extension.git
 $ cd nuxeo-chrome-extension
 $ npm install && bower install
-$ gulp build
+$ gulp build-chrome             // for Chrome users
+$ gulp build-ff                 // for Firefox users
 ```
 
 # Contributing / Reporting issues

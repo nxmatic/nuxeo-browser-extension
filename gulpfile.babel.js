@@ -162,7 +162,7 @@ gulp.task('babel', () => {
 
 gulp.task('clean', del.bind(null, ['.tmp', 'dist']));
 
-gulp.task('watch', ['lint', 'babel', 'html', 'chrome', 'firefox'], () => {
+gulp.task('watch', ['lint', 'babel', 'html', 'chrome', 'firefox', 'extras'], () => {
   $.livereload.listen();
 
 	gulp.src('app/vendor/chrome/manifest.json')
@@ -172,6 +172,14 @@ gulp.task('watch', ['lint', 'babel', 'html', 'chrome', 'firefox'], () => {
 			}
 		}))
 	.pipe(gulp.dest('dist/chrome'));
+
+	gulp.src('app/vendor/firefox/manifest.json')
+		.pipe($.chromeManifest({
+			background: {
+				target: 'scripts/background.js'
+			}
+		}))
+	.pipe(gulp.dest('dist/firefox'));
 
   gulp.watch([
     'app/*.html',
