@@ -165,6 +165,24 @@ HEADINGS
   color: #213f7d;
 }
 
+.ri-heading {
+  font-size: 18px;
+  font-weight: bold;
+  min-width: 280px;
+}
+
+.ri-row {
+  margin-top: 50px;
+}
+
+.prompt {
+  margin-bottom: -10px;
+}
+
+#repo {
+  margin-right: 70px;
+}
+
 /*==============================================================================
 BUTTONS
 ==============================================================================*/
@@ -177,20 +195,29 @@ a.inactive-button {
   text-decoration: none;
   border: 0 none;
   border-radius: 24px;
-  width: 130px;
   padding: 10px 12px;
-  margin: 5px 10px;
   display: flex;
   justify-content: center;
   align-items: center;
   flex: 0 0 160px;
   text-align: center;
-  line-height: 1.1;
-  font-size: 14px;
   text-transform: none;
   font-weight: 500;
   transition: all 60ms ease-in-out;
   color: #fff;
+}
+
+.main-page {
+  width: 130px;
+  line-height: 1.1;
+  margin: 5px 10px;
+  font-size: 14px;
+}
+
+.reindex-page {
+  width: 60px;
+  line-height: 0.8;
+  font-size: 12px;
 }
 
 a.button {
@@ -230,12 +257,6 @@ a.button:active {
 .reindex-es,
 .api-play {
   margin-left: 30px;
-}
-
-#reindex-button {
-  width: 55px;
-  line-height: 0.8;
-  margin-left: -20px;
 }
 
 #loading {
