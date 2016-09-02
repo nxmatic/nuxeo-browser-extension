@@ -35,17 +35,6 @@ Features include:
 * The Hot Reload and Go To Studio buttons are only active when a Studio project is associated with the current Nuxeo server.
 * [CORS config](https://doc.nuxeo.com/pages/viewpage.action?pageId=14257084) must be activated in your Nuxeo server to connect to your repository on API Playground.
 
-## Build
-
-- From GitHub:
-```
-$ git clone git@github.com:nuxeo/nuxeo-chrome-extension.git
-$ cd nuxeo-chrome-extension
-$ npm install && bower install
-$ gulp build-chrome             // for Chrome users
-$ gulp build-ff                 // for Firefox users
-```
-
 # Contributing / Reporting issues
 
 https://jira.nuxeo.com/browse/CHROME/
