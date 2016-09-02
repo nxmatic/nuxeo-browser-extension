@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2,
 	"name": "Nuxeo Dev Tools",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "",
 	"icons": {
 		"48": "images/nuxeo-48.png",
@@ -10,7 +10,7 @@
 	"default_locale": "en",
 	"applications": {
 		"gecko": {
-			"id": "devtools@nuxeo.com",
+			"id": "firefox_nuxeodevtools@nuxeo.com",
 			"strict_min_version": "45.0",
 			"strict_max_version": "51.*"
 		}
