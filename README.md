@@ -22,7 +22,8 @@ Features include:
 
 # Installation
 
-- From the Chrome Web Store: install [Nuxeo Chrome Extension](https://chrome.google.com/webstore/detail/nuxeo-extension/kncphbjdicjganncpalklkllihdidcmh).
+- From the Chrome Web Store: install [Nuxeo Chrome Dev Tools](https://chrome.google.com/webstore/detail/nuxeo-extension/kncphbjdicjganncpalklkllihdidcmh).
+- From the Firefox Add-ons page: install [Nuxeo Dev Tools](https://addons.mozilla.org/en-US/firefox/addon/nuxeo-dev-tools/).
 
 ## Requirements
 
