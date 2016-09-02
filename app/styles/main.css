@@ -232,6 +232,12 @@ a.button:active {
   margin-left: 30px;
 }
 
+#reindex-button {
+  width: 55px;
+  line-height: 0.8;
+  margin-left: -20px;
+}
+
 #loading {
   display: none;
   position: fixed;
@@ -368,21 +374,20 @@ form {
   position: relative;
 }
 
-#json-search {
+.form {
   padding-left: 5px;
   margin-top: 0;
   border-radius: 24px;
   border:1px solid #ddd;
   height: 30px;
-  width: 420px;
   float: left;
 }
 
-#json-search:focus {
+.form:focus {
   outline: none;
 }
 
-#searchclear {
+.searchclear {
     position: absolute;
     height: 20px;
     margin: auto;
@@ -400,6 +405,16 @@ form {
   height: 20px;
   min-width: 20px;
   display: none;
+}
+
+#json-search {
+  width: 420px;
+}
+
+#nxql-query,
+#doc-id {
+  text-indent: 5px;
+  width: 350px;
 }
 
 /* SEARCH RESULTS ------------------------------------------------------------*/

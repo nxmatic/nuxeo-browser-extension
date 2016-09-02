@@ -1,0 +1,122 @@
+<!doctype html>
+<html>
+  <head>
+    <!--
+    Copyright 2016 Nuxeo
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+    -->
+    <meta charset="utf-8">
+    <title>ElasticSearch Re-indexing</title>
+
+    <!-- build:css styles/popup-vendor.css -->
+    <!-- bower:css -->
+    <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- endbower -->
+    <!-- endbuild -->
+
+    <!-- build:css styles/main.css -->
+    <link href="styles/main.css" rel="stylesheet">
+    <!-- endbuild -->
+
+    <!-- build:js scripts/popup-vendor.js -->
+    <!-- bower:js -->
+    <script src="bower_components/nuxeo/dist/nuxeo.js"></script>
+    <script src="bower_components/jquery/dist/jquery.js"></script>
+    <script src="bower_components/jquery-confirm/jquery.confirm.js"></script>
+    <!-- endbower -->
+    <!-- endbuild -->
+
+    <script src="scripts/browser.js"></script>
+    <!-- build:js scripts/popup.js -->
+    <script src="scripts/popup.js"></script>
+    <!-- endbuild -->
+  </head>
+  <body>
+    <div class="nav-link">
+      <a href="popup.html">Back</a>
+    </div>
+    <div class="nxcontainer" id="main-page">
+
+    <div class="heading">
+      <div class="nxrow">
+        <div class="logo">
+        </div>
+        <div class="server-main">
+          <ul>
+            <li class="server-name">Connected to Nuxeo Server:</li>
+            <li><div class="server-name-url"></div></li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="nxrow">
+      <div class="ri-heading">
+      Re-index the entire repository
+      </div>
+      <div class="reindex-es">
+        <a class="button" id="reindex-button" href="#"><span>Reindex</span></a>
+      </div>
+    </div>
+
+    <div class="ri-heading">
+    Re-index documents that match a NXQL query
+    </div>
+    <div class="nxrow">
+      <div class="prompt">
+      NXQL query:
+      </div>
+    </div>
+    <div class="nxrow">
+      <div>
+        <form class="search-container">
+          <input type="search" id="nxql-query" class="form" placeholder="SELECT * FROM Document" />
+          <span class="searchclear" id="nxql-clear">&#8855;</span>
+        </form>
+      </div>
+      <div class="reindex-es">
+        <a class="button" id="reindex-button" href="#"><span>Reindex</span></a>
+      </div>
+    </div>
+
+    <div class="ri-heading">
+    Re-index a document and its children
+    </div>
+    <div class="nxrow">
+      <div class="prompt">
+      Document ID:
+      </div>
+    </div>
+    <div class="nxrow">
+      <div>
+        <form class="search-container">
+          <input type="search" id="doc-id" class="form" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+          <span class="searchclear" id="docid-clear">&#8855;</span>
+        </form>
+      </div>
+      <div class="reindex-es">
+        <a class="button" id="reindex-button" href="#"><span>Reindex</span></a>
+      </div>
+    </div>
+
+        <!-- <div class="nxrow">
+          <div class="no-result">
+          No files found for <span id="search-term"></span>
+          </div>
+        </div> -->
+
+
+  </body>
+</html>

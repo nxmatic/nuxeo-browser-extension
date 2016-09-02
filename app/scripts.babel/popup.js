@@ -146,11 +146,19 @@ limitations under the License.
 
     $(document).ready(function() {
 
-      $('#searchclear').click(function(){
+      $('#json-searchclear').click(function(){
         $('#json-search').val('');
         $('.no-result').css('display', 'none');
 				$('#json-search-results').empty();
       });
+
+			$('#nxql-clear').click(function(){
+        $('#nxql-query').val('');
+			});
+
+			$('#docid-clear').click(function(){
+				$('#doc-id').val('');
+			});
 
       var nuxeo;
       bkg.getCurrentTabUrl(function(url) {
