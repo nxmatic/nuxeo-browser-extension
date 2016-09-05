@@ -165,6 +165,19 @@ HEADINGS
   color: #213f7d;
 }
 
+.ri-heading {
+  font-size: 18px;
+  min-width: 280px;
+}
+
+.ri-row {
+  margin-top: 50px;
+}
+
+#repo {
+  margin-right: 70px;
+}
+
 /*==============================================================================
 BUTTONS
 ==============================================================================*/
@@ -177,20 +190,30 @@ a.inactive-button {
   text-decoration: none;
   border: 0 none;
   border-radius: 24px;
-  width: 130px;
   padding: 10px 12px;
-  margin: 5px 10px;
   display: flex;
   justify-content: center;
   align-items: center;
   flex: 0 0 160px;
   text-align: center;
-  line-height: 1.1;
-  font-size: 14px;
   text-transform: none;
   font-weight: 500;
   transition: all 60ms ease-in-out;
   color: #fff;
+}
+
+.main-page {
+  width: 130px;
+  line-height: 1.1;
+  margin: 5px 10px;
+  font-size: 14px;
+}
+
+.reindex-page {
+  width: 60px;
+  line-height: 0.8;
+  margin-left: 15px;
+  font-size: 12px;
 }
 
 a.button {
@@ -368,21 +391,20 @@ form {
   position: relative;
 }
 
-#json-search {
+.form {
   padding-left: 5px;
   margin-top: 0;
   border-radius: 24px;
   border:1px solid #ddd;
   height: 30px;
-  width: 420px;
   float: left;
 }
 
-#json-search:focus {
+.form:focus {
   outline: none;
 }
 
-#searchclear {
+.searchclear {
     position: absolute;
     height: 20px;
     margin: auto;
@@ -400,6 +422,15 @@ form {
   height: 20px;
   min-width: 20px;
   display: none;
+}
+
+#json-search {
+  width: 420px;
+}
+
+#nxql-docid {
+  text-indent: 5px;
+  width: 350px;
 }
 
 /* SEARCH RESULTS ------------------------------------------------------------*/
