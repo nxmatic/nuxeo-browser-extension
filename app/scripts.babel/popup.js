@@ -257,9 +257,9 @@ limitations under the License.
       });
 
 			$('#reindex-nxql-doc').click(function() {
-        $('#nxql-docid').val('');
 				var uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 				var input = $('#nxql-docid').val();
+	      $('#nxql-docid').val('');
 				var matchGroupId = uuidPattern.exec(input);
 				if (matchGroupId) {
         	bkg.reindexDocId(input);
@@ -267,6 +267,13 @@ limitations under the License.
 					bkg.reindexNXQL(input);
 				}
       });
+
+			$('#nxql-docid').keydown(function (e) {
+			  if (e.which == 13) {
+					e.preventDefault();
+					$('#reindex-nxql-doc').click();
+			  }
+			});
 
       $('#debug-switch').click(function(event) {
         nuxeo.operation('Traces.ToggleRecording')
