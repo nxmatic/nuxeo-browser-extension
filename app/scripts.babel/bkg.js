@@ -115,21 +115,58 @@ window.restart = function(startLoadingRS, stopLoading) {
     });
 }
 
-window.reindex = function(startLoadingES, stopLoading) {
+window.reindex = function() {
   var nuxeo;
   getCurrentTabUrl(function(url) {
     nuxeo = new Nuxeo({
       baseURL: url
     });
-    startLoadingES();
     nuxeo.operation('Elasticsearch.Index').execute()
       .then(function() {
         notification('success', 'Success!', 'Your repository index is rebuilding.', '../images/nuxeo-128.png');
-        stopLoading();
       })
       .catch(function(e) {
         notification('error', 'Something went wrong...', 'Please try again later.', '../images/access_denied.png');
-        stopLoading();
+      })
+
+  })
+}
+
+window.reindexNXQL = function(input) {
+  var nuxeo;
+  getCurrentTabUrl(function(url) {
+    nuxeo = new Nuxeo({
+      baseURL: url
+    });
+    nuxeo.operation('Elasticsearch.Index')
+      .params({
+        nxql: input
+      })
+      .execute()
+      .then(function() {
+        notification('success', 'Success!', 'Your repository index is rebuilding.', '../images/nuxeo-128.png');
+      })
+      .catch(function(e) {
+        notification('error', 'Something went wrong...', 'Please try again later.', '../images/access_denied.png');
+      })
+
+  })
+}
+
+window.reindexDocId = function(input) {
+  var nuxeo;
+  getCurrentTabUrl(function(url) {
+    nuxeo = new Nuxeo({
+      baseURL: url
+    });
+    nuxeo.operation('Elasticsearch.Index')
+      .input(input)
+      .execute()
+      .then(function() {
+        notification('success', 'Success!', 'Your repository index is rebuilding.', '../images/nuxeo-128.png');
+      })
+      .catch(function(e) {
+        notification('error', 'Something went wrong...', 'Please try again later.', '../images/access_denied.png');
       })
 
   })

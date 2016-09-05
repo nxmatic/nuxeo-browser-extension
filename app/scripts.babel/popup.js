@@ -79,13 +79,6 @@ limitations under the License.
         $('#loading').css({'display': 'block', 'top': (position.top-5), 'left': (position.left+140)});
     };
 
-    function startLoadingES() {
-        _gaq.push(['_trackEvent', 'reindex-button', 'clicked']);
-        var a = $('a#reindex-button');
-        position = a.position();
-        $('#loading').css({'display': 'block', 'top': (position.top-5), 'left': (position.left-50)});
-    };
-
     function stopLoading() {
         $('#loading').css('display', 'none');
     };
@@ -153,11 +146,7 @@ limitations under the License.
       });
 
 			$('#nxql-clear').click(function(){
-        $('#nxql-query').val('');
-			});
-
-			$('#docid-clear').click(function(){
-				$('#doc-id').val('');
+        $('#nxql-docid').val('');
 			});
 
       var nuxeo;
@@ -263,8 +252,20 @@ limitations under the License.
         }
       });
 
-      $('#reindex-button').click(function() {
-        bkg.reindex(startLoadingES, stopLoading);
+      $('#reindex-repo').click(function() {
+        bkg.reindex();
+      });
+
+			$('#reindex-nxql-doc').click(function() {
+        $('#nxql-docid').val('');
+				var uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+				var input = $('#nxql-docid').val();
+				var matchGroupId = uuidPattern.exec(input);
+				if (matchGroupId) {
+        	bkg.reindexDocId(input);
+				} else {
+					bkg.reindexNXQL(input);
+				}
       });
 
       $('#debug-switch').click(function(event) {

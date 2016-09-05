@@ -167,16 +167,11 @@ HEADINGS
 
 .ri-heading {
   font-size: 18px;
-  font-weight: bold;
   min-width: 280px;
 }
 
 .ri-row {
   margin-top: 50px;
-}
-
-.prompt {
-  margin-bottom: -10px;
 }
 
 #repo {
@@ -217,6 +212,7 @@ a.inactive-button {
 .reindex-page {
   width: 60px;
   line-height: 0.8;
+  margin-left: 15px;
   font-size: 12px;
 }
 
@@ -432,8 +428,7 @@ form {
   width: 420px;
 }
 
-#nxql-query,
-#doc-id {
+#nxql-docid {
   text-indent: 5px;
   width: 350px;
 }

@@ -66,50 +66,26 @@
       <div class="ri-heading" id="repo">
       Re-index the entire repository
       </div>
-      <div class="reindex-es">
-        <a class="button reindex-page" id="reindex-button" href="#"><span>Reindex</span></a>
+      <div>
+        <a class="button reindex-page" id="reindex-repo" href="#"><span>Reindex</span></a>
       </div>
     </div>
 
     <div class="ri-heading ri-row">
-    Re-index documents that match a NXQL query
-    </div>
-    <div class="nxrow">
-      <div class="prompt">
-      NXQL query:
-      </div>
+    Re-index using NXQL or Document ID:
     </div>
     <div class="nxrow">
       <div>
         <form class="search-container">
-          <input type="search" id="nxql-query" class="form" placeholder="SELECT * FROM Document" />
+          <input type="search" id="nxql-docid" class="form" />
           <span class="searchclear" id="nxql-clear">&#8855;</span>
         </form>
       </div>
-      <div class="reindex-es">
-        <a class="button reindex-page" id="reindex-button" href="#"><span>Reindex</span></a>
+      <div>
+        <a class="button reindex-page" id="reindex-nxql-doc" href="#"><span>Reindex</span></a>
       </div>
     </div>
 
-    <div class="ri-heading ri-row">
-    Re-index a document and its children
-    </div>
-    <div class="nxrow">
-      <div class="prompt">
-      Document ID:
-      </div>
-    </div>
-    <div class="nxrow">
-      <div>
-        <form class="search-container">
-          <input type="search" id="doc-id" class="form" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
-          <span class="searchclear" id="docid-clear">&#8855;</span>
-        </form>
-      </div>
-      <div class="reindex-es">
-        <a class="button reindex-page" id="reindex-button" href="#"><span>Reindex</span></a>
-      </div>
-    </div>
 
         <!-- <div class="nxrow">
           <div class="no-result">
