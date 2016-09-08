@@ -48,7 +48,6 @@ limitations under the License.
     debug.addEventListener('click', trackButtonClick);
     exportCurrent.addEventListener('click', trackButtonClick);
     jsonSearch.addEventListener('click', trackButtonClick);
-		app.browser.adjustJsonSearchIndent();
   });
 
   app.browser.getBackgroundPage(function(bkg) {
@@ -138,6 +137,8 @@ limitations under the License.
     };
 
     $(document).ready(function() {
+
+			app.browser.adjustJsonSearchIndent();
 
       $('#json-searchclear').click(function(){
         $('#json-search').val('');
@@ -236,10 +237,11 @@ limitations under the License.
 
       function showSearchResults(icon, title, path, uid) {
         var icon_link = nuxeo._baseURL.concat(icon);
+				var json_tag = '<td class="json-icon" id="' + uid + '"><img src="images/json-16.png"></td>';
         var icon_tag = '<td class="json-doc-icon"><img src="' + icon_link + '" alt="icon"></td>';
         var title_tag = '<td class="json-title" id="' + uid + '">' + title + '</td>';
         var path_tag = '<td class="json-path">' + path + '</td>';
-        $('tbody').append('<tr class="search-result">'+ icon_tag + title_tag + path_tag + '</tr>');
+        $('tbody').append('<tr class="search-result">'+ json_tag + icon_tag + title_tag + path_tag + '</tr>');
       };
 
       $('#restart-button').confirm({
@@ -303,7 +305,9 @@ limitations under the License.
         } else if (pathPattern.test(input)) {
           getJsonFromPath(input);
           $('#loading-gif').css('display', 'none');
-        } else {
+        } else if (((input.toUpperCase()).indexOf('SELECT ') !== -1) && ((input.toUpperCase()).indexOf(' FROM ') !== -1)) {
+
+				} else {
           var jsonQuery = 'SELECT * FROM Document WHERE ecm:fulltext = "' + input + '"';
           nuxeo.repository()
           .schemas(['dublincore', 'common'])
@@ -313,7 +317,7 @@ limitations under the License.
           })
           .then(function(res) {
 						if (res.length > 0) {
-				      $('#json-search-results').append('<thead><tr><th id="col1"></th><th id="col2"><span class="tablehead">TITLE</span></th><th id="col3"><span class="tablehead">PATH</span></th></tr></thead><tbody></tbody>');
+				      $('#json-search-results').append('<thead><tr><th id="col1"></th><th id="col2"></th><th id="col3"><span class="tablehead">TITLE</span></th><th id="col4"><span class="tablehead">PATH</span></th></tr></thead><tbody></tbody>');
 				      $('table').css('margin-top', '20px');
 				      res.forEach(function(doc) {
 								$('body').css('height');  // workaround to reactivate scrollbars in FF popup

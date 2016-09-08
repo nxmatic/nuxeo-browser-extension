@@ -458,11 +458,15 @@ form {
 }
 
 #col2 {
-  width: 25%;
+  width: 5%;
 }
 
 #col3 {
-  width: 70%;
+  width: 30%;
+}
+
+#col4 {
+  width: 60%;
 }
 
 .json-title {

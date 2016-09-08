@@ -142,7 +142,7 @@
       <div class="search">
         <div class="nxrow">
           <div class="export">
-          Export JSON
+          Search Repository
           </div>
         </div>
 
@@ -150,22 +150,18 @@
           <div>
             <form class="search-container">
               <div id="loading-gif"></div>
-              <input type="search" id="json-search" class="form" placeholder="Enter path, GUID or file name..." results="5" />
+              <input type="search" id="json-search" class="form" placeholder="Enter path, GUID, file name or NXQL query..." results="5" />
               <span class="searchclear" id="json-searchclear">&#8855;</span>
             </form>
           </div>
         </div>
 
-        <div class="nxrow">
-          <div class="no-result">
-          No files found for <span id="search-term"></span>
-          </div>
+        <div class="no-result">
+        No files found for <span id="search-term"></span>
         </div>
 
-        <div class="nxrow">
-          <div class="nav-link">
-            <a id="export-current">&#10024; Export current document JSON</a>
-          </div>
+        <div class="nav-link">
+          <a id="export-current">&#10024; Export current document JSON</a>
         </div>
 
         <table id="json-search-results">
