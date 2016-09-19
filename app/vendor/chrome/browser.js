@@ -15,9 +15,5 @@
 			});
 		},
 
-		adjustJsonSearchIndent: function() {
-			return $('#json-search').css('text-indent', '23px');
-		}
-
 	};
 })(window);

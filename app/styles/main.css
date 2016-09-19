@@ -56,14 +56,11 @@ th {
   background-color: #00adff;
   color: #fff;
   line-height: 20px;
+  text-indent: 5px;
 }
 
-table th:first-child{
-  border-radius: 24px 0 0 24px;
-}
-
-table th:last-child{
-  border-radius: 0 24px 24px 0;
+table th {
+  border-radius: 24px;
 }
 
 tbody:before {
@@ -73,11 +70,17 @@ tbody:before {
   color: transparent;
 }
 
-tr {
-  line-height: 25px;
+tr:nth-child(odd){
+  line-height: 22px;
 }
 
-tr:nth-child(even) {
+tr:nth-child(even){
+  line-height: 18px;
+  font-size: 10px;
+}
+
+tr:nth-child(4n),
+tr:nth-child(4n-1) {
   background-color: #eee;
 }
 
@@ -425,6 +428,7 @@ form {
 }
 
 #json-search {
+  text-indent: 5px;
   width: 420px;
 }
 
@@ -453,31 +457,29 @@ form {
   font-style: italic;
 }
 
-#col1 {
-  width: 5%;
+.doc-path {
+  padding-bottom: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-#col2 {
-  width: 5%;
-}
-
-#col3 {
-  width: 30%;
-}
-
-#col4 {
-  width: 60%;
-}
-
-.json-title {
+.doc-title {
   font-weight: bold;
   text-decoration: none;
   color: inherit;
 }
 
-.json-title:hover {
+.doc-title:hover {
   color: #00adff;
-  cursor: pointer;
+  cursor:pointer;
+}
+
+.json-icon:hover {
+  cursor:pointer;
+}
+
+#json-exp {
+  margin-right: 5px;
 }
 
 #export-current {

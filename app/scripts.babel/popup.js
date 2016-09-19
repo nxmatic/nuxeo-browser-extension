@@ -138,8 +138,6 @@ limitations under the License.
 
     $(document).ready(function() {
 
-			app.browser.adjustJsonSearchIndent();
-
       $('#json-searchclear').click(function(){
         $('#json-search').val('');
         $('.no-result').css('display', 'none');
@@ -224,6 +222,50 @@ limitations under the License.
           });
       };
 
+			function docSearch(nxqlQuery, input) {
+				nuxeo.repository()
+				.schemas(['dublincore', 'common'])
+				.query({
+					query: nxqlQuery,
+					sortBy: 'dc:modified'
+				})
+				.then(function(res) {
+					if (res.length > 0) {
+						$('#json-search-results').append('<thead><tr><th colspan=20>Search Results:</td></tr></thead><tbody></tbody>');
+						$('table').css('margin-top', '20px');
+						res.forEach(function(doc) {
+							$('body').css('height');  // workaround to reactivate scrollbars in FF popup
+							var icon = doc.get('common:icon');
+							var title = doc.get('dc:title');
+							var re = /^(.*[\/])/;
+							var path = (re.exec(doc.path))[1];
+							var uid = doc.uid;
+							showSearchResults(icon, title, path, uid);
+						});
+						$('.doc-title').click(function(event) {
+							var docURL = nuxeo._baseURL.concat('nxdoc/default/' + event.target.id + '/view_documents');
+							app.browser.createTabs(docURL, bkg.studioExt.server.tabId);
+						})
+						$('.json-icon').click(function(event) {
+							event.preventDefault();
+							getJsonFromGuid(event.target.id);
+						});
+					} else {
+						$('.no-result span').text(input);
+						$('.no-result').css('display', 'block');
+					};
+					$('#loading-gif').css('display', 'none');
+					$('#json-search').css('text-indent', '5px');
+				})
+				.catch(function(error) {
+					error.response.json().then(function(json) {
+						bkg.notification('error', json.code, json.message, '../images/access_denied.png');
+						$('#loading-gif').css('display', 'none');
+						$('#json-search').css('text-indent', '5px');
+					});
+				});
+			};
+
       var openJsonWindow = function(jsonObject) {
         var jsonString;
         var w = 600;
@@ -237,11 +279,11 @@ limitations under the License.
 
       function showSearchResults(icon, title, path, uid) {
         var icon_link = nuxeo._baseURL.concat(icon);
-				var json_tag = '<td class="json-icon" id="' + uid + '"><img src="images/json-16.png"></td>';
-        var icon_tag = '<td class="json-doc-icon"><img src="' + icon_link + '" alt="icon"></td>';
-        var title_tag = '<td class="json-title" id="' + uid + '">' + title + '</td>';
-        var path_tag = '<td class="json-path">' + path + '</td>';
-        $('tbody').append('<tr class="search-result">'+ json_tag + icon_tag + title_tag + path_tag + '</tr>');
+        var icon_tag = '<td colspan=1 class="icon"><img class="doc-icon" src="' + icon_link + '" alt="icon"></td>';
+        var title_tag = '<td colspan=17 class="doc-title" id="' + uid + '">' + title + '</td>';
+				var json_tag = '<td colspan=2 class="icon"><img class="json-icon" id="' + uid + '" src="images/json-exp.png"></td>';
+        var path_tag = '<td colspan=20 class="doc-path">' + path + '</td>';
+        $('tbody').append('<tr class="search-result">'+ icon_tag + title_tag + json_tag + '</tr><tr>' + path_tag + '</tr>');
       };
 
       $('#restart-button').confirm({
@@ -288,6 +330,7 @@ limitations under the License.
 
       $('#json-search').keydown(function() {
         $('#loading-gif').css({'display': 'inline'});
+				$('#json-search').css('text-indent', '23px');
       });
 
       $('#json-search').keyup(debounce(function() {
@@ -299,51 +342,24 @@ limitations under the License.
           $('.no-result').css('display', 'none');
           $('#json-search-results').empty();
           $('#loading-gif').css('display', 'none');
+					$('#json-search').css('text-indent', '5px');
         } else if (uuidPattern.test(input)) {
           getJsonFromGuid(input);
           $('#loading-gif').css('display', 'none');
+					$('#json-search').css('text-indent', '5px');
         } else if (pathPattern.test(input)) {
           getJsonFromPath(input);
           $('#loading-gif').css('display', 'none');
+					$('#json-search').css('text-indent', '5px');
         } else if (((input.toUpperCase()).indexOf('SELECT ') !== -1) && ((input.toUpperCase()).indexOf(' FROM ') !== -1)) {
-
+					docSearch(input, null);
+          $('#loading-gif').css('display', 'none');
+					$('#json-search').css('text-indent', '5px');
 				} else {
           var jsonQuery = 'SELECT * FROM Document WHERE ecm:fulltext = "' + input + '"';
-          nuxeo.repository()
-          .schemas(['dublincore', 'common'])
-          .query({
-            query: jsonQuery,
-            sortBy: 'dc:modified'
-          })
-          .then(function(res) {
-						if (res.length > 0) {
-				      $('#json-search-results').append('<thead><tr><th id="col1"></th><th id="col2"></th><th id="col3"><span class="tablehead">TITLE</span></th><th id="col4"><span class="tablehead">PATH</span></th></tr></thead><tbody></tbody>');
-				      $('table').css('margin-top', '20px');
-				      res.forEach(function(doc) {
-								$('body').css('height');  // workaround to reactivate scrollbars in FF popup
-				        var icon = doc.get('common:icon');
-				        var title = doc.get('dc:title');
-				        var path = doc.path;
-				        var uid = doc.uid;
-								showSearchResults(icon, title, path, uid);
-				      });
-							$('.json-title').click(function(event) {
-								event.preventDefault();
-								getJsonFromGuid(event.target.id);
-							});
-				      $('#loading-gif').css('display', 'none');
-				    } else {
-				      $('.no-result span').text(input);
-				      $('.no-result').css('display', 'block');
-				      $('#loading-gif').css('display', 'none');
-				    };
-          })
-          .catch(function(error) {
-            error.response.json().then(function(json) {
-              bkg.notification('error', json.code, json.message, '../images/access_denied.png');
-              $('#loading-gif').css('display', 'none');
-            });
-          });
+          docSearch(jsonQuery, input);
+          $('#loading-gif').css('display', 'none');
+					$('#json-search').css('text-indent', '5px');
         };
       }, 1000));
     });
