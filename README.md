@@ -1,5 +1,5 @@
 Nuxeo Dev Tools
-======================
+===============
 
 [![Build Status](https://qa.nuxeo.org/jenkins/buildStatus/icon?job=client/nuxeo-chrome-extension-master)](https://qa.nuxeo.org/jenkins/view/All/job/Client/job/nuxeo-chrome-extension-master/)
 
@@ -17,12 +17,13 @@ Features include:
 * Connect to API Playground
 * Toggle Automation Call Tracing
 * Useful Links menu
-* Export JSON (search with path, GUID or file name)
+* Document Search (search with path, GUID, file name or NXQL query)
+  * Click on search results to navigate to document or on ![arrow](app/images/json-exp.png) to export JSON
 * One-click JSON export of document in current active tab
 
 # Installation
 
-- From the Chrome Web Store: install [Nuxeo Chrome Dev Tools](https://chrome.google.com/webstore/detail/nuxeo-extension/kncphbjdicjganncpalklkllihdidcmh).
+- From the Chrome Web Store: install [Nuxeo Dev Tools](https://chrome.google.com/webstore/detail/nuxeo-extension/kncphbjdicjganncpalklkllihdidcmh).
 - From the Firefox Add-ons page: install [Nuxeo Dev Tools](https://addons.mozilla.org/en-US/firefox/addon/nuxeo-dev-tools/).
 
 ## Requirements

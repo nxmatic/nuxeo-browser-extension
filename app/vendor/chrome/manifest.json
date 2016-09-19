@@ -3,7 +3,7 @@
 	"version": "0.12.0",
 	"manifest_version": 2,
 	"content_security_policy": "script-src 'self' https://ssl.google-analytics.com; object-src 'self'",
-	"description": "__MSG_appDescription__",
+	"description": "A handy collection of shortcuts and tools for the Nuxeo developer",
 	"icons": {
 		"16": "images/nuxeo-16.png",
 		"128": "images/nuxeo-128.png"
@@ -35,7 +35,7 @@
 			"19": "images/nuxeo-19.png",
 			"38": "images/nuxeo-38.png"
 		},
-		"default_title": "Nuxeo Chrome Dev Tools",
+		"default_title": "Nuxeo Dev Tools",
 		"default_popup": "popup.html"
 	}
 }
