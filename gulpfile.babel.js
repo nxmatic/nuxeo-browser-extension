@@ -222,7 +222,7 @@ gulp.task('package-ff', function () {
       .pipe(gulp.dest('package/firefox'));
 });
 
-gulp.task('build-chrome', (cb) => {
+gulp.task('build-chrome', ['lint', 'babel', 'html', 'chrome', 'firefox', 'extras'], (cb) => {
 
   gulp.src('app/vendor/chrome/manifest.json')
     .pipe($.chromeManifest({
@@ -244,7 +244,7 @@ gulp.task('build-chrome', (cb) => {
     'size', cb);
 });
 
-gulp.task('build-ff', (cb) => {
+gulp.task('build-ff', ['lint', 'babel', 'html', 'chrome', 'firefox', 'extras'], (cb) => {
 
   gulp.src('app/vendor/firefox/manifest.json')
     .pipe($.chromeManifest({
