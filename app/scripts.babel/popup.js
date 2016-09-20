@@ -352,7 +352,8 @@ limitations under the License.
           $('#loading-gif').css('display', 'none');
 					$('#json-search').css('text-indent', '5px');
         } else if (((input.toUpperCase()).indexOf('SELECT ') !== -1) && ((input.toUpperCase()).indexOf(' FROM ') !== -1)) {
-					docSearch(input, null);
+					var query = input.replace(/'/g, '"');
+					docSearch(query, null);
           $('#loading-gif').css('display', 'none');
 					$('#json-search').css('text-indent', '5px');
 				} else {
