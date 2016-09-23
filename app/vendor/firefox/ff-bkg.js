@@ -1,3 +1,6 @@
+
+var tabUrl;
+
 chrome.browserAction.disable();
 disableIcon();
 
@@ -26,22 +29,22 @@ function pageActionOnNuxeo(tabInfo) {
     active: true,
     currentWindow: true
   }, function(tabs) {
-    var url;
     var tab = tabs[0];
     tabUrl = tab.url;
   });
-  chrome.cookies.get({
+  chrome.cookies.getAll({
     url: tabUrl,
     name: 'JSESSIONID'
-  }, function(cookie) {
-    isNuxeo = re.test(cookie.value);
-    if (isNuxeo === null) {
-      disableIcon();
-      chrome.browserAction.disable(tabInfo.id);
-    } else {
-      enableIcon();
-      chrome.browserAction.enable(tabInfo.id);
-    }
+  }, function(cookies) {
+    for(i = 0; i < cookies.length; i++) {
+      if ((cookies[i].value).match(re)) {
+        enableIcon();
+        chrome.browserAction.enable(tabInfo.id);
+      } else {
+        disableIcon();
+        chrome.browserAction.disable(tabInfo.id);
+      }
+    };
   });
 }
 
@@ -58,4 +61,3 @@ function onChange(tabInfo) {
 var target = "<all_urls>";
 chrome.webRequest.onCompleted.addListener(onChange, {urls: [target]});
 chrome.tabs.onActivated.addListener(onChange);
-

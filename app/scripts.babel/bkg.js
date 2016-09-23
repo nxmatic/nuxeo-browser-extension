@@ -17,7 +17,6 @@ limitations under the License.
 
 var window = window || {};
 var studioExt = window.studioExt = window.studioExt || {};
-var tabUrl;
 
 function notification(idP, titleP, messageP, img) {
   chrome.notifications.create(idP, {

@@ -1,3 +1,15 @@
+
+var tabUrl;
+
+chrome.tabs.query({
+  active: true,
+  currentWindow: true
+}, function(tabs) {
+  var tab = tabs[0];
+  chrome.pageAction.hide(tab.id);
+  tabUrl=tab.url;
+});
+
 function pageActionOnNuxeo(tabInfo) {
   var re = /.*\.nuxeo$/;
   var isNuxeo;
@@ -5,23 +17,20 @@ function pageActionOnNuxeo(tabInfo) {
     active: true,
     currentWindow: true
   }, function(tabs) {
-    var url;
     var tab = tabs[0];
     tabUrl = tab.url;
   });
-  console.log(tabUrl);
-  chrome.cookies.get({
+  chrome.cookies.getAll({
     url: tabUrl,
     name: 'JSESSIONID'
-  }, function(cookie) {
-    console.log(cookie.value);
-    isNuxeo = (cookie.value).match(re);
-    console.log("is Nuxeo? " + isNuxeo);
-    if (isNuxeo) {
-      chrome.pageAction.show(tabInfo.id);
-    } else {
-      chrome.pageAction.hide(tabInfo.id);
-    }
+  }, function(cookies) {
+    for(i = 0; i < cookies.length; i++) {
+      if ((cookies[i].value).match(re)) {
+        chrome.pageAction.show(tabInfo.id);
+      } else {
+        chrome.pageAction.hide(tabInfo.id);
+      }
+    };
   });
 }
 
