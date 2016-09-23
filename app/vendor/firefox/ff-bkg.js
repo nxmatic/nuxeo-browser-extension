@@ -20,17 +20,30 @@ function enableIcon(tabId) {
 }
 
 function pageActionOnNuxeo(tabInfo) {
-  var re = /https?:\/\/[\w\:\.]+\/\w+\/(?:(?:nxdoc|nxpath|nxsearch|nxadmin|nxhome|nxdam|nxdamid|site\/\w+)\/\w+|view_documents\.faces|view_domains\.faces|view_home\.faces)/g;
-  var currentUrl = tabInfo.url;
-  var isNuxeo = currentUrl.match(re);
-  if (isNuxeo === null){
-    disableIcon();
-    chrome.browserAction.disable(tabInfo.id);
-  } else {
-    enableIcon();
-    chrome.browserAction.enable(tabInfo.id);
-  };
-};
+  var re = /.*\.nuxeo$/;
+  var isNuxeo;
+  chrome.tabs.query({
+    active: true,
+    currentWindow: true
+  }, function(tabs) {
+    var url;
+    var tab = tabs[0];
+    tabUrl = tab.url;
+  });
+  chrome.cookies.get({
+    url: tabUrl,
+    name: 'JSESSIONID'
+  }, function(cookie) {
+    isNuxeo = re.test(cookie.value);
+    if (isNuxeo === null) {
+      disableIcon();
+      chrome.browserAction.disable(tabInfo.id);
+    } else {
+      enableIcon();
+      chrome.browserAction.enable(tabInfo.id);
+    }
+  });
+}
 
 function getInfoForTab(tabs) {
   if (tabs.length > 0) {

@@ -18,6 +18,7 @@
 		"persistent": true
 	},
 	"permissions": [
+		"cookies",
 		"tabs",
 		"http://*/*",
 		"https://*/*",
@@ -25,7 +26,9 @@
 		"https://ajax.googleapis.com/",
 		"notifications",
 		"background",
-		"declarativeContent"
+		"declarativeContent",
+		"<all_urls>",
+		"webRequest"
 	],
 	"omnibox": {
 		"keyword": "OMNIBOX-KEYWORD"
