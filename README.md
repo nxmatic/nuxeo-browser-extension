@@ -39,7 +39,7 @@ Features include:
 
 # Contributing / Reporting issues
 
-https://jira.nuxeo.com/browse/CHROME/
+https://jira.nuxeo.com/browse/BDE/
 
 # License
 
