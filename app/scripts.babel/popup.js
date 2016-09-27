@@ -230,10 +230,10 @@ limitations under the License.
 					sortBy: 'dc:modified'
 				})
 				.then(function(res) {
-					if (res.length > 0) {
+					if ((res.entries).length > 0) {
 						$('#json-search-results').append('<thead><tr><th colspan=20>Search Results:</td></tr></thead><tbody></tbody>');
 						$('table').css('margin-top', '20px');
-						res.forEach(function(doc) {
+						(res.entries).forEach(function(doc) {
 							$('body').css('height');  // workaround to reactivate scrollbars in FF popup
 							var icon = doc.get('common:icon');
 							var title = doc.get('dc:title');
@@ -353,7 +353,7 @@ limitations under the License.
 					$('#json-search').css('text-indent', '5px');
         } else if (((input.toUpperCase()).indexOf('SELECT ') !== -1) && ((input.toUpperCase()).indexOf(' FROM ') !== -1)) {
 					var query = input.replace(/'/g, '"');
-					docSearch(query, null);
+					docSearch(query, input);
           $('#loading-gif').css('display', 'none');
 					$('#json-search').css('text-indent', '5px');
 				} else {
