@@ -184,11 +184,12 @@ limitations under the License.
         var uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         var pathPattern = /^\//;
         var docPattern = /nxpath\/[A-Za-z_\.0-9-]+(\/[A-Za-z\.0-9_\-\/%~:?#]+)|(?:nxdoc[\/A-Za-z_\.0-9]+)([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})/;
-        var matchGroupDoc = docPattern.exec(bkg.tabUrl);
+				var uiDocPattern = /nuxeo\/ui\/#!\/browse(\/[A-Za-z\.0-9_\-\/%~:?#]+)|(?:nuxeo\/ui\/#!\/doc[\/A-Za-z_\.0-9]+)([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})/;
+				var matchGroupDoc = docPattern.exec(bkg.tabUrl);
+				var matchGroupUiDoc = uiDocPattern.exec(bkg.tabUrl);
 
-        if (matchGroupDoc) {
-          var docPath = matchGroupDoc[1];
-          $('#export-current').css('display', 'block');
+				function exportCurrentLink(docPath) {
+					$('#export-current').css('display', 'block');
           $('#export-current').click(function(event) {
             if (uuidPattern.test(docPath)) {
               getJsonFromGuid(docPath);
@@ -196,9 +197,15 @@ limitations under the License.
               getJsonFromPath(docPath);
             };
           });
-        };
+				};
 
-      });
+        if (matchGroupDoc) {
+          exportCurrentLink(matchGroupDoc[1]);
+        } else if (matchGroupUiDoc) {
+					exportCurrentLink(matchGroupUiDoc[1]);
+				};
+
+			});
 
       function getJsonFromPath(input) {
         nuxeo.request('/path/' + input)
