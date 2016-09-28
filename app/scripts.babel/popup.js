@@ -189,6 +189,7 @@ limitations under the License.
 				var matchGroupUiDoc = uiDocPattern.exec(bkg.tabUrl);
 
 				function exportCurrentLink(docPath) {
+					console.log(docPath);
 					$('#export-current').css('display', 'block');
           $('#export-current').click(function(event) {
             if (uuidPattern.test(docPath)) {
@@ -199,10 +200,18 @@ limitations under the License.
           });
 				};
 
-        if (matchGroupDoc) {
-          exportCurrentLink(matchGroupDoc[1]);
-        } else if (matchGroupUiDoc) {
-					exportCurrentLink(matchGroupUiDoc[1]);
+				if (matchGroupDoc) {
+					if (matchGroupDoc[1]) {
+						exportCurrentLink(matchGroupDoc[1]);
+					} else if (matchGroupDoc[2]) {
+						exportCurrentLink(matchGroupDoc[2]);
+					};
+				} else if (matchGroupUiDoc) {
+					if (matchGroupUiDoc[1]) {
+						exportCurrentLink(matchGroupUiDoc[1]);
+	        } else if (matchGroupUiDoc[2]) {
+						exportCurrentLink(matchGroupUiDoc[2]);
+					};
 				};
 
 			});
