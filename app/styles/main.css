@@ -475,6 +475,12 @@ form {
   cursor:pointer;
 }
 
+.version {
+  color: #808080;
+  font-weight: normal;
+  font-size: 10px;
+}
+
 .json-icon:hover {
   cursor:pointer;
 }

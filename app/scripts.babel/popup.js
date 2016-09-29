@@ -247,7 +247,7 @@ limitations under the License.
 
 			function docSearch(nxqlQuery, input) {
 				nuxeo.repository()
-				.schemas(['dublincore', 'common'])
+				.schemas(['dublincore', 'common', 'uid'])
 				.query({
 					query: nxqlQuery,
 					sortBy: 'dc:modified'
@@ -264,7 +264,9 @@ limitations under the License.
 							var re = /^(.*[\/])/;
 							var path = (re.exec(doc.path))[1];
 							var uid = doc.uid;
-							showSearchResults(icon, title, path, uid);
+							var vMajor = doc.get('uid:major_version');
+							var vMinor = doc.get('uid:minor_version');
+							showSearchResults(icon, title, path, uid, vMajor, vMinor);
 						});
 						$('.doc-title').click(function(event) {
 							if (onUI) {
@@ -305,10 +307,15 @@ limitations under the License.
 				app.browser.createTabs('json.html', bkg.studioExt.server.tabId);
       };
 
-      function showSearchResults(icon, title, path, uid) {
+      function showSearchResults(icon, title, path, uid, vMajor, vMinor) {
+				var title_tag;
         var icon_link = nuxeo._baseURL.concat(icon);
         var icon_tag = '<td colspan=1 class="icon"><img class="doc-icon" src="' + icon_link + '" alt="icon"></td>';
-        var title_tag = '<td colspan=17 class="doc-title" id="' + uid + '">' + title + '</td>';
+        if ((typeof vMajor != 'undefined' && typeof vMinor != 'undefined')) {
+					title_tag = '<td colspan=17 class="doc-title" id="' + uid + '">' + title + ' <span class="version">' + vMajor + '.' + vMinor + '</span></td>';
+				} else {
+					title_tag = '<td colspan=17 class="doc-title" id="' + uid + '">' + title + '</td>';
+				};
 				var json_tag = '<td colspan=2 class="icon"><img class="json-icon" id="' + uid + '" src="images/json-exp.png"></td>';
         var path_tag = '<td colspan=20 class="doc-path">' + path + '</td>';
         $('tbody').append('<tr class="search-result">'+ icon_tag + title_tag + json_tag + '</tr><tr>' + path_tag + '</tr>');
