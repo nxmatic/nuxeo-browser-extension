@@ -150,6 +150,8 @@ limitations under the License.
         $('#nxql-docid').val('');
 			});
 
+
+			var onUI;
       var nuxeo;
       bkg.getCurrentTabUrl(function(url) {
 
@@ -202,12 +204,14 @@ limitations under the License.
 				};
 
 				if (matchGroupDoc) {
+					onUI = false;
 					if (matchGroupDoc[1]) {
 						exportCurrentLink(matchGroupDoc[1]);
 					} else if (matchGroupDoc[2]) {
 						exportCurrentLink(matchGroupDoc[2]);
 					};
 				} else if (matchGroupUiDoc) {
+					onUI = true;
 					if (matchGroupUiDoc[1]) {
 						exportCurrentLink(matchGroupUiDoc[1]);
 	        } else if (matchGroupUiDoc[2]) {
@@ -263,7 +267,11 @@ limitations under the License.
 							showSearchResults(icon, title, path, uid);
 						});
 						$('.doc-title').click(function(event) {
-							var docURL = nuxeo._baseURL.concat('nxdoc/default/' + event.target.id + '/view_documents');
+							if (onUI) {
+								var docURL = nuxeo._baseURL.concat('ui/#!/doc/' + event.target.id);
+							} else {
+								var docURL = nuxeo._baseURL.concat('nxdoc/default/' + event.target.id + '/view_documents');
+							};
 							app.browser.createTabs(docURL, bkg.studioExt.server.tabId);
 						})
 						$('.json-icon').click(function(event) {
