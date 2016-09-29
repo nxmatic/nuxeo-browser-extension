@@ -142,6 +142,8 @@ limitations under the License.
         $('#json-search').val('');
         $('.no-result').css('display', 'none');
 				$('#json-search-results').empty();
+				$('body').css('overflow-y', 'hidden');
+				$('html').outerHeight(height+66);
       });
 
 			$('#nxql-clear').click(function(){
@@ -189,7 +191,6 @@ limitations under the License.
 				var matchGroupUiDoc = uiDocPattern.exec(bkg.tabUrl);
 
 				function exportCurrentLink(docPath) {
-					console.log(docPath);
 					$('#export-current').css('display', 'block');
           $('#export-current').click(function(event) {
             if (uuidPattern.test(docPath)) {
@@ -238,6 +239,8 @@ limitations under the License.
           });
       };
 
+			var height = $('html').height();
+
 			function docSearch(nxqlQuery, input) {
 				nuxeo.repository()
 				.schemas(['dublincore', 'common'])
@@ -247,10 +250,11 @@ limitations under the License.
 				})
 				.then(function(res) {
 					if ((res.entries).length > 0) {
+						$('body').css('overflow-y', 'auto');
 						$('#json-search-results').append('<thead><tr><th colspan=20>Search Results:</td></tr></thead><tbody></tbody>');
 						$('table').css('margin-top', '20px');
 						(res.entries).forEach(function(doc) {
-							$('body').css('height');  // workaround to reactivate scrollbars in FF popup
+							$('html').outerHeight($('html').height());
 							var icon = doc.get('common:icon');
 							var title = doc.get('dc:title');
 							var re = /^(.*[\/])/;
@@ -359,6 +363,8 @@ limitations under the License.
           $('#json-search-results').empty();
           $('#loading-gif').css('display', 'none');
 					$('#json-search').css('text-indent', '5px');
+					$('body').css('overflow-y', 'hidden');
+					$('html').outerHeight(height+66);
         } else if (uuidPattern.test(input)) {
           getJsonFromGuid(input);
           $('#loading-gif').css('display', 'none');

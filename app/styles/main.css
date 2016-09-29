@@ -37,7 +37,8 @@ body {
  width: 500px;
  background-color: #fff;
  color: #213f7d;
- overflow: visible;
+ height: auto;
+ overflow-x: hidden;
 }
 
 table {
