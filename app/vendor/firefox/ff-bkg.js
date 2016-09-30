@@ -1,5 +1,5 @@
-chrome.browserAction.disable();
-disableIcon();
+
+var tabUrl;
 
 function disableIcon(tabId) {
   chrome.browserAction.setIcon({ path: {
@@ -20,17 +20,30 @@ function enableIcon(tabId) {
 }
 
 function pageActionOnNuxeo(tabInfo) {
-  var re = /https?:\/\/[\w\:\.]+\/\w+\/(?:(?:nxdoc|nxpath|nxsearch|nxadmin|nxhome|nxdam|nxdamid|site\/\w+)\/\w+|view_documents\.faces|view_domains\.faces|view_home\.faces)/g;
-  var currentUrl = tabInfo.url;
-  var isNuxeo = currentUrl.match(re);
-  if (isNuxeo === null){
+  var re = /.*\.nuxeo$/;
+  var isNuxeo;
+  chrome.tabs.query({
+    active: true,
+    currentWindow: true
+  }, function(tabs) {
+    var tab = tabs[0];
+    tabUrl = tab.url;
+  });
+  chrome.cookies.getAll({
+    url: tabUrl,
+    name: 'JSESSIONID'
+  }, function(cookies) {
     disableIcon();
     chrome.browserAction.disable(tabInfo.id);
-  } else {
-    enableIcon();
-    chrome.browserAction.enable(tabInfo.id);
-  };
-};
+    cookies.forEach(function(cookie) {
+      if((cookie.value).match(re)) {
+        enableIcon();
+        chrome.browserAction.enable(tabInfo.id);
+        return;
+      }
+    })
+  });
+}
 
 function getInfoForTab(tabs) {
   if (tabs.length > 0) {
@@ -44,5 +57,6 @@ function onChange(tabInfo) {
 
 var target = "<all_urls>";
 chrome.webRequest.onCompleted.addListener(onChange, {urls: [target]});
-chrome.tabs.onActivated.addListener(onChange);
-
+chrome.tabs.onActivated.addListener(function(activeInfo) {
+  chrome.tabs.get(activeInfo.tabId, pageActionOnNuxeo);
+});

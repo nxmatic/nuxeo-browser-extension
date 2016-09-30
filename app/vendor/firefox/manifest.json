@@ -39,6 +39,8 @@
 		"activeTab",
 		"https://ajax.googleapis.com/",
 		"notifications",
-		"webRequest"
+		"webRequest",
+		"<all_urls>",
+		"cookies"
 	]
 }

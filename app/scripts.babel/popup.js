@@ -142,12 +142,16 @@ limitations under the License.
         $('#json-search').val('');
         $('.no-result').css('display', 'none');
 				$('#json-search-results').empty();
+				$('body').css('overflow-y', 'hidden');
+				$('html').outerHeight(height+66);
       });
 
 			$('#nxql-clear').click(function(){
         $('#nxql-docid').val('');
 			});
 
+
+			var onUI;
       var nuxeo;
       bkg.getCurrentTabUrl(function(url) {
 
@@ -184,11 +188,12 @@ limitations under the License.
         var uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         var pathPattern = /^\//;
         var docPattern = /nxpath\/[A-Za-z_\.0-9-]+(\/[A-Za-z\.0-9_\-\/%~:?#]+)|(?:nxdoc[\/A-Za-z_\.0-9]+)([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})/;
-        var matchGroupDoc = docPattern.exec(bkg.tabUrl);
+				var uiDocPattern = /nuxeo\/ui\/#!\/browse(\/[A-Za-z\.0-9_\-\/%~:?#]+)|(?:nuxeo\/ui\/#!\/doc[\/A-Za-z_\.0-9]+)([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})/;
+				var matchGroupDoc = docPattern.exec(bkg.tabUrl);
+				var matchGroupUiDoc = uiDocPattern.exec(bkg.tabUrl);
 
-        if (matchGroupDoc) {
-          var docPath = matchGroupDoc[1];
-          $('#export-current').css('display', 'block');
+				function exportCurrentLink(docPath) {
+					$('#export-current').css('display', 'block');
           $('#export-current').click(function(event) {
             if (uuidPattern.test(docPath)) {
               getJsonFromGuid(docPath);
@@ -196,9 +201,25 @@ limitations under the License.
               getJsonFromPath(docPath);
             };
           });
-        };
+				};
 
-      });
+				if (matchGroupDoc) {
+					onUI = false;
+					if (matchGroupDoc[1]) {
+						exportCurrentLink(matchGroupDoc[1]);
+					} else if (matchGroupDoc[2]) {
+						exportCurrentLink(matchGroupDoc[2]);
+					};
+				} else if (matchGroupUiDoc) {
+					onUI = true;
+					if (matchGroupUiDoc[1]) {
+						exportCurrentLink(matchGroupUiDoc[1]);
+	        } else if (matchGroupUiDoc[2]) {
+						exportCurrentLink(matchGroupUiDoc[2]);
+					};
+				};
+
+			});
 
       function getJsonFromPath(input) {
         nuxeo.request('/path/' + input)
@@ -222,28 +243,37 @@ limitations under the License.
           });
       };
 
+			var height = $('html').height();
+
 			function docSearch(nxqlQuery, input) {
 				nuxeo.repository()
-				.schemas(['dublincore', 'common'])
+				.schemas(['dublincore', 'common', 'uid'])
 				.query({
 					query: nxqlQuery,
 					sortBy: 'dc:modified'
 				})
 				.then(function(res) {
-					if (res.length > 0) {
+					if ((res.entries).length > 0) {
+						$('body').css('overflow-y', 'auto');
 						$('#json-search-results').append('<thead><tr><th colspan=20>Search Results:</td></tr></thead><tbody></tbody>');
 						$('table').css('margin-top', '20px');
-						res.forEach(function(doc) {
-							$('body').css('height');  // workaround to reactivate scrollbars in FF popup
+						(res.entries).forEach(function(doc) {
+							$('html').outerHeight($('html').height());
 							var icon = doc.get('common:icon');
 							var title = doc.get('dc:title');
 							var re = /^(.*[\/])/;
 							var path = (re.exec(doc.path))[1];
 							var uid = doc.uid;
-							showSearchResults(icon, title, path, uid);
+							var vMajor = doc.get('uid:major_version');
+							var vMinor = doc.get('uid:minor_version');
+							showSearchResults(icon, title, path, uid, vMajor, vMinor);
 						});
 						$('.doc-title').click(function(event) {
-							var docURL = nuxeo._baseURL.concat('nxdoc/default/' + event.target.id + '/view_documents');
+							if (onUI) {
+								var docURL = nuxeo._baseURL.concat('ui/#!/doc/' + event.target.id);
+							} else {
+								var docURL = nuxeo._baseURL.concat('nxdoc/default/' + event.target.id + '/view_documents');
+							};
 							app.browser.createTabs(docURL, bkg.studioExt.server.tabId);
 						})
 						$('.json-icon').click(function(event) {
@@ -277,10 +307,15 @@ limitations under the License.
 				app.browser.createTabs('json.html', bkg.studioExt.server.tabId);
       };
 
-      function showSearchResults(icon, title, path, uid) {
+      function showSearchResults(icon, title, path, uid, vMajor, vMinor) {
+				var title_tag;
         var icon_link = nuxeo._baseURL.concat(icon);
         var icon_tag = '<td colspan=1 class="icon"><img class="doc-icon" src="' + icon_link + '" alt="icon"></td>';
-        var title_tag = '<td colspan=17 class="doc-title" id="' + uid + '">' + title + '</td>';
+        if ((typeof vMajor != 'undefined' && typeof vMinor != 'undefined')) {
+					title_tag = '<td colspan=17 class="doc-title" id="' + uid + '">' + title + ' <span class="version">' + vMajor + '.' + vMinor + '</span></td>';
+				} else {
+					title_tag = '<td colspan=17 class="doc-title" id="' + uid + '">' + title + '</td>';
+				};
 				var json_tag = '<td colspan=2 class="icon"><img class="json-icon" id="' + uid + '" src="images/json-exp.png"></td>';
         var path_tag = '<td colspan=20 class="doc-path">' + path + '</td>';
         $('tbody').append('<tr class="search-result">'+ icon_tag + title_tag + json_tag + '</tr><tr>' + path_tag + '</tr>');
@@ -343,6 +378,8 @@ limitations under the License.
           $('#json-search-results').empty();
           $('#loading-gif').css('display', 'none');
 					$('#json-search').css('text-indent', '5px');
+					$('body').css('overflow-y', 'hidden');
+					$('html').outerHeight(height+66);
         } else if (uuidPattern.test(input)) {
           getJsonFromGuid(input);
           $('#loading-gif').css('display', 'none');
@@ -353,7 +390,7 @@ limitations under the License.
 					$('#json-search').css('text-indent', '5px');
         } else if (((input.toUpperCase()).indexOf('SELECT ') !== -1) && ((input.toUpperCase()).indexOf(' FROM ') !== -1)) {
 					var query = input.replace(/'/g, '"');
-					docSearch(query, null);
+					docSearch(query, input);
           $('#loading-gif').css('display', 'none');
 					$('#json-search').css('text-indent', '5px');
 				} else {

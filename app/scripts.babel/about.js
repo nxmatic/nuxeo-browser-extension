@@ -1,6 +1,10 @@
-$(function() {
-  $.get('manifest.json').then(function(txt) {
-    console.log(JSON.parse(txt).version);
-    $('#version').html(JSON.parse(txt).version);
-  });
+$.ajax({
+  method: 'GET',
+  url: 'manifest.json',
+  dataType: 'json',
+  mimeType: 'application/json',
+  success: function(data){
+    console.log(data.version);
+    $('#version').html(data.version);
+  }
 });
