@@ -5,8 +5,7 @@ Nuxeo Dev Tools
 
 # About
 
-This project aims to put some of the more commonly performed actions in the Nuxeo
-Platform at the administrator's fingertips in a convenient popup window.
+This project aims to put some of the more commonly performed actions in the Nuxeo Platform at the administrator's fingertips in a convenient popup window.
 
 Features include:
 * Hot Reload on related Studio project
@@ -24,7 +23,6 @@ Features include:
 # Installation
 
 - From the Chrome Web Store: install [Nuxeo Dev Tools](https://chrome.google.com/webstore/detail/nuxeo-extension/kncphbjdicjganncpalklkllihdidcmh).
-- From the Firefox Add-ons page: install [Nuxeo Dev Tools](https://addons.mozilla.org/en-US/firefox/addon/nuxeo-dev-tools/).
 
 ## Requirements
 
@@ -36,6 +34,18 @@ Features include:
 * The extension is only active when a Nuxeo instance is in the current active tab.
 * The Hot Reload and Go To Studio buttons are only active when a Studio project is associated with the current Nuxeo server.
 * [CORS config](https://doc.nuxeo.com/pages/viewpage.action?pageId=14257084) must be activated in your Nuxeo server to connect to your repository on API Playground.
+
+## Build
+
+From GitHub:
+```
+$ git clone git@github.com:nuxeo/nuxeo-chrome-extension.git
+$ cd nuxeo-chrome-extension
+$ npm install && bower install
+$ gulp build:<browser>
+```
+
+Unfortunately Nuxeo Dev Tools is still awaiting review by Mozilla and as such can only be installed in the Firefox browser temporarily. To do so, type `about:debugging#addons` in the URL field, click on "Load Temporary Add-on" and select the `manifest.json` file from the unpacked extension folder.
 
 # Contributing / Reporting issues
 
