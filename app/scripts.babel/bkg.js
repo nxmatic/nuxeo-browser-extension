@@ -93,7 +93,7 @@ window.restart = function(startLoadingRS, stopLoading) {
         baseURL: url
       });
       startLoadingRS();
-      nuxeo.fetch({
+      nuxeo._http({
           method: 'POST',
           schemas: [],
           enrichers: [],
