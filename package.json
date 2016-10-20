@@ -51,5 +51,8 @@
         "single"
       ]
     }
+  },
+  "dependencies": {
+    "nuxeo": "^2.1.0"
   }
 }

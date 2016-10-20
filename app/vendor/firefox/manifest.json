@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2,
 	"name": "Nuxeo Dev Tools",
-	"version": "1.1.0",
+	"version": "1.0.0",
 	"description": "",
 	"icons": {
 		"48": "images/nuxeo-48.png",
@@ -17,7 +17,7 @@
 	},
 	"background": {
 		"scripts": [
-			"../../../app/bower_components/nuxeo/dist/nuxeo.js",
+			"../../../node_modules/nuxeo/dist/nuxeo.js",
 			"../../../app/vendor/firefox/ff-bkg.js",
 			"../../../app/scripts/bkg.js"
 		]
