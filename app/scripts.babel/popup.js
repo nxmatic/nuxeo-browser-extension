@@ -37,9 +37,10 @@ limitations under the License.
     _gaq.push(['_trackEvent', e.target.id, 'clicked']);
   }
 
-	function htmlEntities(str) {
-    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+	function escapeHTML(str) {
+	  return str.replace(/[&"'<>]/g, (m) => escapeHTML.replacements[m]);
 	}
+	escapeHTML.replacements = { '&': '&amp;', '"': '&quot;', '\'': '&#39;', '<': '&lt;', '>': '&gt;' };
 
   document.addEventListener('DOMContentLoaded', function () {
     var buttons = document.querySelectorAll('a');
@@ -172,7 +173,8 @@ limitations under the License.
             $('#debug-switch').attr('checked', response.value);
           });
 
-        $('div.server-name-url').html(nuxeo._baseURL);
+				var serverString = escapeHTML(nuxeo._baseURL)
+        $('div.server-name-url').html(serverString);
 
         var serverURL = nuxeo._baseURL.replace(/\/$/, '');
 
@@ -285,7 +287,8 @@ limitations under the License.
 							getJsonFromGuid(event.target.id);
 						});
 					} else {
-						$('.no-result span').text(input);
+						var searchTerm = escapeHTML(input);
+						$('.no-result span').text(searchTerm);
 						$('.no-result').css('display', 'block');
 					};
 					$('#loading-gif').css('display', 'none');
@@ -306,7 +309,7 @@ limitations under the License.
         var left = (screen.width/2)-(w/2);
         var top = (screen.height/2)-(h/2);
         var jsonString = JSON.stringify(jsonObject, undefined, 2);
-        bkg._text = htmlEntities(jsonString);
+        bkg._text = escapeHTML(jsonString);
 				app.browser.createTabs('json.html', bkg.studioExt.server.tabId);
       };
 
