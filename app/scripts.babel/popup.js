@@ -37,6 +37,10 @@ limitations under the License.
     _gaq.push(['_trackEvent', e.target.id, 'clicked']);
   }
 
+	function htmlEntities(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+	}
+
   document.addEventListener('DOMContentLoaded', function () {
     var buttons = document.querySelectorAll('a');
     var debug = document.getElementById('debug-switch');
@@ -297,13 +301,12 @@ limitations under the License.
 			};
 
       var openJsonWindow = function(jsonObject) {
-        var jsonString;
         var w = 600;
         var h = 800;
         var left = (screen.width/2)-(w/2);
         var top = (screen.height/2)-(h/2);
-        jsonString = JSON.stringify(jsonObject, undefined, 2);
-        bkg._text = jsonString;
+        var jsonString = JSON.stringify(jsonObject, undefined, 2);
+        bkg._text = htmlEntities(jsonString);
 				app.browser.createTabs('json.html', bkg.studioExt.server.tabId);
       };
 
