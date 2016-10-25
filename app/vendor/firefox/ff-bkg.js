@@ -21,7 +21,6 @@ function enableIcon(tabId) {
 
 function pageActionOnNuxeo(tabInfo) {
   var re = /.*\.nuxeo$/;
-  var login = /.+\/login.jsp$/;
   var isNuxeo;
   chrome.tabs.query({
     active: true,
@@ -37,7 +36,7 @@ function pageActionOnNuxeo(tabInfo) {
     disableIcon();
     chrome.browserAction.disable(tabInfo.id);
     cookies.forEach(function(cookie) {
-      if((cookie.value).match(re) && !(tabUrl).match(login)) {
+      if((cookie.value).match(re)) {
         enableIcon();
         chrome.browserAction.enable(tabInfo.id);
         return;
