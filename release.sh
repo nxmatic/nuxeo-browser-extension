@@ -1,5 +1,5 @@
 #!/bin/bash -ex
-git branch -D release
+git branch -D release || true
 GULP=${GULP:=gulp}
 git checkout -b release
 # Freeze dependency versions
