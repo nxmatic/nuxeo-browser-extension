@@ -133,7 +133,7 @@ gulp.task('vendor:chrome', () => {
 
 gulp.task('vendor:firefox', () => {
   return es.merge(
-    pipe('app/vendor/firefox/index.js', dist('firefox'))
+    pipe('app/vendor/firefox/browser.js', dist('firefox', 'scripts'))
   );
 });
 
