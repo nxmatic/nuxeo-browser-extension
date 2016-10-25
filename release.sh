@@ -1,5 +1,4 @@
 #!/bin/bash -ex
-git checkout .
 git branch -D release || true
 GULP=${GULP:=gulp}
 git checkout -b release
