@@ -1,4 +1,5 @@
 #!/bin/bash -ex
+git clean -fd
 git branch -D release || true
 GULP=${GULP:=gulp}
 git checkout -b release
@@ -9,7 +10,7 @@ $GULP release
 V=$(ls package/chrome | cut -d'-' -f3)
 VERSION=${V::-4}
 git commit -m "Update $VERSION"
-git tag release-$VERSION
+git tag release-$VERSION || true
 git push --tags
 git checkout -f master
 git clean -fd
