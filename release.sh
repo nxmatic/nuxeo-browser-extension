@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 git checkout .
-git pull --rebase
+git pull --rebase origin master
 git branch -D release || true
 GULP=${GULP:=gulp}
 git checkout -b release
