@@ -39,7 +39,7 @@ function getCurrentTabUrl(callback) {
     var url;
     var tab = tabs[0];
     tabUrl = tab.url;
-    var nxPattern = /(^https?:\/\/[A-Za-z_\.0-9:-]+\/[A-Za-z_\.0-9-]+\/)(?:(?:nxdoc|nxpath|nxsearch|nxadmin|nxhome|nxdam|nxdamid|site\/[A-Za-z_\.0-9-]+)\/[A-Za-z_\.0-9-]+|view_documents\.faces|ui\/#!\/\w+\/|view_domains\.faces|view_home\.faces)/;
+    var nxPattern = /(^https?:\/\/[A-Za-z_\.0-9:-]+\/[A-Za-z_\.0-9-]+\/)(?:(?:nxdoc|nxpath|nxsearch|nxadmin|nxhome|nxdam|nxdamid|site\/[A-Za-z_\.0-9-]+)\/[A-Za-z_\.0-9-]+|view_documents\.faces|ui\/#!\/\w+\/?|view_domains\.faces|view_home\.faces)/;
     var matchGroup = nxPattern.exec(tabUrl);
     url = matchGroup[1];
     console.assert(typeof url === 'string', 'tab.url should be a string');
