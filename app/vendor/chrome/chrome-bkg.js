@@ -5,23 +5,17 @@ function pageActionOnNuxeo(tabInfo) {
   var re = /.*\.nuxeo$/;
   var login = /.+\/login.jsp$/;
   var isNuxeo;
-  chrome.tabs.query({
-    active: true,
-    currentWindow: true
-  }, function(tabs) {
-    var tab = tabs[0];
-    tabUrl = tab.url;
-    chrome.cookies.getAll({
-      url: tabUrl,
-      name: 'JSESSIONID'
-    }, function(cookies) {
-      chrome.pageAction.hide(tabInfo.id);
-      cookies.forEach(function(cookie) {
-        if ((cookie.value).match(re) && !(tabUrl).match(login)) {
-          chrome.pageAction.show(tabInfo.id);
-          return;
-        }
-      });
+  tabUrl = tabInfo.url;
+  chrome.cookies.getAll({
+    url: tabUrl,
+    name: 'JSESSIONID'
+  }, function(cookies) {
+    chrome.pageAction.hide(tabInfo.id);
+    cookies.forEach(function(cookie) {
+      if ((cookie.value).match(re) && !(tabUrl).match(login)) {
+        chrome.pageAction.show(tabInfo.id);
+        return;
+      }
     });
   });
 }

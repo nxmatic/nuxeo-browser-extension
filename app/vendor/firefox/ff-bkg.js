@@ -23,13 +23,7 @@ function pageActionOnNuxeo(tabInfo) {
   var re = /.*\.nuxeo$/;
   var login = /.+\/login.jsp$/;
   var isNuxeo;
-  chrome.tabs.query({
-    active: true,
-    currentWindow: true
-  }, function(tabs) {
-    var tab = tabs[0];
-    tabUrl = tab.url;
-  });
+  tabUrl = tabInfo.url;
   chrome.cookies.getAll({
     url: tabUrl,
     name: 'JSESSIONID'
