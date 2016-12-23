@@ -458,6 +458,11 @@ form {
   font-style: italic;
 }
 
+.doc-icon {
+  height: 17px;
+  width: 17px;
+}
+
 .doc-path {
   padding-bottom: 5px;
   overflow: hidden;
