@@ -9,9 +9,16 @@
 		},
 
 		createTabs: function(url, tabId) {
-			return chrome.tabs.create({
-				url: url,
-				openerTabId: tabId
+			return chrome.tabs.query({
+				active: true
+			}, function(tabs) {
+				var index = tabs[0].index;
+				chrome.tabs.create({
+					url: url,
+					openerTabId: tabId,
+					selected: false,
+					index: index + 1
+				});
 			});
 		},
 

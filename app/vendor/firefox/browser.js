@@ -9,8 +9,15 @@
 		},
 
 		createTabs: function(url, tabId) {
-			return chrome.tabs.create({
-				url: url
+			return chrome.tabs.query({
+				active: true
+			}, function(tabs) {
+				var index = tabs[0].index;
+				return chrome.tabs.create({
+					url: url,
+					active: false,
+					index: index + 1
+				});
 			});
 		},
 
