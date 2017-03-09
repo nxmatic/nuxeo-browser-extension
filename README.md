@@ -23,6 +23,7 @@ Features include:
 # Installation
 
 - From the Chrome Web Store: install [Nuxeo Dev Tools](https://chrome.google.com/webstore/detail/nuxeo-extension/kncphbjdicjganncpalklkllihdidcmh).
+- From Mozilla's Add-ons page: install [Nuxeo Dev Tools](https://addons.mozilla.org/en-US/firefox/addon/nuxeo-dev-tools/).
 
 ## Requirements
 
@@ -45,8 +46,6 @@ $ npm install && bower install
 $ gulp build:<browser>
 ```
 
-Unfortunately Nuxeo Dev Tools is still awaiting review by Mozilla and as such can only be installed in the Firefox browser temporarily. To do so, type `about:debugging#addons` in the URL field, click on "Load Temporary Add-on" and select the `manifest.json` file from the unpacked extension folder.
-
 # Contributing / Reporting issues
 
 https://jira.nuxeo.com/browse/BDE/
@@ -61,6 +60,6 @@ The [Nuxeo Platform](http://www.nuxeo.com/products/content-management-platform/)
 
 The Nuxeo Platform is developed and supported by Nuxeo, with contributions from the community.
 
-Nuxeo dramatically improves how content-based applications are built, managed and deployed, making customers more agile, innovative and successful. Nuxeo provides a next generation, enterprise ready platform for building traditional and cutting-edge content oriented applications. Combining a powerful application development environment with
-SaaS-based tools and a modular architecture, the Nuxeo Platform and Products provide clear business value to some of the most recognizable brands including Verizon, Electronic Arts, Sharp, FICO, the U.S. Navy, and Boeing. Nuxeo is headquartered in New York and Paris.
+Nuxeo dramatically improves how content-based applications are built, managed and deployed, making customers more agile, innovative and successful. Nuxeo provides a next generation, enterprise ready platform for building traditional and cutting-edge content oriented applications. Combining a powerful application development environment with SaaS-based tools and a modular architecture, the Nuxeo Platform and Products provide clear business value to some of the most recognizable brands including Verizon, Electronic Arts, Sharp, FICO, the U.S. Navy, and Boeing. Nuxeo is headquartered in New York and Paris.
+
 More information is available at [www.nuxeo.com](http://www.nuxeo.com).
