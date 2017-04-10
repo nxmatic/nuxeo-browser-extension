@@ -131,7 +131,7 @@ limitations under the License.
             bkg.bkgHotReload(startLoadingHR, stopLoading);
           });
         } else {
-          $('#studio-link-button, #hot-reload-button').attr('class', 'inactive-button');
+          $('#studio-link-button, #hot-reload-button').attr('class', 'inactive-button main-page');
           $('#studio-link-button, #hot-reload-button').click(function() {
             bkg.notification('no_studio_project', 'No associated Studio project', 'If you\'d like to use this function, please associate your Nuxeo server with a studio project' , '../images/access_denied.png');
           });
