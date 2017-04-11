@@ -123,6 +123,7 @@ limitations under the License.
         pkgName = json['studio'];
         var studioUrl = ('https://connect.nuxeo.com/nuxeo/site/studio/ide?project=').concat(pkgName);
         if (pkgName) {
+          $('#studio-link-button, #hot-reload-button').attr('class', 'button main-page');
           $('#studio-link-button').click(function() {
             _gaq.push(['_trackEvent', 'studio-link-button', 'clicked']);
 						app.browser.createTabs(studioUrl, bkg.studioExt.server.tabId);
@@ -131,7 +132,6 @@ limitations under the License.
             bkg.bkgHotReload(startLoadingHR, stopLoading);
           });
         } else {
-          $('#studio-link-button, #hot-reload-button').attr('class', 'inactive-button main-page');
           $('#studio-link-button, #hot-reload-button').click(function() {
             bkg.notification('no_studio_project', 'No associated Studio project', 'If you\'d like to use this function, please associate your Nuxeo server with a studio project' , '../images/access_denied.png');
           });

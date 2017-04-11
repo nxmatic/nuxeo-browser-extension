@@ -27,7 +27,7 @@ function getInfoForTab(tabs) {
 }
 
 function onChange(tabInfo) {
-  chrome.tabs.query({currentWindow: true, active: true}, getInfoForTab);
+  chrome.tabs.query({lastFocusedWindow: true, active: true}, getInfoForTab);
 };
 
 var target = "<all_urls>";
