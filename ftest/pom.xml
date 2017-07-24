@@ -127,7 +127,7 @@
             </goals>
             <phase>integration-test</phase>
             <configuration>
-              <arguments>run chimp -- ./test/chimp-ci.conf.js</arguments>
+              <arguments>run qa</arguments>
             </configuration>
           </execution>
         </executions>

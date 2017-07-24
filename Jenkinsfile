@@ -42,7 +42,6 @@ node(env.SLAVE) {
                     env.JAVA_HOME = "${jdk}"
                     def mvnHome = tool name: 'maven-3.3', type: 'hudson.tasks.Maven$MavenInstallation'
                     sh "${mvnHome}/bin/mvn clean verify -f ${env.POM_PATH}"
-                    sh "${mvnHome}/bin/mvn verify -f ${env.POM_PATH} -Pes5"
                 }
 
                 stage ('post build') {

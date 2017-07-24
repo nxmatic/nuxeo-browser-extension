@@ -64,9 +64,9 @@
   "scripts": {
     "postinstall": "bower install",
     "build": "gulp build",
-    "test": "npm run chimp -- test/chimp.conf.js",
-    "prechimp": "gulp clean build:sinon-chrome",
-    "chimp": "chimp"
+    "qa": "gulp clean build:sinon-chrome package && chimp test/chmip-ci.conf.js",
+    "pretest": "gulp clean build:sinon-chrome",
+    "test": "chimp test/chimp.conf.js"
   },
   "dependencies": {
     "nuxeo": "3.2.1"
