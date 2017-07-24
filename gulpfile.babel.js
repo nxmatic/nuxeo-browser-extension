@@ -144,7 +144,7 @@ gulp.task('vendor:firefox', () => {
   );
 });
 
-gulp.task('html', () => {
+gulp.task('html', ['babel'], () => {
   return gulp.src('app/*.html')
     .pipe($.sourcemaps.init())
     .pipe($.if('*.js', $.uglify()))
@@ -181,7 +181,7 @@ gulp.task('babel', () => {
 });
 
 gulp.task('clean', () => {
-  return del.sync(['.tmp', 'dist', 'package']);
+  return del.sync(['.tmp', 'dist', 'package', 'app/scripts']);
 });
 
 gulp.task('watch', ['lint', 'babel', 'html', 'vendor:chrome', 'vendor:firefox', 'extras'], () => {
