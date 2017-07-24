@@ -64,7 +64,7 @@
   "scripts": {
     "postinstall": "bower install",
     "build": "gulp build",
-    "qa": "gulp clean build:sinon-chrome package && chimp test/chmip-ci.conf.js",
+    "qa": "gulp clean build:sinon-chrome package && chimp test/chimp-ci.conf.js",
     "pretest": "gulp clean build:sinon-chrome",
     "test": "chimp test/chimp.conf.js"
   },
