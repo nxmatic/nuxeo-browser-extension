@@ -16,6 +16,10 @@
     ])
  ])
 
+def formatSlack(begin) {
+  return "${begin} <${currentBuild.absoluteUrl}|${env.JOB_NAME}> - ${Holder.author}";
+}
+
 node(env.SLAVE) {
     try {
         timestamps {
