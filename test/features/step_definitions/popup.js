@@ -4,7 +4,7 @@ module.exports = function () {
     const dist = arg || 'sinon-chrome';
 
     // Open Popup in the current Window
-    const url = `file:///${__dirname}/../../../dist/${dist.toLowerCase()}/popup.html`
+    const url = `file://${__dirname}/../../../dist/${dist.toLowerCase()}/popup.html`
     browser.url(url);
 
     // http://chaijs.com/api/bdd/

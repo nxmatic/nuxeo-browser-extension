@@ -20,6 +20,8 @@ def formatSlack(begin) {
   return "${begin} <${currentBuild.absoluteUrl}|${env.JOB_NAME}> - ${Holder.author}";
 }
 
+def archive_paths = 'ftest/target/tomcat/log/*.log, ftest/target/js-reports/*.xml, ftest/target/screenshots/*, ftest/target/wdio/*'
+
 node(env.SLAVE) {
     try {
         timestamps {
@@ -52,9 +54,9 @@ node(env.SLAVE) {
                     step([$class: 'WarningsPublisher', canComputeNew: false, canResolveRelativePaths: false,
                         consoleParsers: [[parserName: 'Maven']], defaultEncoding: '', excludePattern: '',
                         healthy: '', includePattern: '', messagesPattern: '', unHealthy: ''])
-                    archive 'ftest/target/tomcat/log/*.log, ftest/target/js-reports/*.xml, ftest/target/js-reports-es5/*.xml'
+                    archive "${archive_paths}"
                     // TODO cobertura coverage
-                    junit 'ftest/target/js-reports/*.xml, ftest/target/js-reports-es5/*.xml'
+                    junit 'ftest/target/js-reports/*.xml'
                     if (env.BRANCH_NAME == 'master') {
                         step([$class: 'JiraIssueUpdater', issueSelector: [$class: 'DefaultIssueSelector'], scm: scm])
                     }
@@ -77,8 +79,7 @@ node(env.SLAVE) {
     } catch(e) {
         currentBuild.result = "FAILURE"
         step([$class: 'ClaimPublisher'])
-        //XXX Update archive files
-        archive 'ftest/target/tomcat/log/*.log'
+        archive "${archive_paths}"
 
         mail (to: 'ecm@lists.nuxeo.com', subject: "${env.JOB_NAME} (${env.BUILD_NUMBER}) - Failure!",
             body: "Build failed ${env.BUILD_URL}.")

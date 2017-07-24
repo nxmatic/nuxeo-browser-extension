@@ -9,12 +9,13 @@ module.exports = {
     baseUrl: 'http://localhost:8080/nuxeo/',
     waitforTimeout: 5000,
     waitforInterval: 250,
+    logOutput: 'target/wdio/',
     desiredCapabilities: {
-      browserName : 'chrome',
-      javascriptEnabled : true,
-      acceptSslCerts : true,
-      chromeOptions : {
-        args : ['--no-sandbox']
+      browserName: 'chrome',
+      javascriptEnabled: true,
+      acceptSslCerts: true,
+      chromeOptions: {
+        args: ['--no-sandbox']
       }
     }
   },
