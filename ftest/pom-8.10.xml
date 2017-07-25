@@ -40,17 +40,6 @@
       <properties>
         <nodeVersion>v6.9.0</nodeVersion>
         <npmVersion>3.10.8</npmVersion>
-        <gulpTarget>it</gulpTarget>
-        <jsReportsDir>js-reports</jsReportsDir>
-      </properties>
-    </profile>
-    <profile>
-      <id>es5</id>
-      <properties>
-        <nodeVersion>v4.6.0</nodeVersion>
-        <npmVersion>2.15.9</npmVersion>
-        <gulpTarget>it:node:es5</gulpTarget>
-        <jsReportsDir>js-reports-es5</jsReportsDir>
       </properties>
     </profile>
   </profiles>

@@ -20,7 +20,7 @@ def formatSlack(begin) {
   return "${begin} <${currentBuild.absoluteUrl}|${env.JOB_NAME}>";
 }
 
-def archive_paths = 'ftest/target/tomcat/log/*.log, ftest/target/js-reports/*.xml, ftest/target/screenshots/*, ftest/target/wdio/*'
+def archive_paths = 'ftest/target/tomcat/log/*.log, ftest/target/screenshots/*, ftest/target/wdio/* ftest/target/cucumber-reports/*'
 
 node(env.SLAVE) {
     try {
@@ -57,23 +57,20 @@ node(env.SLAVE) {
                     step([$class: 'CucumberReportPublisher', jsonReportDirectory: 'ftest/target/cucumber-reports/', fileIncludePattern: '*.json'])
                     archive "${archive_paths}"
                     // TODO cobertura coverage
-                    junit 'ftest/target/js-reports/*.xml'
                     if (env.BRANCH_NAME == 'master') {
                         step([$class: 'JiraIssueUpdater', issueSelector: [$class: 'DefaultIssueSelector'], scm: scm])
                     }
+                    def status = currentBuild.result == null ? 'SUCCESS' : currentBuild.result;
                     if(currentBuild.getPreviousBuild() != null && 'SUCCESS' != currentBuild.getPreviousBuild().getResult()) {
                         mail (to: 'ecm@lists.nuxeo.com', subject: "${env.JOB_NAME} (${env.BUILD_NUMBER}) - Back to normal",
                             body: "Build back to normal: ${env.BUILD_URL}.")
+                        slackSend color: '#5FB404', channel: "${env.SLACK_CHANNEL}", message: formatSlack(status) + ' - *Back to normal!* :sparkles:'
                     }
                     step([$class: 'GitHubCommitStatusSetter',
                         reposSource: [$class: 'ManuallyEnteredRepositorySource', url: 'https://github.com/nuxeo/nuxeo-chrome-extension'],
                         contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: "${env.STATUS_CONTEXT_NAME}"],
                         statusResultSource: [$class: 'ConditionalStatusResultSource',
                         results: [[$class: 'AnyBuildResult', message: 'Successfully built on Nuxeo CI', state: 'SUCCESS']]]])
-
-                    def color = currentBuild.result == null ? '#5FB404' : '#FE9A2E';
-                    def status = currentBuild.result == null ? 'SUCCESS' : currentBuild.result;
-                    slackSend color: color, channel: "${env.SLACK_CHANNEL}", message: formatSlack(status)
                 }
             }
         }
