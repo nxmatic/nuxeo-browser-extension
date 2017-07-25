@@ -54,6 +54,7 @@ node(env.SLAVE) {
                     step([$class: 'WarningsPublisher', canComputeNew: false, canResolveRelativePaths: false,
                         consoleParsers: [[parserName: 'Maven']], defaultEncoding: '', excludePattern: '',
                         healthy: '', includePattern: '', messagesPattern: '', unHealthy: ''])
+                    step([$class: 'CucumberReportPublisher', jsonReportDirectory: 'ftest/target/cucumber-reports/', fileIncludePattern: '*.json'])
                     archive "${archive_paths}"
                     // TODO cobertura coverage
                     junit 'ftest/target/js-reports/*.xml'
