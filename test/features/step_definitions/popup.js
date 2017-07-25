@@ -1,5 +1,5 @@
 module.exports = function () {
-  this.Given(/^the extension open(?: as ([Ff]irefox|[Cc]hrome))?/, (arg) => {
+  this.Given(/^the extension is open(?: as ([Ff]irefox|[Cc]hrome))?/, (arg) => {
     // Object.keys(global).forEach(k => console.log(k));
     const dist = arg || 'sinon-chrome';
 
@@ -19,12 +19,12 @@ module.exports = function () {
     browser.waitForVisible('#loading-gif', 2000, true);
   });
 
-  this.Then('I wait until $selector is not empty', (selector) => {
+  this.Then('I wait until $selector appears', (selector) => {
     browser.waitForExist(`${selector} > *`);
     browser.screenshot();
   });
 
-  this.Then('I can see $url as connected server', (url) => {
+  this.Then('I can see $url as the connected server', (url) => {
     // Check url on popup
     expect(url).to.be.a('string');
     expect(browser.$('.server-name-url').getText()).to.be.equals(url);
