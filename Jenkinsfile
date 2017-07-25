@@ -17,7 +17,7 @@
  ])
 
 def formatSlack(begin) {
-  return "${begin} <${currentBuild.absoluteUrl}|${env.JOB_NAME}> - ${Holder.author}";
+  return "${begin} <${currentBuild.absoluteUrl}|${env.JOB_NAME}>";
 }
 
 def archive_paths = 'ftest/target/tomcat/log/*.log, ftest/target/js-reports/*.xml, ftest/target/screenshots/*, ftest/target/wdio/*'
