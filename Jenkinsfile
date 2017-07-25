@@ -92,7 +92,8 @@ node(env.SLAVE) {
         slackSend color: '#FF4000', channel: "${env.SLACK_CHANNEL}", message: formatSlack('FAILURE') + " ```${e.message}```"
         throw e
     } finally {
-        step([$class: 'CheckStylePublisher', canComputeNew: false, defaultEncoding: '', healthy: '',
-            pattern: 'ftest/target/checkstyle-result.xml', unHealthy: ''])
+        // XXX Checkstyle is not configured on this repo; commented until it is activated.
+        // step([$class: 'CheckStylePublisher', canComputeNew: false, defaultEncoding: '', healthy: '',
+        //     pattern: 'ftest/target/checkstyle-result.xml', unHealthy: ''])
     }
 }
