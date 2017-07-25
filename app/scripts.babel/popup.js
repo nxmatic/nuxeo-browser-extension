@@ -46,7 +46,7 @@ limitations under the License.
     var buttons = document.querySelectorAll('a');
     var debug = document.getElementById('debug-switch');
     var exportCurrent = document.getElementById('export-current');
-    var jsonSearch = document.getElementById('json-search');
+    var jsonSearch = document.getElementById('search');
     for (var i = 0; i < buttons.length; i++) {
       buttons[i].addEventListener('click', trackButtonClick);
     };
@@ -95,10 +95,10 @@ limitations under the License.
 
     $(document).ready(function() {
 
-      $('#json-searchclear').click(function(){
-        $('#json-search').val('');
+      $('#searchclear').click(function(){
+        $('#search').val('');
         $('.no-result').css('display', 'none');
-				$('#json-search-results').empty();
+				$('#search-results').empty();
 				$('body').css('overflow-y', 'hidden');
 				$('html').outerHeight(height+66);
       });
@@ -239,7 +239,7 @@ limitations under the License.
 					if ((res.entries).length > 0) {
 						$('.no-result').css('display', 'none');
 						$('body').css('overflow-y', 'auto');
-						$('#json-search-results').append('<thead><tr><th colspan=20>Search Results:</td></tr></thead><tbody></tbody>');
+						$('#search-results').append('<thead><tr><th colspan=20>Search Results:</td></tr></thead><tbody></tbody>');
 						$('table').css('margin-top', '20px');
 						(res.entries).forEach(function(doc) {
 							$('html').outerHeight($('html').height());
@@ -270,13 +270,13 @@ limitations under the License.
 						$('.no-result').css('display', 'block');
 					};
 					$('#loading-gif').css('display', 'none');
-					$('#json-search').css('text-indent', '5px');
+					$('#search').css('text-indent', '5px');
 				})
 				.catch(function(error) {
 					error.response.json().then(function(json) {
 						bkg.notification('error', json.code, json.message, '../images/access_denied.png');
 						$('#loading-gif').css('display', 'none');
-						$('#json-search').css('text-indent', '5px');
+						$('#search').css('text-indent', '5px');
 					});
 				});
 			};
@@ -347,41 +347,41 @@ limitations under the License.
           })
       });
 
-      $('#json-search').keydown(function() {
+      $('#search').keydown(function() {
         $('#loading-gif').css({'display': 'inline'});
-				$('#json-search').css('text-indent', '23px');
+				$('#search').css('text-indent', '23px');
       });
 
-      $('#json-search').keyup(debounce(function() {
-        $('#json-search-results').empty();
+      $('#search').keyup(debounce(function() {
+        $('#search-results').empty();
         var uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         var pathPattern = /^\//;
-        var input = $('#json-search').val();
+        var input = $('#search').val();
         if (input == '') {
           $('.no-result').css('display', 'none');
-          $('#json-search-results').empty();
+          $('#search-results').empty();
           $('#loading-gif').css('display', 'none');
-					$('#json-search').css('text-indent', '5px');
+					$('#search').css('text-indent', '5px');
 					$('body').css('overflow-y', 'hidden');
 					$('html').outerHeight(height+66);
         } else if (uuidPattern.test(input)) {
           getJsonFromGuid(input);
           $('#loading-gif').css('display', 'none');
-					$('#json-search').css('text-indent', '5px');
+					$('#search').css('text-indent', '5px');
         } else if (pathPattern.test(input)) {
           getJsonFromPath(input);
           $('#loading-gif').css('display', 'none');
-					$('#json-search').css('text-indent', '5px');
+					$('#search').css('text-indent', '5px');
         } else if (((input.toUpperCase()).indexOf('SELECT ') !== -1) && ((input.toUpperCase()).indexOf(' FROM ') !== -1)) {
 					var query = input.replace(/'/g, '"');
 					docSearch(query, input);
           $('#loading-gif').css('display', 'none');
-					$('#json-search').css('text-indent', '5px');
+					$('#search').css('text-indent', '5px');
 				} else {
           var jsonQuery = 'SELECT * FROM Document WHERE ecm:fulltext = "' + input + '"';
           docSearch(jsonQuery, input);
           $('#loading-gif').css('display', 'none');
-					$('#json-search').css('text-indent', '5px');
+					$('#search').css('text-indent', '5px');
         };
       }, 1000));
     });

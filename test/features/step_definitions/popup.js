@@ -11,8 +11,8 @@ module.exports = function () {
     expect(browser.getTitle()).to.be.equals('Nuxeo Dev Tools');
   });
 
-  this.When('I enter $text in search input', (text) => {
-    browser.$('#json-search').addValue(text);
+  this.When('I enter $text in $selector input', (text, selector) => {
+    browser.$(`#${selector}`).addValue(text);
     // Wait until debouncing is ok
     browser.waitForVisible('#loading-gif');
     browser.screenshot();
@@ -31,11 +31,11 @@ module.exports = function () {
   });
 
   this.Then(/Server responds with (\d+) documents?/, (size) => {
-    expect(browser.$('#json-search-results').$$('.search-result').length).to.be.equals(Number.parseInt(size));
+    expect(browser.$('#search-results').$$('.search-result').length).to.be.equals(Number.parseInt(size));
   });
 
   this.Then(/Document (\d+) title is (.+) and parent path (.+)/, (index, title, parentPath) => {
-    const trs = browser.$$('#json-search-results tbody tr');
+    const trs = browser.$$('#search-results tbody tr');
     const trTitle = trs[index - 1];
     const trPath = trs[index];
 
