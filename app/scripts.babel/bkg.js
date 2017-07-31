@@ -123,13 +123,25 @@ window.bkgHotReload = function(startLoading, stopLoading) {
           var msg = json.message;
           var err = e.response.status;
           if (msg == null) {
-            notification('no_hot_reload', 'Hot Reload Operation not found.', 'Your current version of Nuxeo does not support the Hot Reload function.', '../images/access_denied.png');
+            notification('no_hot_reload',
+              'Hot Reload Operation not found.',
+              'Your current version of Nuxeo does not support the Hot Reload function.',
+              '../images/access_denied.png');
           } else if (err >= 500) {
-            notification('access_denied', 'Access denied!', 'You must have Administrator rights to perform this function.', '../images/access_denied.png');
+            notification('access_denied',
+              'Access denied!',
+              'You must have Administrator rights to perform this function.',
+              '../images/access_denied.png');
           } else if (err >= 300 && err < 500) {
-            notification('bad_login', 'Bad Login', 'Your Login and/or Password are incorrect', '../images/access_denied.png');
+            notification('bad_login',
+            'Bad Login',
+            'Your Login and/or Password are incorrect',
+            '../images/access_denied.png');
           } else {
-            notification('unknown_error', 'Unknown Error', 'An unknown error has occurred. Please try again later.', '../images/access_denied.png');
+            notification('unknown_error',
+            'Unknown Error',
+            'An unknown error has occurred. Please try again later.',
+            '../images/access_denied.png');
           }
         })
       });
@@ -149,13 +161,13 @@ window.restart = function(startLoadingRS, stopLoading) {
           schemas: [],
           enrichers: [],
           fetchProperties: [],
-          url: nuxeo._baseURL.concat('site/connectClient/uninstall/restart'),
+          url: nuxeo._baseURL.concat('site/connectClient/uninstall/restart')
         })
         .then(function() {
           notification('error', 'Something went wrong...', 'Please try again later.', '../images/access_denied.png');
           stopLoading();
         })
-        .catch(function(e) {
+        .catch(function() {
           notification('success', 'Success!', 'Nuxeo server is restarting...', '../images/nuxeo-128.png');
           stopLoading();
           setTimeout(function() {
@@ -175,7 +187,7 @@ window.reindex = function() {
       .then(function() {
         notification('success', 'Success!', 'Your repository index is rebuilding.', '../images/nuxeo-128.png');
       })
-      .catch(function(e) {
+      .catch(function() {
         notification('error', 'Something went wrong...', 'Please try again later.', '../images/access_denied.png');
       })
 
@@ -194,7 +206,7 @@ window.reindexNXQL = function(input) {
       .then(function() {
         notification('success', 'Success!', 'Your repository index is rebuilding.', '../images/nuxeo-128.png');
       })
-      .catch(function(e) {
+      .catch(function() {
         notification('error', 'Something went wrong...', 'Please try again later.', '../images/access_denied.png');
       })
 
@@ -213,7 +225,7 @@ window.reindexDocId = function(input) {
       .then(function() {
         notification('success', 'Success!', 'Your repository index is rebuilding.', '../images/nuxeo-128.png');
       })
-      .catch(function(e) {
+      .catch(function() {
         notification('error', 'Something went wrong...', 'Please try again later.', '../images/access_denied.png');
       })
 

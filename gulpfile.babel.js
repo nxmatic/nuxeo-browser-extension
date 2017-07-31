@@ -14,6 +14,7 @@ import moment from 'moment';
 import cheerio from 'gulp-cheerio';
 import filter from 'gulp-filter';
 import debug from 'gulp-debug';
+import eslint from 'gulp-eslint';
 
 const $ = gulpLoadPlugins();
 
@@ -85,8 +86,8 @@ function updateVersionForRelease(vendor, distFile) {
 function lint(files, options) {
   return () => {
     return gulp.src(files)
-      .pipe($.eslint(options))
-      .pipe($.eslint.format());
+      .pipe(eslint(options))
+      .pipe(eslint.format());
   };
 }
 
@@ -94,11 +95,37 @@ function dist(vendor, name) {
   return path.join('dist', vendor || 'base', name || '');
 }
 
-gulp.task('lint', lint('app/scripts.babel/**/*.js', {
-  env: {
-    es6: true
+gulp.task('lint', lint('app/scripts.babel/*.js',
+  {
+    parserOptions: {
+      'ecmaVersion': 6
+    },
+    extends: 'eslint:recommended',
+    parser: 'babel-eslint',
+    rules: {
+      'func-names': 0,
+      'max-len': [2, 120, 2, {
+        'ignoreUrls': true,
+        'ignoreComments': false,
+        'ignorePattern': '^\\s*(const|let|var)\\s+\\w+\\s+\\=\\s+\\/.*\\/(|i|g|m|ig|im|gm|igm);?$',
+      }],
+      'no-unused-expressions': 0,
+      'no-param-reassign': 0,
+      'no-else-return': 0,
+      'no-throw-literal': 0,
+      'radix': 0,
+      'no-console': 0,
+      'no-mixed-spaces-and-tabs': [2, 'smart-tabs'],
+    },
+    'globals': {
+      'app': true,
+      '$': true,
+      'Nuxeo': true,
+      'disableTabExtension': true,
+      'hljs': true,
+    }
   }
-}));
+));
 
 gulp.task('extras', () => {
   return gulp.src([

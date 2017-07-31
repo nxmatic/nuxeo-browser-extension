@@ -18,9 +18,6 @@ limitations under the License.
 
 (function (window) {
 	var app = window.app = window.app || {};
-  var studioExt = {};
-  var tabUrl;
-  var pkgName;
 
   var _AnalyticsCode = 'UA-79232642-1';
   var _gaq = _gaq || [];
@@ -38,7 +35,7 @@ limitations under the License.
   }
 
 	function escapeHTML(str) {
-	  return str.replace(/[&"'<>]/g, (m) => escapeHTML.replacements[m]);
+	  return str.replace(/[&"'<>]/g,	(m)	=>	escapeHTML.replacements[m]);
 	}
 	escapeHTML.replacements = { '&': '&amp;', '"': '&quot;', '\'': '&#39;', '<': '&lt;', '>': '&gt;' };
 
@@ -49,7 +46,7 @@ limitations under the License.
     var jsonSearch = document.getElementById('search');
     for (var i = 0; i < buttons.length; i++) {
       buttons[i].addEventListener('click', trackButtonClick);
-    };
+    }
     debug.addEventListener('click', trackButtonClick);
     exportCurrent.addEventListener('click', trackButtonClick);
     jsonSearch.addEventListener('click', trackButtonClick);
@@ -65,7 +62,7 @@ limitations under the License.
           fn.apply(context, args);
         }, delay);
       };
-    };
+    }
 
     var position;
 
@@ -74,24 +71,24 @@ limitations under the License.
         var a = $('a#hot-reload-button');
         position = a.position();
         $('#loading').css({'display': 'block', 'top': (position.top-5), 'left': (position.left-50)});
-      };
+    }
 
     function startLoadingRS() {
         _gaq.push(['_trackEvent', 'restart-button', 'clicked']);
         var a = $('a#restart-button');
         position = a.position();
         $('#loading').css({'display': 'block', 'top': (position.top-5), 'left': (position.left+140)});
-    };
+    }
 
     function stopLoading() {
         $('#loading').css('display', 'none');
-    };
+    }
 
     function registerLink(element, url) {
       $(element).click(function() {
 				app.browser.createTabs(url, bkg.studioExt.server.tabId);
       });
-    };
+    }
 
     $(document).ready(function() {
 
@@ -138,7 +135,10 @@ limitations under the License.
 					    $('#nopkg').fadeOut('fast');
 						}, 2000);
             $('#studio-link-button, #hot-reload-button').click(function() {
-              bkg.notification('no_studio_project', 'No associated Studio project', 'If you\'d like to use this function, please associate your Nuxeo server with a studio project' , '../images/access_denied.png');
+              bkg.notification('no_studio_project',
+								'No associated Studio project',
+								'If you\'d like to use this function, please associate your Nuxeo server with a studio project',
+								'../images/access_denied.png');
             });
           }
         });
@@ -177,14 +177,14 @@ limitations under the License.
 
 				function exportCurrentLink(docPath) {
 					$('#export-current').css('display', 'block');
-          $('#export-current').click(function(event) {
+          $('#export-current').click(function() {
             if (uuidPattern.test(docPath)) {
               getJsonFromGuid(docPath);
             } else if (pathPattern.test(docPath)) {
               getJsonFromPath(docPath);
-            };
+            }
           });
-				};
+				}
 
 				if (matchGroupDoc) {
 					onUI = false;
@@ -192,15 +192,15 @@ limitations under the License.
 						exportCurrentLink(matchGroupDoc[1]);
 					} else if (matchGroupDoc[2]) {
 						exportCurrentLink(matchGroupDoc[2]);
-					};
+					}
 				} else if (matchGroupUiDoc) {
 					onUI = true;
 					if (matchGroupUiDoc[1]) {
 						exportCurrentLink(matchGroupUiDoc[1]);
 	        } else if (matchGroupUiDoc[2]) {
 						exportCurrentLink(matchGroupUiDoc[2]);
-					};
-				};
+					}
+				}
 
 			});
 
@@ -213,7 +213,7 @@ limitations under the License.
           .catch(function(error) {
             throw new Error(error);
           });
-      };
+      }
 
       function getJsonFromGuid(input) {
         nuxeo.request('/id/' + input)
@@ -224,7 +224,7 @@ limitations under the License.
           .catch(function(error) {
             throw new Error(error);
           });
-      };
+      }
 
 			var height = $('html').height();
 
@@ -253,11 +253,12 @@ limitations under the License.
 							showSearchResults(icon, title, path, uid, vMajor, vMinor);
 						});
 						$('.doc-title').click(function(event) {
+							var docURL;
 							if (onUI) {
-								var docURL = nuxeo._baseURL.concat('ui/#!/doc/' + event.target.id);
+								docURL = nuxeo._baseURL.concat('ui/#!/doc/' + event.target.id);
 							} else {
-								var docURL = nuxeo._baseURL.concat('nxdoc/default/' + event.target.id + '/view_documents');
-							};
+								docURL = nuxeo._baseURL.concat('nxdoc/default/' + event.target.id + '/view_documents');
+							}
 							app.browser.createTabs(docURL, bkg.studioExt.server.tabId);
 						})
 						$('.json-icon').click(function(event) {
@@ -268,7 +269,7 @@ limitations under the License.
 						var searchTerm = escapeHTML(input);
 						$('.no-result span').text(searchTerm);
 						$('.no-result').css('display', 'block');
-					};
+					}
 					$('#loading-gif').css('display', 'none');
 					$('#search').css('text-indent', '5px');
 				})
@@ -279,31 +280,32 @@ limitations under the License.
 						$('#search').css('text-indent', '5px');
 					});
 				});
-			};
+			}
 
       var openJsonWindow = function(jsonObject) {
-        var w = 600;
-        var h = 800;
-        var left = (screen.width/2)-(w/2);
-        var top = (screen.height/2)-(h/2);
         var jsonString = JSON.stringify(jsonObject, undefined, 2);
         bkg._text = escapeHTML(jsonString);
 				app.browser.createTabs('json.html', bkg.studioExt.server.tabId);
-      };
+      }
 
       function showSearchResults(icon, title, path, uid, vMajor, vMinor) {
 				var title_tag;
         var icon_link = nuxeo._baseURL.concat(icon);
-        var icon_tag = '<td colspan=1 class="icon"><img class="doc-icon" src="' + icon_link + '" alt="icon"></td>';
+        var icon_tag = '<td colspan=1 class="icon"><img class="doc-icon" src="'
+					+ icon_link + '" alt="icon"></td>';
         if ((typeof vMajor != 'undefined' && typeof vMinor != 'undefined')) {
-					title_tag = '<td colspan=17 class="doc-title" id="' + uid + '">' + title + ' <span class="version">' + vMajor + '.' + vMinor + '</span></td>';
+					title_tag = '<td colspan=17 class="doc-title" id="'
+						+ uid + '">' + title + ' <span class="version">' + vMajor
+						+ '.' + vMinor + '</span></td>';
 				} else {
 					title_tag = '<td colspan=17 class="doc-title" id="' + uid + '">' + title + '</td>';
-				};
-				var json_tag = '<td colspan=2 class="icon"><img class="json-icon" id="' + uid + '" src="images/json-exp.png"></td>';
+				}
+				var json_tag = '<td colspan=2 class="icon"><img class="json-icon" id="'
+					+ uid + '" src="images/json-exp.png"></td>';
         var path_tag = '<td colspan=20 class="doc-path">' + path + '</td>';
-        $('tbody').append('<tr class="search-result">'+ icon_tag + title_tag + json_tag + '</tr><tr>' + path_tag + '</tr>');
-      };
+        $('tbody').append('<tr class="search-result">'
+					+ icon_tag + title_tag + json_tag + '</tr><tr>' + path_tag + '</tr>');
+      }
 
       $('#restart-button').confirm({
         title: 'Warning!',
@@ -311,7 +313,7 @@ limitations under the License.
         confirmButton: 'Restart',
         cancelButton: 'Cancel',
         confirm: function() {
-          bkg.restart(startLoadingRS, stopLoading);
+					bkg.restart(startLoadingRS, stopLoading);
         }
       });
 
@@ -325,7 +327,7 @@ limitations under the License.
 	      $('#nxql-docid').val('');
 				var matchGroupId = uuidPattern.exec(input);
 				if (matchGroupId) {
-        	bkg.reindexDocId(input);
+					bkg.reindexDocId(input);
 				} else {
 					bkg.reindexNXQL(input);
 				}
@@ -338,7 +340,7 @@ limitations under the License.
 			  }
 			});
 
-      $('#debug-switch').click(function(event) {
+      $('#debug-switch').click(function() {
         nuxeo.operation('Traces.ToggleRecording')
           .params({readOnly: false})
           .execute()
@@ -372,7 +374,8 @@ limitations under the License.
           getJsonFromPath(input);
           $('#loading-gif').css('display', 'none');
 					$('#search').css('text-indent', '5px');
-        } else if (((input.toUpperCase()).indexOf('SELECT ') !== -1) && ((input.toUpperCase()).indexOf(' FROM ') !== -1)) {
+        } else if (((input.toUpperCase()).indexOf('SELECT ') !== -1)
+						&& ((input.toUpperCase()).indexOf(' FROM ') !== -1)) {
 					var query = input.replace(/'/g, '"');
 					docSearch(query, input);
           $('#loading-gif').css('display', 'none');
@@ -382,7 +385,7 @@ limitations under the License.
           docSearch(jsonQuery, input);
           $('#loading-gif').css('display', 'none');
 					$('#search').css('text-indent', '5px');
-        };
+        }
       }, 1000));
     });
   });
