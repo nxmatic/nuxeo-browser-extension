@@ -170,8 +170,12 @@ limitations under the License.
 
         var uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         var pathPattern = /^\//;
-        var docPattern = /nxpath\/[A-Za-z_\.0-9-]+(\/[A-Za-z\.0-9_\- \/%~:?#]+)|(?:nxdoc[\/A-Za-z_\.0-9]+)([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})/;
-				var uiDocPattern = /nuxeo\/ui\/#!\/browse(\/[A-Za-z\.0-9_\- \/%~:?#]+)|(?:nuxeo\/ui\/#!\/doc[\/A-Za-z_\.0-9]+)([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})/;
+        var docPattern = new RegExp (['nxpath\/[A-Za-z_\.0-9-]+(\/[A-Za-z\.0-9_\- \/%~:?#]+)',
+																			'|(?:nxdoc[\/A-Za-z_\.0-9]+)([0-9a-f]{8}-[0-9a-f]{4}-[1-5]',
+																			'[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})'].join(''));
+				var uiDocPattern = new RegExp (['nuxeo\/ui\/#!\/browse(\/[A-Za-z\.0-9_\- \/%~:?#]+)',
+																				'|(?:nuxeo\/ui\/#!\/doc[\/A-Za-z_\.0-9]+)([0-9a-f]{8}-[0-9a-f]',
+																				'{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})'].join(''));
 				var matchGroupDoc = docPattern.exec(bkg.tabUrl);
 				var matchGroupUiDoc = uiDocPattern.exec(bkg.tabUrl);
 

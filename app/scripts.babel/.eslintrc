@@ -1,0 +1,28 @@
+{
+  'parserOptions': {
+    'ecmaVersion': 6
+  },
+  'extends': 'eslint:recommended',
+  'parser': 'babel-eslint',
+  'rules': {
+    'func-names': 0,
+    'max-len': [2, 120, 2, {
+      'ignoreUrls': true,
+      'ignoreComments': false,
+    }],
+    'no-unused-expressions': 0,
+    'no-param-reassign': 0,
+    'no-else-return': 0,
+    'no-throw-literal': 0,
+    'radix': 0,
+    'no-console': 0,
+    'no-mixed-spaces-and-tabs': [2, 'smart-tabs'],
+  },
+  'globals': {
+    'app': true,
+    '$': true,
+    'Nuxeo': true,
+    'disableTabExtension': true,
+    'hljs': true,
+  }
+}
