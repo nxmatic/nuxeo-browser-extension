@@ -14,225 +14,216 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-const nxPattern = new RegExp (['(^https?:\/\/[A-Za-z_\.0-9:-]+\/[A-Za-z_\.0-9-]',
-                                '+\/)(?:(?:nxdoc|nxpath|nxsearch|nxadmin|nxhome|',
-                                'nxdam|nxdamid|site\/[A-Za-z_\.0-9-]+)\/[A-Za-z_\.0-9-]',
-                                '+|view_documents\.faces|ui\/#!\/\w+\/?|view_domains',
-                                '\.faces|home\.html|view_home\.faces)'].join(''));
+const nxPattern = /(^https?:\/\/[A-Za-z_\.0-9:-]+\/[A-Za-z_\.0-9-]+\/)(?:(?:nxdoc|nxpath|nxsearch|nxadmin|nxhome|nxdam|nxdamid|site\/[A-Za-z_\.0-9-]+)\/[A-Za-z_\.0-9-]+|view_documents\.faces|ui\/#!\/\w+\/?|view_domains\.faces|home\.html|view_home\.faces)/;
 
-var window = window || {};
+const window = window || {}; // eslint-disable-line no-use-before-define
 window.app = window.app || {};
-var studioExt = window.studioExt = window.studioExt || {};
+const studioExt = window.studioExt = window.studioExt || {};
 
 const notification = window.notification = (idP, titleP, messageP, img) => {
-  chrome.notifications.create(idP, {
-    type: 'basic',
-    title: titleP,
-    message: messageP,
-    iconUrl: img
-  }, function() {
-    console.log(chrome.runtime.lastError);
-  });
+	chrome.notifications.create(idP, {
+		type: 'basic',
+		title: titleP,
+		message: messageP,
+		iconUrl: img,
+	}, () => {
+		console.log(chrome.runtime.lastError);
+	});
 };
 
 /**
  * XXX Temp solution in order to be able to force Auth
  */
 const newNuxeo = window.newNuxeo = (opts) => {
-  const _opts = opts || {};
-  if (window.app.auth) {
-    _opts.auth = window.app.auth;
-  }
+	const _opts = opts || {};
+	if (window.app.auth) {
+		_opts.auth = window.app.auth;
+	}
 
-  return new Nuxeo(_opts);
-}
+	return new Nuxeo(_opts);
+};
 
-const newDefaultNuxeo = () => {
-  return newNuxeo({
-    baseURL: window.studioExt.server.url
-  });
-}
+function newDefaultNuxeo() { return newNuxeo({ baseURL: window.studioExt.server.url }); }
 
 const getCurrentTabUrl = window.getCurrentTabUrl = (callback) => {
-  var queryInfo = {
-    active: true,
-    currentWindow: true
-  };
+	const queryInfo = {
+		active: true,
+		currentWindow: true,
+	};
 
-  chrome.tabs.query(queryInfo, function(tabs) {
-    const [tab] = tabs;
-    const matchGroups = nxPattern.exec(tab.url);
-    if (!matchGroups) {
-      callback(null)
-      return;
-    }
+	chrome.tabs.query(queryInfo, (tabs) => {
+		const [tab] = tabs;
+		const matchGroups = nxPattern.exec(tab.url);
+		if (!matchGroups) {
+			callback(null);
+			return;
+		}
 
-    const [,url] = matchGroups;
-    window.studioExt.server = {
-      url,
-      tabId: tab.id
-    }
+		const [, url] = matchGroups;
+		window.studioExt.server = {
+			url,
+			tabId: tab.id,
+		};
 
-    callback(url);
-  });
+		callback(url);
+	});
 };
 
 window.readStudioProject = (callback) => {
-  const script = `import groovy.json.JsonOutput;
-  import org.nuxeo.connect.packages.PackageManager;
-  import org.nuxeo.connect.client.we.StudioSnapshotHelper;
-  import org.nuxeo.ecm.admin.runtime.RuntimeInstrospection;
-  import org.nuxeo.runtime.api.Framework;
+	const script = `import groovy.json.JsonOutput;
+	import org.nuxeo.connect.packages.PackageManager;
+	import org.nuxeo.connect.client.we.StudioSnapshotHelper;
+	import org.nuxeo.ecm.admin.runtime.RuntimeInstrospection;
+	import org.nuxeo.runtime.api.Framework;
 
-  def pm = Framework.getLocalService(PackageManager.class);
-  def snapshotPkg = StudioSnapshotHelper.getSnapshot(pm.listRemoteAssociatedStudioPackages());
-  def pkgName = snapshotPkg == null ? null : snapshotPkg.getName();
-  def bundles = RuntimeInstrospection.getInfo();
+	def pm = Framework.getLocalService(PackageManager.class);
+	def snapshotPkg = StudioSnapshotHelper.getSnapshot(pm.listRemoteAssociatedStudioPackages());
+	def pkgName = snapshotPkg == null ? null : snapshotPkg.getName();
+	def bundles = RuntimeInstrospection.getInfo();
 
-  println JsonOutput.toJson([studio: pkgName]);`;
+	println JsonOutput.toJson([studio: pkgName]);`;
 
-  const blob = new Nuxeo.Blob({
-    content: new Blob([script], {
-      type: 'text/plain'
-    }),
-    name: 'readPackage.groovy',
-    mymeType: 'text/plain'
-  });
+	const blob = new Nuxeo.Blob({
+		content: new Blob([script], {
+			type: 'text/plain',
+		}),
+		name: 'readPackage.groovy',
+		mymeType: 'text/plain',
+	});
 
-  newDefaultNuxeo().operation('RunInputScript').params({
-    type: 'groovy'
-  }).input(blob).execute().then((res) => {
-    return res.text();
-  }).then(callback).catch((e) => {
-    console.error(e);
-  });
+	newDefaultNuxeo().operation('RunInputScript').params({
+		type: 'groovy',
+	}).input(blob)
+		.execute()
+		.then(res => res.text())
+		.then(callback)
+		.catch((e) => {
+			console.error(e);
+		});
 };
 
-window.bkgHotReload = function(startLoading, stopLoading) {
-  var nuxeo;
-  getCurrentTabUrl(function(url) {
-    nuxeo = newNuxeo({
-      baseURL: url
-    });
-    startLoading();
-    nuxeo.operation('Service.HotReloadStudioSnapshot').execute()
-      .then(function() {
-        notification('success', 'Success!', 'A Hot Reload has successfully been completed.', '../images/nuxeo-128.png');
-        chrome.tabs.reload(window.studioExt.server.tabId);
-        stopLoading();
-      })
-      .catch(function(e) {
-        e.response.json().then(function(json) {
-          stopLoading();
-          var msg = json.message;
-          var err = e.response.status;
-          if (msg == null) {
-            notification('no_hot_reload',
-              'Hot Reload Operation not found.',
-              'Your current version of Nuxeo does not support the Hot Reload function.',
-              '../images/access_denied.png');
-          } else if (err >= 500) {
-            notification('access_denied',
-              'Access denied!',
-              'You must have Administrator rights to perform this function.',
-              '../images/access_denied.png');
-          } else if (err >= 300 && err < 500) {
-            notification('bad_login',
-            'Bad Login',
-            'Your Login and/or Password are incorrect',
-            '../images/access_denied.png');
-          } else {
-            notification('unknown_error',
-            'Unknown Error',
-            'An unknown error has occurred. Please try again later.',
-            '../images/access_denied.png');
-          }
-        })
-      });
-  });
+window.bkgHotReload = (startLoading, stopLoading) => {
+	let nuxeo;
+	getCurrentTabUrl((url) => {
+		nuxeo = newNuxeo({
+			baseURL: url,
+		});
+		startLoading();
+		nuxeo.operation('Service.HotReloadStudioSnapshot').execute()
+			.then(() => {
+				notification('success', 'Success!', 'A Hot Reload has successfully been completed.', '../images/nuxeo-128.png');
+				chrome.tabs.reload(window.studioExt.server.tabId);
+				stopLoading();
+			})
+			.catch((e) => {
+				e.response.json().then((json) => {
+					stopLoading();
+					const msg = json.message;
+					const err = e.response.status;
+					if (msg == null) {
+						notification('no_hot_reload',
+							'Hot Reload Operation not found.',
+							'Your current version of Nuxeo does not support the Hot Reload function.',
+							'../images/access_denied.png');
+					} else if (err >= 500) {
+						notification('access_denied',
+							'Access denied!',
+							'You must have Administrator rights to perform this function.',
+							'../images/access_denied.png');
+					} else if (err >= 300 && err < 500) {
+						notification('bad_login',
+							'Bad Login',
+							'Your Login and/or Password are incorrect',
+							'../images/access_denied.png');
+					} else {
+						notification('unknown_error',
+							'Unknown Error',
+							'An unknown error has occurred. Please try again later.',
+							'../images/access_denied.png');
+					}
+				});
+			});
+	});
 };
 
-window.restart = function(startLoadingRS, stopLoading) {
-    disableTabExtension();
-    var nuxeo;
-    getCurrentTabUrl(function(url) {
-      nuxeo = newNuxeo({
-        baseURL: url
-      });
-      startLoadingRS();
-      nuxeo._http({
-          method: 'POST',
-          schemas: [],
-          enrichers: [],
-          fetchProperties: [],
-          url: nuxeo._baseURL.concat('site/connectClient/uninstall/restart')
-        })
-        .then(function() {
-          notification('error', 'Something went wrong...', 'Please try again later.', '../images/access_denied.png');
-          stopLoading();
-        })
-        .catch(function() {
-          notification('success', 'Success!', 'Nuxeo server is restarting...', '../images/nuxeo-128.png');
-          stopLoading();
-          setTimeout(function() {
-            chrome.tabs.reload(studioExt.server.tabId);
-          }, 4000);
-        });
-    });
-}
+window.restart = function (startLoadingRS, stopLoading) {
+	disableTabExtension();
+	let nuxeo;
+	getCurrentTabUrl((url) => {
+		nuxeo = newNuxeo({
+			baseURL: url,
+		});
+		startLoadingRS();
+		nuxeo._http({
+			method: 'POST',
+			schemas: [],
+			enrichers: [],
+			fetchProperties: [],
+			url: nuxeo._baseURL.concat('site/connectClient/uninstall/restart'),
+		})
+			.then(() => {
+				notification('error', 'Something went wrong...', 'Please try again later.', '../images/access_denied.png');
+				stopLoading();
+			})
+			.catch(() => {
+				notification('success', 'Success!', 'Nuxeo server is restarting...', '../images/nuxeo-128.png');
+				stopLoading();
+				setTimeout(() => {
+					chrome.tabs.reload(studioExt.server.tabId);
+				}, 4000);
+			});
+	});
+};
 
-window.reindex = function() {
-  var nuxeo;
-  getCurrentTabUrl(function(url) {
-    nuxeo = newNuxeo({
-      baseURL: url
-    });
-    nuxeo.operation('Elasticsearch.Index').execute()
-      .then(function() {
-        notification('success', 'Success!', 'Your repository index is rebuilding.', '../images/nuxeo-128.png');
-      })
-      .catch(function() {
-        notification('error', 'Something went wrong...', 'Please try again later.', '../images/access_denied.png');
-      })
+window.reindex = function () {
+	let nuxeo;
+	getCurrentTabUrl((url) => {
+		nuxeo = newNuxeo({
+			baseURL: url,
+		});
+		nuxeo.operation('Elasticsearch.Index').execute()
+			.then(() => {
+				notification('success', 'Success!', 'Your repository index is rebuilding.', '../images/nuxeo-128.png');
+			})
+			.catch(() => {
+				notification('error', 'Something went wrong...', 'Please try again later.', '../images/access_denied.png');
+			});
+	});
+};
 
-  })
-}
+window.reindexNXQL = function (input) {
+	let nuxeo;
+	getCurrentTabUrl((url) => {
+		nuxeo = newNuxeo({
+			baseURL: url,
+		});
+		nuxeo.operation('Elasticsearch.Index')
+			.input(input)
+			.execute()
+			.then(() => {
+				notification('success', 'Success!', 'Your repository index is rebuilding.', '../images/nuxeo-128.png');
+			})
+			.catch(() => {
+				notification('error', 'Something went wrong...', 'Please try again later.', '../images/access_denied.png');
+			});
+	});
+};
 
-window.reindexNXQL = function(input) {
-  var nuxeo;
-  getCurrentTabUrl(function(url) {
-    nuxeo = newNuxeo({
-      baseURL: url
-    });
-    nuxeo.operation('Elasticsearch.Index')
-      .input(input)
-      .execute()
-      .then(function() {
-        notification('success', 'Success!', 'Your repository index is rebuilding.', '../images/nuxeo-128.png');
-      })
-      .catch(function() {
-        notification('error', 'Something went wrong...', 'Please try again later.', '../images/access_denied.png');
-      })
-
-  })
-}
-
-window.reindexDocId = function(input) {
-  var nuxeo;
-  getCurrentTabUrl(function(url) {
-    nuxeo = newNuxeo({
-      baseURL: url
-    });
-    nuxeo.operation('Elasticsearch.Index')
-      .input(input)
-      .execute()
-      .then(function() {
-        notification('success', 'Success!', 'Your repository index is rebuilding.', '../images/nuxeo-128.png');
-      })
-      .catch(function() {
-        notification('error', 'Something went wrong...', 'Please try again later.', '../images/access_denied.png');
-      })
-
-  })
-}
+window.reindexDocId = function (input) {
+	let nuxeo;
+	getCurrentTabUrl((url) => {
+		nuxeo = newNuxeo({
+			baseURL: url,
+		});
+		nuxeo.operation('Elasticsearch.Index')
+			.input(input)
+			.execute()
+			.then(() => {
+				notification('success', 'Success!', 'Your repository index is rebuilding.', '../images/nuxeo-128.png');
+			})
+			.catch(() => {
+				notification('error', 'Something went wrong...', 'Please try again later.', '../images/access_denied.png');
+			});
+	});
+};
 

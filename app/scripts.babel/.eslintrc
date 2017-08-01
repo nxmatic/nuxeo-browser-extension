@@ -2,12 +2,17 @@
   'parserOptions': {
     'ecmaVersion': 6
   },
-  'extends': 'eslint:recommended',
+  'extends': [
+    'eslint:recommended',
+    'airbnb-base',
+  ],
   'parser': 'babel-eslint',
   'rules': {
     'func-names': 0,
     'max-len': [2, 120, 2, {
       'ignoreUrls': true,
+      'ignoreTemplateLiterals': true,
+      'ignoreRegExpLiterals': true,
       'ignoreComments': false,
     }],
     'no-unused-expressions': 0,
@@ -16,7 +21,14 @@
     'no-throw-literal': 0,
     'radix': 0,
     'no-console': 0,
+    'no-underscore-dangle': 0,
+    'no-tabs': 0,
+    'no-useless-escape': 0,
+    'no-multi-assign': 0,
     'no-mixed-spaces-and-tabs': [2, 'smart-tabs'],
+    'no-use-before-define': ['error', {'variables': false}],
+    'wrap-iife': [2, 'inside'],
+    'indent': [2, 'tab'],
   },
   'globals': {
     'app': true,
