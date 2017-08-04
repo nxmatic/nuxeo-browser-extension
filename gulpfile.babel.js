@@ -7,6 +7,7 @@ import {
   stream as wiredep
 } from 'wiredep';
 import es from 'event-stream';
+import fs from 'fs';
 import concat from 'gulp-concat';
 import path from 'path';
 import util from 'gulp-util';
@@ -87,7 +88,8 @@ function lint(files) {
   return () => {
     return gulp.src(files)
       .pipe(eslint())
-      .pipe(eslint.format());
+      .pipe(eslint.format())
+      .pipe(eslint.format('checkstyle', fs.createWriteStream('ftest/target/checkstyle-result.xml')));
   };
 }
 
@@ -95,8 +97,10 @@ function dist(vendor, name) {
   return path.join('dist', vendor || 'base', name || '');
 }
 
-gulp.task('lint:scripts', lint('app/scripts.babel/**/*.js'));
-gulp.task('lint:vendor', lint('app/vendor.babel/**/*.js'));
+gulp.task('lint', lint([
+  'app/scripts.babel/*.js',
+  'app/vendor.babel/**/*.js',
+]));
 
 gulp.task('extras', () => {
   return gulp.src([
@@ -171,7 +175,7 @@ gulp.task('release:firefox', ['build:firefox'], (cb) => {
   return runSequence('zip:firefox', cb);
 });
 
-gulp.task('babel', ['lint:vendor', 'lint:scripts'], (cb) => {
+gulp.task('babel', ['lint'], (cb) => {
   return runSequence('babel:base', 'babel:vendor', cb);
 });
 
