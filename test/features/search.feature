@@ -1,7 +1,7 @@
 Feature: Search
 
   Scenario: Search Document
-    Given the extension is open
+    Given the Popup page is open
     When I enter workspace in search input
     Then I wait until #search-results appears
     Then Server responds with 1 document
