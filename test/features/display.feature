@@ -6,8 +6,8 @@ Feature: Popup Display
     Given the Popup page is open
     # And I have a valid Studio project
     Then I see http://localhost:8080/nuxeo/ as the connected server
-    And I see the Hot Reload button
-    And I see the Studio button
+    # And I see the Hot Reload button
+    # And I see the Studio button
     # Test Hot Reload and Studio buttons
 
   Scenario: about.html Display

@@ -92,7 +92,9 @@ module.exports = function () {
     const tabIds = browser.getTabIds();
     expect(tabIds).to.have.lengthOf(2);
     browser.switchTab(tabIds[1]);
-    expect(browser.getTitle()).to.be.eq(title);
+    browser.waitUntil(function () {
+      return browser.getTitle() === title
+    });
     browser.close();
   });
 
