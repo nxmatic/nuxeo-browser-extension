@@ -18,7 +18,7 @@ Feature: Links
       | Nuxeo Elements     | webcomponents.org - Discuss & share web components                                 |
       | Nuxeo Layouts      | Nuxeo Showcase - Layout Service (forms, views, and actions)                        |
       | Style Guide        | Nuxeo Platform - Style Guide                                                       |
-  @watch
+
   Scenario: Studio button
     Given the Popup page is open
     # And I have a valid Studio project

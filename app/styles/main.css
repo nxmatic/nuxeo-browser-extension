@@ -372,6 +372,7 @@ TOGGLES
 #useful-links {
     position: relative;
     display: inline-block;
+    z-index: 1001;
 }
 
 #dropdown-content {
@@ -411,6 +412,7 @@ form {
 
 .search-container {
   position: relative;
+  z-index: 999;
 }
 
 .form {
