@@ -86,6 +86,7 @@ node(env.SLAVE) {
             contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: "${env.STATUS_CONTEXT_NAME}"],
             statusResultSource: [$class: 'ConditionalStatusResultSource',
             results: [[$class: 'AnyBuildResult', message: 'Failed to build on Nuxeo CI', state: 'FAILURE']]]])
+        step([$class: 'CucumberReportPublisher', jsonReportDirectory: 'ftest/target/cucumber-reports/', fileIncludePattern: '*.json'])
         slackSend color: '#FF4000', channel: "${env.SLACK_CHANNEL}", message: formatSlack('FAILURE') + " ```${e.message}```"
         throw e
     } finally {
