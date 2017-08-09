@@ -15,10 +15,10 @@ module.exports = function () {
     // Open Popup in the current Window
     const url = `file://${__dirname}/../../../dist/${dist.toLowerCase()}/${page.toLowerCase()}.html`;
     browser.url(url);
-
     // http://chaijs.com/api/bdd/
     if (page === 'Popup') {
       expect(browser.getTitle()).to.equal('Nuxeo Dev Tools');
+      injectMocks();
     } else {
       expect(browser.execute(() => {
         getCurrentTabUrl(() => {});
@@ -42,16 +42,10 @@ module.exports = function () {
     browser.screenshot();
   });
 
-  this.Then('I can see $url as the connected server', (url) => {
+  this.Then('I see $url as the connected server', (url) => {
     // Check url on popup
     expect(url).to.be.a('string');
     expect(browser.$('.server-name-url').getText()).to.equal(url);
-  });
-
-  this.Then('I can see the $button button', (button) => {
-    let selector = button.replace(/\s+/g, '-').toLowerCase();
-    selector = `${selector}-button`;
-    browser.waitForVisible(`#${selector}`).should.be.true;
   });
 
   this.Then(/the server responds with (\d+) documents?/, (size) => {
@@ -67,21 +61,30 @@ module.exports = function () {
     expect(trPath.$('.doc-path').getText()).to.equal(parentPath);
   });
 
-  this.When(/^I click on the( internal)? (.+) link/, (internal, link) => {
-    link = link.replace(/\s+/g, '-').toLowerCase();
-    browser.waitForVisible(`#${link}`);
-    browser.$(`#${link}`).click();
+  this.When(/^I (see|click on) the (.+) (link|button|element)/, (action, selector, element) => {
+    selector = selector.replace(/\s+/g, '-').toLowerCase();
+    if (element === 'button') {
+      selector = `${selector}-button`;
+    }
+    browser.waitForVisible(`#${selector}`);
+    if (action === 'click on') {
+      browser.$(`#${selector}`).click();
+      if (!(browser.execute(() => chrome.tabs.create.called).value)) {
+        expect(browser.execute(() => {
+          getCurrentTabUrl(() => {});
+          return window.studioExt.server.url;
+        }).value).to.be.equal('http://localhost:8080/nuxeo/');
+        injectMocks();
+      }
+    }
+  });
 
-    if (internal) {
-      // Page changed, need to refresh background context
-      expect(browser.execute(() => {
-        getCurrentTabUrl(() => {});
-        return window.studioExt.server.url;
-      }).value).to.be.equal('http://localhost:8080/nuxeo/');
-      injectMocks();
-    } else {
-      // Otherwise, check that tabs.create has been called
-      expect(browser.execute(() => chrome.tabs.create.called).value).to.be.true;
+  this.When(/^I hover on the (.+) element/, (element) => {
+    let selector = element.replace(/\s+/g, '-').toLowerCase();
+    browser.waitForVisible(`#${selector}`).should.be.true;
+    browser.moveToObject(`#${selector}`);
+    if (selector === 'useful-links') {
+      browser.waitForVisible('#dropdown-content');
     }
   });
 
@@ -101,7 +104,7 @@ module.exports = function () {
     expect(browser.getTitle()).to.equal(`${title}Nuxeo Dev Tools`);
   });
 
-  this.Then('I can see the version number', () => {
+  this.Then('I see the version number', () => {
     browser.waitForVisible('#version');
     expect(browser.$('#version').getText().length).to.be.at.least(5);
   });

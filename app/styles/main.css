@@ -374,7 +374,7 @@ TOGGLES
     display: inline-block;
 }
 
-.dropdown-content {
+#dropdown-content {
     display: none;
     position: absolute;
     background-color: #ddd;
@@ -382,18 +382,18 @@ TOGGLES
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
 }
 
-.dropdown-content a {
+#dropdown-content a {
     color: #213f7d;
     padding: 12px 16px;
     text-decoration: none;
     display: block;
 }
 
-.dropdown-content a:hover {
+#dropdown-content a:hover {
   background-color: #f1f1f1;
 }
 
-#useful-links:hover .dropdown-content {
+#useful-links:hover #dropdown-content {
     display: block;
 }
 

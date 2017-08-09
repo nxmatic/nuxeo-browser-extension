@@ -176,15 +176,15 @@ limitations under the License.
         registerLink('#autodoc-button', nuxeo._baseURL.concat('site/automation/doc/'));
         registerLink('#api-pg-link', 'http://nuxeo.github.io/api-playground/');
         registerLink('#api-button', ('http://nuxeo.github.io/api-playground/#/').concat(serverURL));
-        registerLink('#explorer-link', 'https://explorer.nuxeo.com');
-        registerLink('#nxql-link', 'https://doc.nuxeo.com/display/NXDOC/NXQL');
-        registerLink('#el-scripting-link', 'https://doc.nuxeo.com/display/NXDOC/Understand+Expression+and+Scripting+Languages+Used+in+Nuxeo');
-        registerLink('#mvel-link', 'https://doc.nuxeo.com/display/NXDOC/Use+of+MVEL+in+Automation+Chains');
-        registerLink('#workflow-variables-link', 'https://doc.nuxeo.com/display/NXDOC/Variables+Available+in+the+Automation+Context');
-        registerLink('#escalation-rules-link', 'https://doc.nuxeo.com/display/NXDOC/Escalation+Service');
-        registerLink('#nxelements-link', 'https://www.webcomponents.org/author/nuxeo');
-        registerLink('#nxlayouts-link', 'http://showcase.nuxeo.com/nuxeo/layoutDemo/');
-        registerLink('#style-guide-link', 'http://showcase.nuxeo.com/nuxeo/styleGuide/');
+        registerLink('#explorer', 'https://explorer.nuxeo.com');
+        registerLink('#nxql', 'https://doc.nuxeo.com/display/NXDOC/NXQL');
+        registerLink('#el-scripting', 'https://doc.nuxeo.com/display/NXDOC/Understand+Expression+and+Scripting+Languages+Used+in+Nuxeo');
+        registerLink('#mvel', 'https://doc.nuxeo.com/display/NXDOC/Use+of+MVEL+in+Automation+Chains');
+        registerLink('#workflow-variables', 'https://doc.nuxeo.com/display/NXDOC/Variables+Available+in+the+Automation+Context');
+        registerLink('#escalation-rules', 'https://doc.nuxeo.com/display/NXDOC/Escalation+Service');
+        registerLink('#nuxeo-elements', 'https://www.webcomponents.org/author/nuxeo');
+        registerLink('#nuxeo-layouts', 'http://showcase.nuxeo.com/nuxeo/layoutDemo/');
+        registerLink('#style-guide', 'http://showcase.nuxeo.com/nuxeo/styleGuide/');
 
         const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         const pathPattern = /^\//;
