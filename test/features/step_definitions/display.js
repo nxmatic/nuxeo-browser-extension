@@ -63,7 +63,7 @@ module.exports = function () {
   });
 
   this.When(/^I click on the( internal)? (.+) link/, (internal, link) => {
-    link = link.toLowerCase();
+    link = link.replace(/\s+/g, '-').toLowerCase();
     browser.waitForVisible(`#${link}`);
     browser.$(`#${link}`).click();
 

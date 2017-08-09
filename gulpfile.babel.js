@@ -320,6 +320,7 @@ gulp.task('build:sinon-chrome', ['build:chrome'], () => {
   gulp.src(dist('chrome', '**/*'))
     .pipe(filter(['**', '!**/popup.html']))
     .pipe(filter(['**', '!**/about.html']))
+    .pipe(filter(['**', '!**/es-reindex.html']))
     .pipe(gulp.dest(dist(target)));
 
   // Add sinon-chrome.min script
@@ -355,6 +356,16 @@ gulp.task('build:sinon-chrome', ['build:chrome'], () => {
       const date = new Date().getFullYear();
       $('#copyright').html(`&#169; ${date} Nuxeo`);
       $('#version').html(version);
+    }))
+    .pipe(gulp.dest(dist(target)));
+
+  gulp.src(dist('chrome', 'es-reindex.html'))
+    .pipe(cheerio(($) => {
+      const $head = $('head');
+      // !! Order matters; as we use `prepend`, last added will be first.
+      prependScript($head, 'scripts/background.js');
+      prependScript($head, 'scripts/injecter.js')
+      prependScript($head, 'scripts/sinon-chrome.min.js');
     }))
     .pipe(gulp.dest(dist(target)));
 });
