@@ -95,7 +95,6 @@ module.exports = function () {
     browser.waitUntil(function () {
       return browser.getTitle() === title
     });
-    browser.close();
   });
 
   this.Then(/I am taken to the (.+ )?popup/, (popup) => {
