@@ -19,7 +19,19 @@ Feature: Links
       | Nuxeo Layouts      | Nuxeo Showcase - Layout Service (forms, views, and actions)                        |
       | Style Guide        | Nuxeo Platform - Style Guide                                                       |
 
-  Scenario: Studio button
-    Given the Popup page is open
+#  Scenario: Studio button
+    # Given the Popup page is open
     # And I have a valid Studio project
     # When I click on the Studio button
+
+  Scenario: Automation Doc button
+    Given the Popup page is open
+    When I click on the Automation Doc button
+    Then the Nuxeo Automation Documentation page opens
+
+  Scenario: API Playground button
+    Given the Popup page is open
+    # And I have CORS configuration
+    When I click on the API Playground button
+    Then the Nuxeo API Playground page opens
+    And I am connected to API Playground on http://localhost:8080/nuxeo

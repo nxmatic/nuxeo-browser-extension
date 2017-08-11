@@ -27,6 +27,19 @@ module.exports = function () {
       expect(browser.getTitle()).to.equal(`${page} - Nuxeo Dev Tools`);
       injectMocks();
     }
+    let tabIds = browser.getTabIds();
+    if (tabIds.length === 1) {
+      browser.execute(() => {
+        window.open('http://localhost:8080/nuxeo');
+      });
+      tabIds = browser.getTabIds();
+      browser.switchTab(tabIds[1]);
+      browser.$('#username').waitForVisible();
+      browser.$('#username').addValue('Administrator');
+      browser.$('#password').addValue('Administrator');
+      browser.$('input.login_button').click();
+      browser.switchTab(tabIds[0]);
+    }
   });
 
   this.When('I enter $text in $selector input', (text, selector) => {
@@ -80,7 +93,7 @@ module.exports = function () {
   });
 
   this.When(/^I hover on the (.+) element/, (element) => {
-    let selector = element.replace(/\s+/g, '-').toLowerCase();
+    const selector = element.replace(/\s+/g, '-').toLowerCase();
     browser.waitForVisible(`#${selector}`).should.be.true;
     browser.moveToObject(`#${selector}`);
     if (selector === 'useful-links') {
@@ -90,11 +103,8 @@ module.exports = function () {
 
   this.Then('the $title page opens', (title) => {
     const tabIds = browser.getTabIds();
-    expect(tabIds).to.have.lengthOf(2);
-    browser.switchTab(tabIds[1]);
-    browser.waitUntil(function () {
-      return browser.getTitle() === title
-    });
+    browser.switchTab(tabIds[2]);
+    browser.waitUntil(() => browser.getTitle() === title);
   });
 
   this.Then(/I am taken to the (.+ )?popup/, (popup) => {
@@ -114,5 +124,10 @@ module.exports = function () {
     const date = new Date().getFullYear();
     browser.waitForVisible('#copyright');
     expect(browser.$('#copyright').getText()).to.include(date);
+  });
+
+  this.Then('I am connected to API Playground on $server', (server) => {
+    browser.waitForVisible('::shadow div.connection a');
+    expect(browser.$('::shadow div.connection a').getText()).to.equal(server);
   });
 };

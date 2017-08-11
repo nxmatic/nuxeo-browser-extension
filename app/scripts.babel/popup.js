@@ -173,9 +173,9 @@ limitations under the License.
 
         const serverURL = nuxeo._baseURL.replace(/\/$/, '');
 
-        registerLink('#autodoc-button', nuxeo._baseURL.concat('site/automation/doc/'));
+        registerLink('#automation-doc-button', nuxeo._baseURL.concat('site/automation/doc/'));
         registerLink('#api-pg-link', 'http://nuxeo.github.io/api-playground/');
-        registerLink('#api-button', ('http://nuxeo.github.io/api-playground/#/').concat(serverURL));
+        registerLink('#api-playground-button', ('http://nuxeo.github.io/api-playground/#/').concat(serverURL));
         registerLink('#explorer', 'https://explorer.nuxeo.com');
         registerLink('#nxql', 'https://doc.nuxeo.com/display/NXDOC/NXQL');
         registerLink('#el-scripting', 'https://doc.nuxeo.com/display/NXDOC/Understand+Expression+and+Scripting+Languages+Used+in+Nuxeo');
