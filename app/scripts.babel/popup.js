@@ -109,7 +109,8 @@ limitations under the License.
         nuxeo.request(`/path/${input}`)
           .schemas('*')
           .enrichers({ document: ['acls', 'permissions'] })
-          .get()
+          .get({ resolveWithFullResponse: true })
+          .then(res => res.json())
           .then(openJsonWindow)
           .catch((error) => {
             throw new Error(error);
@@ -120,7 +121,8 @@ limitations under the License.
         nuxeo.request(`/id/${input}`)
           .schemas('*')
           .enrichers({ document: ['acls', 'permissions'] })
-          .get()
+          .get({ resolveWithFullResponse: true })
+          .then(res => res.json())
           .then(openJsonWindow)
           .catch((error) => {
             throw new Error(error);
