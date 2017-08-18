@@ -2,6 +2,8 @@ Nuxeo Dev Tools
 ===============
 
 [![Build Status](https://qa.nuxeo.org/jenkins/buildStatus/icon?job=Client/browser-developer-extension-master/master)](https://qa.nuxeo.org/jenkins/job/Client/job/browser-developer-extension-master/job/master/)
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/d/nimelepbpejjlbmoobocpfnjhihnpked.svg)](https://chrome.google.com/webstore/detail/nuxeo-dev-tools/kncphbjdicjganncpalklkllihdidcmh?hl=en)
+[![Mozilla Add-on](https://img.shields.io/amo/d/dustman.svg)](https://addons.mozilla.org/en-US/firefox/addon/nuxeo-dev-tools/)
 
 # About
 
