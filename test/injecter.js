@@ -8,7 +8,6 @@ chrome.tabs.query.yields([{
 chrome.runtime.getBackgroundPage.yields(window);
 
 // Force Basic Auth on all Nuxeo Request
-
 window.app = {
   auth: {
     method: 'basic',
