@@ -19,7 +19,6 @@ module.exports = function () {
         })
         .catch(() => {
           connected = false;
-          return;
         });
     }
     while (!connected) {
@@ -27,7 +26,6 @@ module.exports = function () {
       nuxeo.connect()
         .then(async (client) => {
           connected = await client.connected;
-          return;
         })
         .catch(() => {
           connected = false;

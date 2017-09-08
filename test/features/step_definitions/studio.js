@@ -31,10 +31,16 @@ module.exports = function () {
   this.Then(/^I (can't )?see the (.+) document type/, (notVisible, docType) => {
     browser.$('#nxw_newDocument_after_view_box').waitForVisible();
     if (notVisible) {
-      browser.$(`//*[@id="nxw_newDocument_after_view_fancy_subview:nxw_newDocument_after_view_fancyform:${docType}"]`).isVisible().should.be.false;
+      if (!browser.$(`//*[@id="nxw_newDocument_after_view_fancy_subview:nxw_newDocument_after_view_fancyform:${docType}"]`).isVisible()) {
+        return true;
+      } else {
+        return false;
+      }
     } else {
       browser.$(`//*[@id="nxw_newDocument_after_view_fancy_subview:nxw_newDocument_after_view_fancyform:${docType}"]`).isVisible().should.be.true;
     }
+    const tabIds = browser.getTabIds();
+    return browser.switchTab(tabIds[0]);
   });
 
   this.Then(/^the Nuxeo page refreshes/, () => {
