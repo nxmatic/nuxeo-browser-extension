@@ -1,10 +1,3 @@
-/*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
- *
- * Contributors:
- *     Thomas Roger <troger@nuxeo.com>
- */
-
  properties([
     pipelineTriggers([
         triggers: [

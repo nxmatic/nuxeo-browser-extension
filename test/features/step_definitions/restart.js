@@ -12,26 +12,26 @@ module.exports = function () {
   this.Then('the server restarts', () => {
     let connected = true;
     while (connected) {
-      browser.pause(10000);
+      browser.pause(5000);
       nuxeo.connect()
         .then(async (client) => {
           connected = await client.connected;
         })
         .catch(() => {
           connected = false;
-        })
-        .done();
+          return;
+        });
     }
     while (!connected) {
-      browser.pause(10000);
+      browser.pause(5000);
       nuxeo.connect()
         .then(async (client) => {
           connected = await client.connected;
+          return;
         })
         .catch(() => {
           connected = false;
-        })
-        .done();
+        });
     }
   });
 
