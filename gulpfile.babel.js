@@ -309,7 +309,7 @@ gulp.task('build:chrome', ['build:base'], (done) => {
     .pipe(filter(['**', '!**/about.html']))
     .pipe(gulp.dest(dist('chrome')));
 
-  gulp.src(dist('chrome', 'about.html'))
+  gulp.src(dist('base', 'about.html'))
     .pipe(cheerio(($) => {
       const date = new Date().getFullYear();
       $('#copyright').html(`&#169; ${date} Nuxeo`);
@@ -393,7 +393,7 @@ gulp.task('build:firefox', ['build:base', 'vendor:firefox'], (done) => {
     .pipe(filter(['**', '!**/about.html']))
     .pipe(gulp.dest(dist('firefox')));
 
-  gulp.src(dist('firefox', 'about.html'))
+  gulp.src(dist('base', 'about.html'))
     .pipe(cheerio(($) => {
       const date = new Date().getFullYear();
       $('#copyright').html(`&#169; ${date} Nuxeo`);
