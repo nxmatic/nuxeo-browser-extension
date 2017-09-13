@@ -306,6 +306,15 @@ gulp.task('build:base', ['images', 'extras', 'html']);
 
 gulp.task('build:chrome', ['build:base'], (done) => {
   gulp.src(dist('base', '**/*'))
+    .pipe(filter(['**', '!**/about.html']))
+    .pipe(gulp.dest(dist('chrome')));
+
+  gulp.src(dist('chrome', 'about.html'))
+    .pipe(cheerio(($) => {
+      const date = new Date().getFullYear();
+      $('#copyright').html(`&#169; ${date} Nuxeo`);
+      $('#version').html(`Version ${version}`);
+    }))
     .pipe(gulp.dest(dist('chrome')));
 
   version = getVersion('chrome');
@@ -381,6 +390,15 @@ gulp.task('build:sinon-chrome', ['build:chrome'], () => {
 
 gulp.task('build:firefox', ['build:base', 'vendor:firefox'], (done) => {
   gulp.src(dist('base', '**/*'))
+    .pipe(filter(['**', '!**/about.html']))
+    .pipe(gulp.dest(dist('firefox')));
+
+  gulp.src(dist('firefox', 'about.html'))
+    .pipe(cheerio(($) => {
+      const date = new Date().getFullYear();
+      $('#copyright').html(`&#169; ${date} Nuxeo`);
+      $('#version').html(`Version ${version}`);
+    }))
     .pipe(gulp.dest(dist('firefox')));
 
   version = getVersion('firefox');
