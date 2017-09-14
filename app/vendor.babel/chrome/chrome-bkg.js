@@ -77,7 +77,7 @@ function openDocFromId(id, url) {
       if (onWebUI) {
         docUrl = url.concat(`ui/#!/doc/${doc.uid}`);
       } else {
-        docUrl = url.concat(`nxdoc/default/${doc.uid}'/view_documents`);
+        docUrl = url.concat(`nxdoc/default/${doc.uid}/view_documents`);
       }
       createTabs(docUrl, studioExt.server.tabId);
     })

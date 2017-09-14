@@ -21,6 +21,12 @@ Features include:
 * Document Search (search with path, GUID, file name or NXQL query)
   * Click on search results to navigate to document or on ![arrow](app/images/json-exp.png) to export JSON
 * One-click JSON export of document in current active tab
+* Chrome Omnibox
+  * Chrome users can access the Nuxeo omnibox by entering keyword `nx` in the URL box, then TAB.
+  * Entering the correct path or GUID of an existing document will open the document JSON in a separate tab.
+  * Entering text will perform a full-text search or you can enter an NXQL query.
+  * Searches return the first 5 results in a dropdown window from the omnibox.
+* Link to our Customer Feedback Portal from the About page. You can vote for requested features or even suggest your own, anonymously if you wish.
 
 # Installation
 
