@@ -198,15 +198,40 @@ window.restart = function (startLoadingRS, stopLoading) {
       url: nuxeo._baseURL.concat('site/connectClient/uninstall/restart'),
     })
       .then(() => {
-        notification('error', 'Something went wrong...', 'Please try again later.', '../images/access_denied.png');
         stopLoading();
+        notification('error', 'Something went wrong...', 'Please try again later.', '../images/access_denied.png', false);
       })
-      .catch(() => {
-        notification('success', 'Success!', 'Nuxeo server is restarting...', '../images/nuxeo-128.png');
-        stopLoading();
-        setTimeout(() => {
-          chrome.tabs.reload(studioExt.server.tabId);
-        }, 4000);
+      .catch((e) => {
+        console.log(e);
+        e.response.json().then((json) => {
+          stopLoading();
+          const msg = json.message;
+          const err = e.response.status;
+          if (msg == null) {
+            notification('success', 'Success!', 'Nuxeo server is restarting...', '../images/nuxeo-128.png', false);
+            setTimeout(() => {
+              chrome.tabs.reload(studioExt.server.tabId);
+            }, 4000);
+          } else if (err === 401) {
+            notification('access_denied',
+              'Access denied!',
+              'You must have Administrator rights to perform this function.',
+              '../images/access_denied.png',
+              false);
+          } else if (err >= 500) {
+            notification('server_error',
+              'Server Error',
+              'Please check Studio project and/or dependencies for mismatch and ensure that Dev Mode is activated.',
+              '../images/access_denied.png',
+              false);
+          } else {
+            notification('unknown_error',
+              'Unknown Error',
+              'An unknown error has occurred. Please try again later.',
+              '../images/access_denied.png',
+              false);
+          }
+        });
       });
   });
 };
@@ -219,10 +244,11 @@ window.reindex = function () {
     });
     nuxeo.operation('Elasticsearch.Index').execute()
       .then(() => {
-        notification('success', 'Success!', 'Your repository index is rebuilding.', '../images/nuxeo-128.png');
+        notification('success', 'Success!', 'Your repository index is rebuilding.', '../images/nuxeo-128.png', false);
       })
-      .catch(() => {
-        notification('error', 'Something went wrong...', 'Please try again later.', '../images/access_denied.png');
+      .catch((e) => {
+        console.error(e);
+        notification('error', 'Something went wrong...', 'Please try again later.', '../images/access_denied.png', false);
       });
   });
 };
@@ -237,10 +263,11 @@ window.reindexNXQL = function (input) {
       .input(input)
       .execute()
       .then(() => {
-        notification('success', 'Success!', 'Your repository index is rebuilding.', '../images/nuxeo-128.png');
+        notification('success', 'Success!', 'Your repository index is rebuilding.', '../images/nuxeo-128.png', false);
       })
-      .catch(() => {
-        notification('error', 'Something went wrong...', 'Please try again later.', '../images/access_denied.png');
+      .catch((e) => {
+        console.error(e);
+        notification('error', 'Something went wrong...', 'Please try again later.', '../images/access_denied.png', false);
       });
   });
 };
@@ -255,10 +282,11 @@ window.reindexDocId = function (input) {
       .input(input)
       .execute()
       .then(() => {
-        notification('success', 'Success!', 'Your repository index is rebuilding.', '../images/nuxeo-128.png');
+        notification('success', 'Success!', 'Your repository index is rebuilding.', '../images/nuxeo-128.png', false);
       })
-      .catch(() => {
-        notification('error', 'Something went wrong...', 'Please try again later.', '../images/access_denied.png');
+      .catch((e) => {
+        console.error(e);
+        notification('error', 'Something went wrong...', 'Please try again later.', '../images/access_denied.png', false);
       });
   });
 };
