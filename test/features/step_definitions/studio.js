@@ -44,7 +44,7 @@ module.exports = function () {
   });
 
   this.Then(/^the Nuxeo page refreshes/, () => {
-    browser.waitUntil(() => browser.execute(() => chrome.tabs.reload.called).value, 10000);
+    browser.waitUntil(() => browser.execute(() => chrome.tabs.reload.called).value, 20000);
     const tabIds = browser.getTabIds();
     for (let i = 0; i < tabIds.length; i += 1) {
       if (browser.getTitle() !== 'Nuxeo Platform - Domain') {
