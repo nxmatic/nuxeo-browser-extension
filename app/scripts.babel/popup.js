@@ -114,6 +114,34 @@ limitations under the License.
       });
     }
 
+    function showDependencyError(deps) {
+      let depsList = '';
+      let nuxeoctlCommand = 'nuxeoctl mp-install';
+      deps.forEach((dep) => {
+        depsList += `<li>${dep}</li>`;
+        nuxeoctlCommand += ` ${dep}`;
+      });
+      $('#deps-list').append(depsList);
+      $('div.nuxeoctl-command').append(nuxeoctlCommand);
+      $('div.shade').show();
+      $('div.deps-popup').show();
+    }
+
+    function hideDependencyError() {
+      $('deps-list').empty();
+      $('div.nuxeoctl-command').empty();
+      $('div.shade').hide();
+      $('div.deps-popup').hide();
+    }
+
+    function checkDependencyMismatch() {
+      if (bkg.dependencyMismatch) {
+        showDependencyError(bkg.dependencies);
+      } else {
+        hideDependencyError();
+      }
+    }
+
     $(document).ready(() => {
       $('#searchclear').click(() => {
         $('#search').val('');
@@ -126,6 +154,8 @@ limitations under the License.
       $('#nxql-clear').click(() => {
         $('#nxql-docid').val('');
       });
+
+      checkDependencyMismatch();
 
       let onUI;
       let nuxeo;
@@ -181,7 +211,16 @@ limitations under the License.
               app.browser.createTabs(studioUrl, bkg.studioExt.server.tabId);
             });
             $('#hot-reload-button').click(() => {
-              bkg.bkgHotReload(startLoadingHR, stopLoading);
+              bkg.bkgHotReload(startLoadingHR, stopLoading, true, showDependencyError);
+            });
+            $('#force-hot-reload-button').click(() => {
+              bkg.bkgHotReload(startLoadingHR, stopLoading, false, showDependencyError);
+              hideDependencyError();
+              bkg.dependencyMismatch = false;
+            });
+            $('#cancel-button').click(() => {
+              hideDependencyError();
+              bkg.dependencyMismatch = false;
             });
           } else {
             $('#studio-button, #hot-reload-button').css('display', 'none');

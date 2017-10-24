@@ -212,6 +212,13 @@ a.button {
   font-size: 14px;
 }
 
+.warning {
+  width: 150px;
+  line-height: 1.1;
+  margin: 5px 10px;
+  font-size: 14px;
+}
+
 .reindex-page {
   width: 60px;
   line-height: 0.8;
@@ -277,7 +284,7 @@ a.button:active {
   position: fixed;
   height: 55px;
   width: 54px;
-  z-index: 100;
+  z-index: 9;
   background: transparent url('../images/loading_big.gif') no-repeat center;
   opacity: 1;
 }
@@ -372,7 +379,7 @@ TOGGLES
 #useful-links {
     position: relative;
     display: inline-block;
-    z-index: 1001;
+    z-index: 9;
 }
 
 #dropdown-content {
@@ -412,7 +419,7 @@ form {
 
 .search-container {
   position: relative;
-  z-index: 999;
+  z-index: 8;
 }
 
 .form {
@@ -538,4 +545,55 @@ ABOUT & USEFUL LINKS PAGE
 
 .description {
   font-size: 15px;
+}
+
+/*==============================================================================
+DEPENDENCY POPUP
+==============================================================================*/
+
+div.shade {
+  opacity:    0.5;
+  background: #000;
+  width:      100%;
+  height:     100%;
+  z-index:    10;
+  top:        0;
+  left:       0;
+  position:   fixed;
+}
+
+div.deps-popup {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    width: 400px;
+    min-height: 300px;
+    margin-left: -200px;
+    margin-top: -150px;
+    background: #FFF;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    -khtml-border-radius: 10px;
+    border-radius: 10px;
+    padding: 10px;
+    z-index: 11;
+}
+
+div.deps-warning {
+  color: #FF0044;
+  font-size: 25px;
+}
+
+div.deps-warning,
+div.deps-description {
+  margin: 5px 10px;
+}
+
+div.deps-instructions,
+div.nuxeoctl-command {
+  margin: 10px 20px;
+}
+
+.monospace {
+  font-family: monospace;
 }

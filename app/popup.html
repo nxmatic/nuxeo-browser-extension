@@ -43,6 +43,43 @@
     <!-- endbuild -->
   </head>
   <body>
+    <div class="shade">
+
+    </div>
+    <div class="deps-popup">
+      <div class="nx-row">
+        <div class="deps-warning">
+          Dependency Mismatch.
+        </div>
+      </div>
+      <div class="deps-description">
+        Your Studio configuration requires additional dependencies:
+      </div>
+      <div class="deps-list">
+        <ul id="deps-list">
+
+        </ul>
+      </div>
+      <div class="deps-instructions">
+        To install these dependencies, stop your Nuxeo server and run the following
+        <span class="monospace">nuxeoctl</span> command:
+        <div class="nuxeoctl-command monospace">
+
+        </div>
+        To force the Hot Reload anyway, click the button below. To abort the Hot
+        Reload, click Cancel.
+      </div>
+      <div class="buttons">
+        <div class="nxrow">
+          <div>
+            <a class="button warning" id="force-hot-reload-button" href="#"><span>Force Hot Reload</span></a>
+          </div>
+          <div>
+            <a class="button warning" id="cancel-button"><span>Cancel</span></a>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="nav-link">
       <div class="nxrow" id="useful-links">
         <div class="useful-links">
