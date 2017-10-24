@@ -20,6 +20,7 @@ const window = window || {}; // eslint-disable-line no-use-before-define
 window.app = window.app || {};
 const studioExt = window.studioExt = window.studioExt || {};
 
+// eslint-disable-next-line
 let dependencyMismatch = false;
 let dependencies;
 
