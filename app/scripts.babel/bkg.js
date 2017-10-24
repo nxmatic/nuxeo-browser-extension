@@ -20,15 +20,30 @@ const window = window || {}; // eslint-disable-line no-use-before-define
 window.app = window.app || {};
 const studioExt = window.studioExt = window.studioExt || {};
 
-const notification = window.notification = (idP, titleP, messageP, img) => {
-  chrome.notifications.create(idP, {
-    type: 'basic',
-    title: titleP,
-    message: messageP,
-    iconUrl: img,
-  }, () => {
-    console.log(chrome.runtime.lastError);
-  });
+let dependencyMismatch = false;
+let dependencies;
+
+const notification = window.notification = (idP, titleP, messageP, img, interaction) => {
+  try {
+    chrome.notifications.create(idP, {
+      type: 'basic',
+      title: titleP,
+      message: messageP,
+      iconUrl: img,
+      requireInteraction: interaction,
+    }, () => {
+      console.log(chrome.runtime.lastError);
+    });
+  } catch (err) {
+    chrome.notifications.create(idP, {
+      type: 'basic',
+      title: titleP,
+      message: messageP,
+      iconUrl: img,
+    }, () => {
+      console.log(chrome.runtime.lastError);
+    });
+  }
 };
 
 /**
@@ -43,7 +58,35 @@ const newNuxeo = window.newNuxeo = (opts) => {
   return new Nuxeo(_opts);
 };
 
-function newDefaultNuxeo() { return newNuxeo({ baseURL: window.studioExt.server.url }); }
+const checkDependencies = `import groovy.json.JsonOutput;
+  import org.nuxeo.connect.packages.PackageManager;
+  import org.nuxeo.connect.packages.dependencies.TargetPlatformFilterHelper;
+  import org.nuxeo.connect.client.we.StudioSnapshotHelper;
+  import org.nuxeo.ecm.admin.runtime.PlatformVersionHelper;
+  import org.nuxeo.ecm.admin.runtime.RuntimeInstrospection;
+  import org.nuxeo.runtime.api.Framework;
+
+  def pm = Framework.getLocalService(PackageManager.class);
+  def snapshotPkg = StudioSnapshotHelper.getSnapshot(pm.listRemoteAssociatedStudioPackages());
+  def nxInstance = PlatformVersionHelper.getPlatformFilter();
+
+  def pkgName = snapshotPkg == null ? null : snapshotPkg.getName();
+  def targetPlatform = snapshotPkg == null ? null : snapshotPkg.getTargetPlatforms();
+  def match = true;
+  if (!TargetPlatformFilterHelper.isCompatibleWithTargetPlatform(snapshotPkg, nxInstance)) {
+    match = false;
+  }
+  def dependencies = snapshotPkg == null ? null : snapshotPkg.getDependencies();
+
+  println JsonOutput.toJson([studio: pkgName, nx: nxInstance, studioDistrib: targetPlatform, match: match, deps: dependencies]);`;
+
+const defaultServerError = {
+  id: 'server_error',
+  title: 'Server Error',
+  message: 'Please ensure that Dev Mode is activated.',
+  imageUrl: '../images/access_denied.png',
+  interaction: false,
+};
 
 const getCurrentTabUrl = window.getCurrentTabUrl = (callback) => {
   const queryInfo = {
@@ -69,20 +112,10 @@ const getCurrentTabUrl = window.getCurrentTabUrl = (callback) => {
   });
 };
 
-window.readStudioProject = (callback) => {
-  const script = `import groovy.json.JsonOutput;
-  import org.nuxeo.connect.packages.PackageManager;
-  import org.nuxeo.connect.client.we.StudioSnapshotHelper;
-  import org.nuxeo.ecm.admin.runtime.RuntimeInstrospection;
-  import org.nuxeo.runtime.api.Framework;
+function newDefaultNuxeo() { return newNuxeo({ baseURL: window.studioExt.server.url }); }
 
-  def pm = Framework.getLocalService(PackageManager.class);
-  def snapshotPkg = StudioSnapshotHelper.getSnapshot(pm.listRemoteAssociatedStudioPackages());
-  def pkgName = snapshotPkg == null ? null : snapshotPkg.getName();
-  def bundles = RuntimeInstrospection.getInfo();
 
-  println JsonOutput.toJson([studio: pkgName]);`;
-
+window.executeScript = (script, stopSearch, callback) => {
   const blob = new Nuxeo.Blob({
     content: new Blob([script], {
       type: 'text/plain',
@@ -98,6 +131,9 @@ window.readStudioProject = (callback) => {
     .then(res => res.text())
     .then(callback)
     .catch((e) => {
+      if (stopSearch) {
+        stopSearch();
+      }
       console.error(e);
     });
 };

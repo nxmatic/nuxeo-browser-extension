@@ -23,6 +23,19 @@ limitations under the License.
   _gaq.push(['_setAccount', _AnalyticsCode]);
   _gaq.push(['_trackPageview']);
 
+  const checkStudioPkg = `import groovy.json.JsonOutput;
+    import org.nuxeo.connect.packages.PackageManager;
+    import org.nuxeo.connect.client.we.StudioSnapshotHelper;
+    import org.nuxeo.ecm.admin.runtime.RuntimeInstrospection;
+    import org.nuxeo.runtime.api.Framework;
+
+    def pm = Framework.getLocalService(PackageManager.class);
+    def snapshotPkg = StudioSnapshotHelper.getSnapshot(pm.listRemoteAssociatedStudioPackages());
+    def pkgName = snapshotPkg == null ? null : snapshotPkg.getName();
+    def bundles = RuntimeInstrospection.getInfo();
+
+    println JsonOutput.toJson([studio: pkgName]);`;
+
   (function () {
     const ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
     ga.src = 'https://ssl.google-analytics.com/ga.js';
@@ -81,6 +94,18 @@ limitations under the License.
 
     function stopLoading() {
       $('#loading').css('display', 'none');
+    }
+
+    function noPkgFound() {
+      $('#nopkg').css('display', 'block');
+      setTimeout(() => {
+        $('#nopkg').fadeOut('fast');
+      }, 2000);
+    }
+
+    function stopSearching() {
+      $('#message').css('display', 'none');
+      noPkgFound();
     }
 
     function registerLink(element, url) {
@@ -152,10 +177,7 @@ limitations under the License.
           } else {
             $('#studio-button, #hot-reload-button').css('display', 'none');
             $('#message').css('display', 'none');
-            $('#nopkg').css('display', 'block');
-            setTimeout(() => {
-              $('#nopkg').fadeOut('fast');
-            }, 2000);
+            noPkgFound();
             $('#studio-button, #hot-reload-button').click(() => {
               bkg.notification('no_studio_project',
                 'No associated Studio project',
