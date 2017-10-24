@@ -114,6 +114,43 @@ const getCurrentTabUrl = window.getCurrentTabUrl = (callback) => {
 
 function newDefaultNuxeo() { return newNuxeo({ baseURL: window.studioExt.server.url }); }
 
+function handleErrors(error, serverError) {
+  error.response.json().then((json) => {
+    const msg = json.message;
+    const err = error.response.status;
+    if (msg == null) {
+      notification('no_hot_reload',
+        'Hot Reload Operation not found.',
+        'Your current version of Nuxeo does not support the Hot Reload function.',
+        '../images/access_denied.png',
+        false);
+    } else if (err === 401) {
+      notification('access_denied',
+        'Access denied!',
+        'You must have Administrator rights to perform this function.',
+        '../images/access_denied.png',
+        false);
+    } else if (err >= 500) {
+      notification(serverError.id,
+        serverError.title,
+        serverError.message,
+        serverError.imageUrl,
+        serverError.interaction);
+    } else if (err >= 300 && err < 500) {
+      notification('bad_login',
+        'Bad Login',
+        'Your Login and/or Password are incorrect',
+        '../images/access_denied.png',
+        false);
+    } else {
+      notification('unknown_error',
+        'Unknown Error',
+        'An unknown error has occurred. Please try again later.',
+        '../images/access_denied.png',
+        false);
+    }
+  });
+}
 
 window.executeScript = (script, stopSearch, callback) => {
   const blob = new Nuxeo.Blob({
@@ -138,44 +175,84 @@ window.executeScript = (script, stopSearch, callback) => {
     });
 };
 
-window.bkgHotReload = (startLoading, stopLoading) => {
+window.bkgHotReload = (startLoading, stopLoading, validate, showDependencyError) => {
   let nuxeo;
   getCurrentTabUrl((url) => {
     nuxeo = newNuxeo({
       baseURL: url,
     });
     startLoading();
-    nuxeo.operation('Service.HotReloadStudioSnapshot').execute()
-      .then(() => {
-        notification('success', 'Success!', 'A Hot Reload has successfully been completed.', '../images/nuxeo-128.png');
-        chrome.tabs.reload(window.studioExt.server.tabId);
+    nuxeo.operation('Service.HotReloadStudioSnapshot')
+      .params({
+        validate,
+      })
+      .execute()
+      .then((res) => {
+        // Error handling for Nuxeo 9.3 and later
         stopLoading();
+        if (res.length > 0 && res[0].status && res[0].status === 'success') {
+          notification(res[0].status, 'Success!', res[0].message, '../images/nuxeo-128.png', false);
+          chrome.tabs.reload(window.studioExt.server.tabId);
+        } else if (res.length > 0 && res[0].status && res[0].status === 'error') {
+          notification(res[0].status, 'Error', res[0].message, '../images/access_denied.png', false);
+        } else if (res.length > 0 && res[0].status && res[0].status === 'updateInProgress') {
+          notification(res[0].status, 'Error', res[0].message, '../images/access_denied.png', false);
+        } else if (res.length > 0 && res[0].status && res[0].status === 'dependencyMismatch') {
+          dependencies = res[0].deps;
+          showDependencyError(dependencies);
+          dependencyMismatch = true;
+        }
       })
       .catch((e) => {
-        e.response.json().then((json) => {
-          stopLoading();
-          const msg = json.message;
-          const err = e.response.status;
-          if (msg == null) {
-            notification('no_hot_reload',
-              'Hot Reload Operation not found.',
-              'Your current version of Nuxeo does not support the Hot Reload function.',
-              '../images/access_denied.png');
-          } else if (err >= 500) {
-            notification('access_denied',
-              'Access denied!',
-              'You must have Administrator rights to perform this function.',
-              '../images/access_denied.png');
-          } else if (err >= 300 && err < 500) {
-            notification('bad_login',
-              'Bad Login',
-              'Your Login and/or Password are incorrect',
-              '../images/access_denied.png');
+        // Error handling for Nuxeo 9.2 and older
+        window.executeScript(checkDependencies, null, (text) => {
+          const checkDeps = JSON.parse(text).match;
+          let message = '';
+          let dependencyError = {};
+          if (JSON.parse(text).nx !== JSON.parse(text).studioDistrib[0]) {
+            message += `${JSON.parse(text).studio} - ${JSON.parse(text).studioDistrib[0]} cannot be installed on Nuxeo ${JSON.parse(text).nx}.`;
+            dependencyError = {
+              id: 'dependencyMismatch',
+              title: 'Dependency Mismatch',
+              message,
+              imageUrl: '../images/access_denied.png',
+              interaction: true,
+            };
           } else {
-            notification('unknown_error',
-              'Unknown Error',
-              'An unknown error has occurred. Please try again later.',
-              '../images/access_denied.png');
+            dependencyError = defaultServerError;
+          }
+          if (!checkDeps) {
+            stopLoading();
+            handleErrors(e, dependencyError);
+            const deps = JSON.parse(text).deps;
+            if (deps.length > 0) {
+              const items = [];
+              deps.forEach((dep) => {
+                items.push({ title: '', message: dep.name });
+              });
+              chrome.notifications.create('dependency_check', {
+                type: 'list',
+                title: 'Check Dependencies',
+                message: 'Please check that the following dependencies are installed:',
+                items,
+                iconUrl: '../images/access_denied.png',
+                requireInteraction: true,
+              }, () => {
+                console.log(chrome.runtime.lastError);
+              });
+            }
+          } else {
+            console.log(e);
+            startLoading();
+            nuxeo.operation('Service.HotReloadStudioSnapshot').execute()
+              .then(() => {
+                notification('success', 'Success!', 'A Hot Reload has successfully been completed.', '../images/nuxeo-128.png', false);
+                chrome.tabs.reload(window.studioExt.server.tabId);
+              })
+              .catch((er) => {
+                handleErrors(er, defaultServerError);
+              });
+            stopLoading();
           }
         });
       });
