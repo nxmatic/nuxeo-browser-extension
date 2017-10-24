@@ -160,7 +160,16 @@ limitations under the License.
         nuxeo = bkg.newNuxeo({
           baseURL: url,
         });
-        bkg.readStudioProject((text) => {
+        nuxeo.login()
+          .then((res) => {
+            if (!res.user.isAdministrator) {
+              $('.buttons').css('display', 'none');
+              $('.toggles').css('display', 'none');
+            }
+          }).catch((e) => {
+            console.log(e);
+          });
+        bkg.executeScript(checkStudioPkg, stopSearching, (text) => {
           const pkgName = JSON.parse(text).studio;
           if (pkgName) {
             $('#message').css('display', 'none');
