@@ -9,7 +9,7 @@ module.exports = function () {
     browser.$('button.confirm').click();
   });
 
-  this.Then('the server restarts', () => {
+  this.Then('the server restarts', { timeout: 120000 }, () => {
     let connected = true;
     while (connected) {
       browser.pause(5000);

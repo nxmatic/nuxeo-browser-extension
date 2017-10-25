@@ -11,6 +11,7 @@ module.exports = function () {
 
   function tracesEnabled(page) {
     if (page === 'Popup') {
+      browser.pause(500);
       const enabled = browser.$('#automation-call-tracing-toggle').getAttribute('checked');
       if (enabled === 'true') {
         return true;
