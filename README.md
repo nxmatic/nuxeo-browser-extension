@@ -49,8 +49,10 @@ Features include:
 ```
 $ git clone git@github.com:nuxeo/nuxeo-chrome-extension.git
 $ cd nuxeo-chrome-extension
-$ npm install && bower install
+$ npm install
 $ gulp build:<browser>
+# or
+$ npm run build
 ```
 
 ### Tests
@@ -61,7 +63,7 @@ $ npm run test
 
 To run isolated test scenarios, add the `@watch` tag to the relevant scenarios and run:
 ```
-$ npm run watch
+$ npm run test-watch
 ```
 
 # Contributing / Reporting issues
