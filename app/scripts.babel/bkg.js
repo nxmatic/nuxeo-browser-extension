@@ -191,7 +191,7 @@ window.bkgHotReload = (startLoading, stopLoading, validate, showDependencyError)
       .then((res) => {
         // Error handling for Nuxeo 9.3 and later
         stopLoading();
-        if (res.length > 0 && res[0].status && res[0].status === 'success') {
+        if ((res.length > 0 && res[0].status && res[0].status === 'success') || (res.status && res.status === 204)) {
           notification(res[0].status, 'Success!', res[0].message, '../images/nuxeo-128.png', false);
           chrome.tabs.reload(window.studioExt.server.tabId);
         } else if (res.length > 0 && res[0].status && res[0].status === 'error') {
