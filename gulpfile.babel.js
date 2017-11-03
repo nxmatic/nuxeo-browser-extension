@@ -193,7 +193,16 @@ gulp.task('babel', ['lint'], (cb) => {
   return runSequence('babel:base', 'babel:vendor', cb);
 });
 
-gulp.task('babel:base', () => {
+gulp.task('babel:bkg', () => {
+  return gulp.src('app/scripts.babel/bkg/*.js')
+  .pipe(concat('bkg.js'))
+  .pipe($.babel({
+    presets: ['es2015']
+  }))
+  .pipe(gulp.dest('app/scripts'));
+});
+
+gulp.task('babel:base', ['babel:bkg'], () => {
   return gulp.src('app/scripts.babel/*.js')
     .pipe($.babel({
       presets: ['es2015']
