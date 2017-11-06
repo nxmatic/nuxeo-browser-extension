@@ -2,8 +2,9 @@ Feature: Hot Reload & Studio Project
 
   Scenario: Check Studio Project
     Given the Popup page is open
-    And I see the Studio button
-    When I click on the Studio button
+    And I hover on the Useful Links element
+    And I see the Studio link
+    When I click on the Studio link
     Then I am taken to my Studio project
 
   Scenario: Hot Reload

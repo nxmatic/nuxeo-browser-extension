@@ -253,9 +253,8 @@ limitations under the License.
 
         const serverURL = nuxeo._baseURL.replace(/\/$/, '');
 
-        registerLink('#auto-doc', nuxeo._baseURL.concat('site/automation/doc/'));
-        registerLink('#api-pg-link', 'http://nuxeo.github.io/api-playground/');
-        registerLink('#api-play', ('http://nuxeo.github.io/api-playground/#/').concat(serverURL));
+        registerLink('#automation-doc', nuxeo._baseURL.concat('site/automation/doc/'));
+        registerLink('#api-playground', ('http://nuxeo.github.io/api-playground/#/').concat(serverURL));
         registerLink('#explorer', 'https://explorer.nuxeo.com');
         registerLink('#nxql', 'https://doc.nuxeo.com/display/NXDOC/NXQL');
         registerLink('#el-scripting', 'https://doc.nuxeo.com/display/NXDOC/Understand+Expression+and+Scripting+Languages+Used+in+Nuxeo');

@@ -4,7 +4,8 @@ Feature: Automation Tracing
     Given the Popup page is open
     And traces are disabled from the Popup page
 
-    When I click on the Automation Doc button
+    When I hover on the Useful Links element
+    And I click on the Automation Doc link
     And the Nuxeo Automation Documentation page opens
     And I click on the AttachFiles operation
     Then I am taken to the AttachFiles - Nuxeo Automation Documentation page

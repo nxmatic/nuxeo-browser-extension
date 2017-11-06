@@ -1,8 +1,8 @@
 module.exports = function () {
   function toggleTraces(page) {
     if (page === 'Popup') {
-      browser.$('label.onoffswitch-label').waitForVisible();
-      browser.$('label.onoffswitch-label').click();
+      browser.$('#traces-button').waitForVisible();
+      browser.$('#traces-button').click();
     } else {
       browser.$('//a[@href="/nuxeo/site/automation/doc/toggleTraces"]').waitForVisible();
       browser.$('//a[@href="/nuxeo/site/automation/doc/toggleTraces"]').click();
@@ -12,8 +12,10 @@ module.exports = function () {
   function tracesEnabled(page) {
     if (page === 'Popup') {
       browser.pause(500);
-      const enabled = browser.$('#automation-call-tracing-toggle').getAttribute('checked');
-      if (enabled === 'true') {
+      browser.$('#traces-button').waitForVisible();
+      const elementClass = browser.$('#traces-button').getAttribute('class');
+      const enabled = elementClass.indexOf('enabled') > -1;
+      if (enabled === true) {
         return true;
       } else {
         return false;

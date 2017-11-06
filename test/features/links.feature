@@ -18,20 +18,17 @@ Feature: Links
       | Nuxeo Elements     | nuxeo                                                                              |
       | Nuxeo Layouts      | Nuxeo Showcase - Layout Service (forms, views, and actions)                        |
       | Style Guide        | Nuxeo Platform - Style Guide                                                       |
+      | Automation Doc     | Nuxeo Automation Documentation                                                     |
 
 #  Scenario: Studio button
     # Given the Popup page is open
     # And I have a valid Studio project
     # When I click on the Studio button
 
-  Scenario: Automation Doc button
-    Given the Popup page is open
-    When I click on the Automation Doc button
-    Then the Nuxeo Automation Documentation page opens
-
-  Scenario: API Playground button
+  Scenario: API Playground link
     Given the Popup page is open
     # And I have CORS configuration
-    When I click on the API Playground button
+    And I hover on the Useful Links element
+    When I click on the API Playground link
     Then the Nuxeo API Playground page opens
     And I am connected to API Playground on http://localhost:8080/nuxeo
