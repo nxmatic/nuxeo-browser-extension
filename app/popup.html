@@ -49,7 +49,7 @@
     <div class="deps-popup">
       <div class="nx-row">
         <div class="deps-warning">
-          Dependency Mismatch.
+          DEPENDENCY MISMATCH
         </div>
       </div>
       <div class="deps-description">
@@ -80,26 +80,6 @@
         </div>
       </div>
     </div>
-    <div class="nav-link">
-      <div class="nxrow" id="useful-links">
-        <div class="useful-links">
-          Useful Links
-        </div>
-        <div id="dropdown-content">
-          <!-- <a class="useful-link" id="api-pg-link">API Playground</a> -->
-          <a class="useful-link" id="explorer">Nuxeo Platform Explorer</a>
-          <a class="useful-link" id="nxql">NXQL Reference</a>
-          <a class="useful-link" id="el-scripting">EL and Scripting Language Overview</a>
-          <a class="useful-link" id="mvel">Using MVEL in Automation Chains</a>
-          <a class="useful-link" id="workflow-variables">Workflow Variables available in Automation Context</a>
-          <a class="useful-link" id="escalation-rules">Escalation Rules - Examples</a>
-          <a class="useful-link" id="nuxeo-elements">Nuxeo Elements Catalog</a>
-          <a class="useful-link" id="nuxeo-layouts">Nuxeo Layouts Demo (JSF)</a>
-          <a class="useful-link" id="style-guide">Style Guide</a>
-        </div>
-      </div>
-      <a id="about" href="about.html">About</a>
-    </div>
     <div class="nxcontainer" id="main-page">
 
       <div class="heading">
@@ -111,6 +91,26 @@
               <li class="server-name">Connected to Nuxeo Server:</li>
               <li><div class="server-name-url"></div></li>
             </ul>
+          </div>
+          <a id="about" href="about.html">About</a>
+        </div>
+        <div class="nav-link">
+          <div class="nxrow" id="useful-links">
+            <div class="useful-links">Useful Links</div>
+            <div id="dropdown-content">
+              <a class="useful-link" id="studio">Go to Studio Project</a>
+              <a class="useful-link" id="auto-doc">Automation Documentation</a>
+              <a class="useful-link" id="api-play">API Playground</a>
+              <a class="useful-link" id="explorer">Nuxeo Platform Explorer</a>
+              <a class="useful-link" id="nxql">NXQL Reference</a>
+              <a class="useful-link" id="el-scripting">EL and Scripting Language Overview</a>
+              <a class="useful-link" id="mvel">Using MVEL in Automation Chains</a>
+              <a class="useful-link" id="workflow-variables">Workflow Variables available in Automation Context</a>
+              <a class="useful-link" id="escalation-rules">Escalation Rules - Examples</a>
+              <a class="useful-link" id="nuxeo-elements">Nuxeo Elements Catalog</a>
+              <a class="useful-link" id="nuxeo-layouts">Nuxeo Layouts Demo (JSF)</a>
+              <a class="useful-link" id="style-guide">Style Guide</a>
+            </div>
           </div>
         </div>
 
@@ -127,57 +127,25 @@
           <div class="hot-reload">
             <a class="button main-page" id="hot-reload-button" href="#"><span>Hot Reload</span></a>
           </div>
-          <div class="studio-link">
-            <a class="button main-page" id="studio-button"><span>Go to Studio</span></a>
-          </div>
-        </div>
-
-        <div class="nxrow">
-          <div class="automation-doc">
-            <a class="button main-page" id="automation-doc-button"><span>Automation Doc</span></a>
-          </div>
-          <div class="restart">
-            <a class="button main-page" id="restart-button"><span>Restart</span></a>
-          </div>
         </div>
 
         <div class="nxrow">
           <div class="reindex-es">
-            <a class="button main-page" id="reindex-es-button" href="es-reindex.html"><span>Reindex ES</span></a>
-          </div>
-          <div class="api-play">
-            <a class="button main-page" id="api-playground-button"><span>API Playground</span></a>
+            <a class="button main-page" id="reindex-es-button" href="es-reindex.html"><span>Reindex Elasticsearch</span></a>
           </div>
         </div>
 
-      </div>
-
-      <div class="toggles">
         <div class="nxrow">
-          <div class="debug">
-            Automation Call Tracing
-          </div>
-          <div class="onoffswitch">
-            <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="automation-call-tracing-toggle">
-            <label class="onoffswitch-label" for="automation-call-tracing-toggle">
-              <span class="onoffswitch-inner"></span>
-              <span class="onoffswitch-switch"></span>
-            </label>
+          <div class="restart">
+            <a class="button main-page" id="restart-button"><span>Restart Server</span></a>
           </div>
         </div>
 
-<!--    <div class="nxrow">
-          <div class="ui-dev-mode">
-            UI Development Mode
+        <div class="nxrow">
+          <div class="traces">
+            <a class="button main-page" id="traces-button"><span>Automation Call Tracing</span></a>
           </div>
-          <div class="onoffswitch">
-            <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="devmode-switch">
-            <label class="onoffswitch-label" for="devmode-switch">
-              <span class="onoffswitch-inner"></span>
-              <span class="onoffswitch-switch"></span>
-            </label>
-          </div>
-        </div>        -->
+        </div>
 
       </div>
 
@@ -202,12 +170,16 @@
         No files found for <span id="search-term"></span>
         </div>
 
-        <div class="nav-link">
-          <a id="export-current"><img id="json-exp" src="images/json-exp.png">Export current document JSON</a>
+        <div class="nxrow">
+          <div class="export nav-link">
+            <a id="export-current">&#9701;&nbsp;&nbsp;Export current document JSON</a>
+          </div>
         </div>
 
-        <table id="search-results">
-        </table>
+        <div class="nxrow">
+          <table id="search-results">
+          </table>
+        </div>
       </div>
 
     </div>

@@ -254,7 +254,7 @@ gulp.task('watch', ['build'], () => {
     'app/styles/**/*',
     'app/_locales/**/*.json'
   ]).on('change', function () {
-    gulp.start('base');
+    gulp.start('build:chrome');
     $.livereload.reload;
   });
   gulp.watch([

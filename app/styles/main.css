@@ -31,19 +31,19 @@ GENERAL
 ==============================================================================*/
 body {
  margin: 0;
- padding: 5px;
- border-top: 5px solid #213f7d;
- font-family: Arial;
+ font-family: Helvetica, sans-serif;
+ font-weight: 600;
  width: 500px;
- background-color: #fff;
- color: #213f7d;
+ background-color: #f5f5f5;
+ color: #73D2CF;
  height: auto;
+ line-height: 16px;
  overflow-x: hidden;
 }
 
 table {
   table-layout: fixed;
-  width: 100%;
+  width: 90%;
   white-space: nowrap;
   border-collapse: collapse;
   font-size: 13px;
@@ -54,7 +54,7 @@ thead {
 }
 
 th {
-  background-color: #00adff;
+  background-color: #73D2CF;
   color: #fff;
   line-height: 20px;
   text-indent: 5px;
@@ -69,6 +69,10 @@ tbody:before {
   display: block;
   line-height: 5px;
   color: transparent;
+}
+
+tr {
+  margin-left: 5px;
 }
 
 tr:nth-child(odd){
@@ -95,16 +99,12 @@ ul {
   list-style-type: none;
 }
 
-.nxcontainer {
-  padding: 10px 40px 30px 40px;
-}
-
 .nxrow {
   display: -webkit-flex;
   -webkit-align-items: center;
   display: flex;
-  align-items: center;
-  clear: both;
+  justify-content: center;
+  /*clear: both;*/
   padding: 5px 0;
 }
 
@@ -124,62 +124,73 @@ ul {
 
 #useful-links {
   text-align: left;
-  margin-right: 365px;
+  position: relative;
+  display: inline-block;
+  z-index: 1001;
 }
 
 .nav-link {
-  text-align: left;
+  text-align-last: justify;
 }
 
 .useful-links,
 .nav-link a {
  font-size: 15px;
  text-decoration: none;
- color: #213f7d;
+ color: #00ADED;
+ margin: 0 5px;
 }
 
+#useful-links > .useful-links:hover,
 .nav-link a:hover {
-  color: #00adff;
+  color: #FF9E00;
+  transition: all 300ms ease;
+}
+
+.useful-link:hover {
+  color: #FF9E00;
+  transition: all 300ms ease;
 }
 
 /*==============================================================================
 HEADINGS
 ==============================================================================*/
 
+.heading > .nxrow {
+  padding-left: 10px;
+  background: #1F28BF;
+}
+
 .logo {
-  background-image: url("../images/nuxeo_small.png");
-  width: 30px;
-  height: 30px;
+  background-image: url("../images/nuxeo_block-30.png");
+  width: 40px;
+  height: 40px;
 }
 
 .server-main {
-  margin-left: -20px;
   -webkit-flex: 5;
   flex: 5;
 }
 
+.server-main > ul {
+  padding-top: 10px;
+  padding-left: 15px;
+}
+
+.server-main > li {
+  margin: 2px 0;
+}
+
 .server-name {
   font-size: 15px;
+  color: #73D2CF;
 }
 
 .server-name-url {
   text-overflow: ellipsis;
   font-size: 20px;
   font-weight: bold;
-  color: #213f7d;
-}
-
-.ri-heading {
-  font-size: 18px;
-  min-width: 280px;
-}
-
-.ri-row {
-  margin-top: 50px;
-}
-
-#repo {
-  margin-right: 70px;
+  color: #fff;
 }
 
 /*==============================================================================
@@ -197,38 +208,28 @@ a.button {
   display: flex;
   justify-content: center;
   align-items: center;
-  flex: 0 0 160px;
+  flex: 0 0 220px;
   text-align: center;
   text-transform: none;
-  font-weight: 500;
-  transition: all 60ms ease-in-out;
+  font-weight: 600;
+  transition: all 300ms ease-in-out;
   color: #fff;
+  background: #73D2CF;
+  cursor: pointer;
 }
 
 .main-page {
-  width: 130px;
-  line-height: 1.1;
+  width: 220px;
+  line-height: 17px;
   margin: 5px 10px;
   font-size: 14px;
 }
 
 .warning {
   width: 150px;
-  line-height: 1.1;
+  line-height: 17px;
   margin: 5px 10px;
   font-size: 14px;
-}
-
-.reindex-page {
-  width: 60px;
-  line-height: 0.8;
-  margin-left: 15px;
-  font-size: 12px;
-}
-
-a.button {
-  background: #213f7d;
-  cursor: pointer;
 }
 
 a.useful-link {
@@ -236,33 +237,28 @@ a.useful-link {
 }
 
 a.button:hover {
-  opacity: .90;
-  transition: all 60ms ease;
+  background-color: #fff;
+  color: #00ADED;
+  transition: all 300ms ease-in-out;
 }
 
 a.useful-link:active,
 a.button:active {
   opacity: .75;
   transform: scale(.97);
-  transition: all 60ms ease;
+  transition: all 300ms ease;
 }
 
-.hot-reload,
-.studio-link,
-.view-packages,
-.view-bundles,
-.view-logs,
-.download-logs,
-.automation-doc,
-.restart,
-.reindex-es,
-.api-play {
-  margin-left: 30px;
+a.reindex-page {
+  width: 220px;
+}
+
+.feedback {
+  justify-content: flex-end;
 }
 
 #message {
   animation: blinker 2s linear infinite;
-  margin-left: 90px;
 }
 
 @keyframes blinker {
@@ -270,12 +266,11 @@ a.button:active {
 }
 
 #nopkg {
-  margin-left: 100px;
   display: none;
 }
 
 #hot-reload-button,
-#studio-button {
+#studio {
   display: none;
 }
 
@@ -290,93 +285,22 @@ a.button:active {
 }
 
 #feedback {
-  margin-top: 30px;
-  margin-left: 280px;
+  margin: 20px;
 }
 
-/*==============================================================================
-TOGGLES
-==============================================================================*/
-.debug,
-.ui-dev-mode {
-  width: 190px;
-  font-size: 16px;
+#traces-button.enabled {
+  border-color: #1F28BF;
+  line-height: 13px;
+  border-style: solid;
+  border-width: 2px;
 }
 
 .export {
   font-size: 14px;
 }
 
-.onoffswitch {
-  position: relative;
-  width: 110px;
-  -webkit-user-select:none; -moz-user-select:none;
-  float: right;
-  margin-left: 140px;
-}
-.onoffswitch-checkbox {
-  display: none;
-}
-.onoffswitch-label {
-  display: block;
-  overflow: hidden;
-  cursor: pointer;
-  border: none;
-  border-radius: 15px;
-}
-.onoffswitch-inner {
-  display: block;
-  width: 200%;
-  margin-left: -100%;
-  transition: margin 0.3s ease-in 0s;
-}
-.onoffswitch-inner::before,
-.onoffswitch-inner::after {
-  display: block;
-  float: left;
-  width: 50%;
-  height: 22px;
-  padding: 0;
-  line-height: 22px;
-  font-size: 12px;
-  color: #fff;
-  font-family: Trebuchet, Arial, sans-serif;
-  font-weight: bold;
-  box-sizing: border-box;
-}
-.onoffswitch-inner::before {
-  content: "ENABLED";
-  padding-left: 10px;
-  background-color: #00adff; color: #fff;
-}
-.onoffswitch-inner::after {
-  content: "DISABLED";
-  padding-right: 10px;
-  background-color: #ddd; color: #999;
-  text-align: right;
-}
-.onoffswitch-switch {
-  display: block;
-  width: 13px;
-  height: 13px;
-  margin: 4px;
-  background: #fff;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  right: 78px;
-  border: none;
-  border-radius: 15px;
-  transition: all 0.3s ease-in 0s;
-}
-.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
-  margin-left: 0;
-}
-.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
-  right: 0;
-}
-
 #useful-links {
+    text-align-last: left;
     position: relative;
     display: inline-block;
     z-index: 9;
@@ -391,14 +315,16 @@ TOGGLES
 }
 
 #dropdown-content a {
-    color: #213f7d;
-    padding: 12px 16px;
+    color: #00ADED;
+    padding: 8px 16px;
     text-decoration: none;
     display: block;
+    font-weight: 500;
 }
 
 #dropdown-content a:hover {
   background-color: #f1f1f1;
+  color: #FF9E00;
 }
 
 #useful-links:hover #dropdown-content {
@@ -435,14 +361,35 @@ form {
   outline: none;
 }
 
+::-webkit-input-placeholder {
+ color: #FF9E00;
+ opacity: 0.4;
+}
+
+::-moz-placeholder {
+ color: #FF9E00;
+ opacity: 0.4;
+}
+
+:-moz-placeholder {
+ color: #FF9E00;
+ opacity: 0.4;
+}
+
 .searchclear {
     position: absolute;
     height: 20px;
     margin: auto;
     font-size: 20px;
     cursor: pointer;
+    font-weight: normal;
     color: #ccc;
     right: 8px;
+    top: 4px;
+}
+
+#search-repo {
+  color: #1F28BF;
 }
 
 #loading-gif {
@@ -455,14 +402,50 @@ form {
   display: none;
 }
 
+.export,
 #search {
   text-indent: 5px;
   width: 420px;
+  text-align-last: left;
 }
 
-#nxql-docid {
+#reindex-repo {
+  border-radius: 24px 0 0 24px;
+}
+
+#reindex-nxql {
+  border-radius: 0 24px 24px 0;
+}
+
+#reindex-repo,
+#reindex-nxql {
+  width: 165px;
+  font-weight: 600;
+  background-color: #fff;
+  color: #00ADED;
+}
+
+#reindex-repo:hover,
+#reindex-nxql:hover {
+  background-color: #fff;
+  color: #FF9E00;
+  transition: all 300ms ease;
+}
+
+.active#reindex-repo,
+.active#reindex-nxql {
+  background-color: #1F28BF;
+  color: #fff;
+}
+
+#reindex-form {
+  display: none;
+  margin: 15px 0;
+}
+
+#reindex-input {
   text-indent: 5px;
-  width: 350px;
+  width: 420px;
 }
 
 /* SEARCH RESULTS ------------------------------------------------------------*/
@@ -481,7 +464,7 @@ form {
 }
 
 #search-term {
-  color: #00adff;
+  color: #73D2CF;
   font-style: italic;
 }
 
@@ -499,21 +482,21 @@ form {
 .doc-title {
   font-weight: bold;
   text-decoration: none;
-  color: inherit;
+  color: #00ADED;
 }
 
 .doc-title:hover {
-  color: #00adff;
+  color: #FF9E00;
   cursor:pointer;
 }
 
-.version {
-  color: #808080;
-  font-weight: normal;
-  font-size: 10px;
+.json-icon {
+  color: #00ADED;
+  cursor:pointer;
 }
 
 .json-icon:hover {
+  color: #FF9E00;
   cursor:pointer;
 }
 
@@ -530,21 +513,52 @@ form {
 }
 
 /*==============================================================================
-ABOUT & USEFUL LINKS PAGE
+ABOUT
 ==============================================================================*/
 
 .title {
   font-size: 20px;
   font-weight: bold;
-}
-
-.useful-link:hover {
-  color: #00adff;
-  transition: all 60ms ease;
+  color: #fff;
 }
 
 .description {
   font-size: 15px;
+}
+
+.license {
+  flex-direction: column;
+  text-align: center;
+}
+
+.about {
+  color: #1F28BF;
+}
+
+#back,
+#about {
+  color: #fff;
+  font-size: 10px;
+  margin: 5px;
+  align-self: flex-start;
+  text-decoration: none;
+}
+
+#apache {
+  text-decoration: none;
+  color: #00ADED;
+}
+
+#back:hover,
+#about:hover,
+#apache:hover {
+  color: #FF9E00;
+  text-decoration: none;
+}
+
+#version,
+#copyright {
+  margin: 10px;
 }
 
 /*==============================================================================
@@ -565,12 +579,12 @@ div.shade {
 div.deps-popup {
     position: fixed;
     left: 50%;
-    top: 50%;
+    top: 40%;
     width: 400px;
     min-height: 300px;
     margin-left: -200px;
     margin-top: -150px;
-    background: #FFF;
+    background: #f5f5f5;
     -moz-border-radius: 10px;
     -webkit-border-radius: 10px;
     -khtml-border-radius: 10px;
@@ -581,19 +595,25 @@ div.deps-popup {
 
 div.deps-warning {
   color: #FF0044;
-  font-size: 25px;
+  font-size: 18px;
 }
 
 div.deps-warning,
 div.deps-description {
-  margin: 5px 10px;
+  margin: 20px 20px;
 }
 
 div.deps-instructions,
 div.nuxeoctl-command {
-  margin: 10px 20px;
+  margin: 20px 20px;
 }
 
 .monospace {
   font-family: monospace;
+}
+
+div.deps-list,
+div.monospace {
+  color: #1F28BF;
+  font-weight: 500;
 }

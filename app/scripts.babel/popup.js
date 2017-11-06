@@ -53,7 +53,7 @@ limitations under the License.
 
   document.addEventListener('DOMContentLoaded', () => {
     const buttons = document.querySelectorAll('a');
-    const debug = document.getElementById('automation-call-tracing-toggle');
+    const debug = document.getElementById('traces-button');
     const exportCurrent = document.getElementById('export-current');
     const jsonSearch = document.getElementById('search');
     for (let i = 0; i < buttons.length; i += 1) {
@@ -89,7 +89,7 @@ limitations under the License.
       _gaq.push(['_trackEvent', 'restart-button', 'clicked']);
       const a = $('a#restart-button');
       position = a.position();
-      $('#loading').css({ display: 'block', top: (position.top - 5), left: (position.left + 140) });
+      $('#loading').css({ display: 'block', top: (position.top - 5), left: (position.left - 50) });
     }
 
     function stopLoading() {
@@ -203,8 +203,8 @@ limitations under the License.
           const pkgName = JSON.parse(text).studio;
           if (pkgName) {
             $('#message').css('display', 'none');
-            $('#studio-button, #hot-reload-button').css('display', 'flex');
-            $('#studio-button').click(() => {
+            $('#studio, #hot-reload-button').css('display', 'flex');
+            $('#studio').click(() => {
               _gaq.push(['_trackEvent', 'studio-button', 'clicked']);
 
               const studioUrl = `https://connect.nuxeo.com/nuxeo/site/studio/ide?project=${pkgName}`;
@@ -239,7 +239,13 @@ limitations under the License.
           .params({ readOnly: true })
           .execute()
           .then((response) => {
-            $('#automation-call-tracing-toggle').attr('checked', response.value);
+            if (response.value) {
+              $('#traces-button').addClass('enabled');
+              $('#traces-button').removeClass('disabled');
+            } else {
+              $('#traces-button').addClass('disabled');
+              $('#traces-button').removeClass('enabled');
+            }
           });
 
         const serverString = escapeHTML(nuxeo._baseURL);
@@ -247,9 +253,9 @@ limitations under the License.
 
         const serverURL = nuxeo._baseURL.replace(/\/$/, '');
 
-        registerLink('#automation-doc-button', nuxeo._baseURL.concat('site/automation/doc/'));
+        registerLink('#auto-doc', nuxeo._baseURL.concat('site/automation/doc/'));
         registerLink('#api-pg-link', 'http://nuxeo.github.io/api-playground/');
-        registerLink('#api-playground-button', ('http://nuxeo.github.io/api-playground/#/').concat(serverURL));
+        registerLink('#api-play', ('http://nuxeo.github.io/api-playground/#/').concat(serverURL));
         registerLink('#explorer', 'https://explorer.nuxeo.com');
         registerLink('#nxql', 'https://doc.nuxeo.com/display/NXDOC/NXQL');
         registerLink('#el-scripting', 'https://doc.nuxeo.com/display/NXDOC/Understand+Expression+and+Scripting+Languages+Used+in+Nuxeo');
@@ -302,11 +308,11 @@ limitations under the License.
         const iconLink = nuxeo._baseURL.concat(icon);
         const iconTag = `<td colspan=1 class="icon"><img class="doc-icon" src="${iconLink}" alt="icon"></td>`;
         if ((typeof vMajor !== 'undefined' && typeof vMinor !== 'undefined')) {
-          titleTag = `<td colspan=17 class="doc-title" id="${uid}">${title} <span class="version">${vMajor}.${vMinor}</span></td>`;
+          titleTag = `<td colspan=18 class="doc-title" id="${uid}">${title} <span class="version">${vMajor}.${vMinor}</span></td>`;
         } else {
-          titleTag = `<td colspan=17 class="doc-title" id="${uid}">${title}</td>`;
+          titleTag = `<td colspan=18 class="doc-title" id="${uid}">${title}</td>`;
         }
-        const jsonTag = `<td colspan=2 class="icon"><img class="json-icon" id="${uid}" src="images/json-exp.png"></td>`;
+        const jsonTag = `<td colspan=1 class="icon"><div class="json-icon" id="${uid}">&#9701;</div></td>`;
         const pathTag = `<td colspan=20 class="doc-path">${path}</td>`;
         $('tbody').append(`<tr class="search-result">${iconTag}${titleTag}${jsonTag}</tr><tr>${pathTag}</tr>`);
       }
@@ -382,18 +388,27 @@ limitations under the License.
       });
 
       $('#reindex-repo').click(() => {
-        bkg.reindex();
+        $('#reindex-form').css('display', 'none');
+        $('#reindex-repo').button('toggle');
       });
-
-      $('#reindex-nxql-doc').click(() => {
-        const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-        const input = $('#nxql-docid').val();
-        $('#nxql-docid').val('');
-        const matchGroupId = uuidPattern.exec(input);
-        if (matchGroupId) {
-          bkg.reindexDocId(input);
+      $('#reindex-nxql').click(() => {
+        $('#reindex-form').css('display', 'block');
+        $('#reindex-repo').button('toggle');
+      });
+      $('#reindex').click(() => {
+        if ($('#reindex-repo').hasClass('active')) {
+          bkg.reindex();
         } else {
-          bkg.reindexNXQL(input);
+          $('#reindex-form').show();
+          const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+          const input = $('#reindex-input').val();
+          $('#reindex-input').val('');
+          const matchGroupId = uuidPattern.exec(input);
+          if (matchGroupId) {
+            bkg.reindexDocId(input);
+          } else {
+            bkg.reindexNXQL(input);
+          }
         }
       });
 
@@ -404,12 +419,36 @@ limitations under the License.
         }
       });
 
-      $('#automation-call-tracing-toggle').click(() => {
+      $('#traces-button').click(() => {
         nuxeo.operation('Traces.ToggleRecording')
           .params({ readOnly: false })
           .execute()
           .then((response) => {
-            $('#automation-call-tracing-toggle').attr('checked', response.value);
+            if (response.value) {
+              $('#traces-button').addClass('enabled');
+              if ($('#traces-button').hasClass('disabled')) {
+                $('#traces-button').removeClass('disabled');
+              }
+            } else {
+              $('#traces-button').addClass('disabled');
+              if ($('#traces-button').hasClass('enabled')) {
+                $('#traces-button').removeClass('enabled');
+              }
+            }
+          })
+          .catch(() => {
+            nuxeo.operation('Traces.ToggleRecording')
+              .params({ readOnly: true })
+              .execute()
+              .then((response) => {
+                if (response.value) {
+                  $('#traces-button').addClass('enabled');
+                  $('#traces-button').removeClass('disabled');
+                } else {
+                  $('#traces-button').addClass('disabled');
+                  $('#traces-button').removeClass('enabled');
+                }
+              });
           });
       });
 

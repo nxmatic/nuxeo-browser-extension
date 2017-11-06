@@ -32,6 +32,7 @@
     <!-- build:js scripts/popup-vendor.js -->
     <!-- bower:js -->
     <script src="bower_components/jquery/dist/jquery.js"></script>
+    <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
     <script src="bower_components/jquery-confirm/jquery.confirm.js"></script>
     <!-- endbower -->
     <!-- endbuild -->
@@ -42,10 +43,7 @@
     <!-- endbuild -->
   </head>
   <body>
-    <div class="nav-link">
-      <a id= "back" href="popup.html">Back</a>
-    </div>
-    <div class="nxcontainer" id="main-page">
+    <div class="nxcontainer" id="reindex-page">
 
     <div class="heading">
       <div class="nxrow">
@@ -57,31 +55,30 @@
             <li><div class="server-name-url"></div></li>
           </ul>
         </div>
+        <a id= "back" href="popup.html">Back</a>
       </div>
 
     </div>
 
-    <div class="nxrow ri-row">
-      <div class="ri-heading" id="repo">
-      Re-index the entire repository
+    <div class="nxrow">
+      <div class="btn-group" data-toggle="buttons">
+        <label class="btn active" id="reindex-repo">
+          <input type="radio" name="options" autocomplete="off" checked> Entire repository
+        </label>
+        <label class="btn" id="reindex-nxql">
+          <input type="radio" name="options" autocomplete="off"> Using NXQL or GUID
+        </label>
       </div>
-      <div>
-        <a class="button reindex-page" id="reindex-repo" href="#"><span>Reindex</span></a>
-      </div>
-    </div>
-
-    <div class="ri-heading ri-row">
-    Re-index using NXQL or Document ID:
     </div>
     <div class="nxrow">
-      <div>
-        <form class="search-container">
-          <input type="search" id="nxql-docid" class="form" />
-          <span class="searchclear" id="nxql-clear">&#8855;</span>
-        </form>
-      </div>
-      <div>
-        <a class="button reindex-page" id="reindex-nxql-doc" href="#"><span>Reindex</span></a>
+      <form class="search-container" id="reindex-form">
+        <input type="search" id="reindex-input" class="form" placeholder="Enter GUID or NXQL query..." results="5" />
+        <span class="searchclear" id="reindex-clear">&#8855;</span>
+      </form>
+    </div>
+    <div class="buttons">
+      <div class="nxrow">
+        <a class="button reindex-page" id="reindex" href="#"><span>Reindex</span></a>
       </div>
     </div>
 

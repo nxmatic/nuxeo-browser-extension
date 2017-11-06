@@ -19,7 +19,7 @@ Features include:
 * Toggle Automation Call Tracing
 * Useful Links menu
 * Document Search (search with path, GUID, file name or NXQL query)
-  * Click on search results to navigate to document or on ![arrow](app/images/json-exp.png) to export JSON
+  * Click on search results to navigate to document or on ![export](app/images/json-exp.png) to export JSON
 * One-click JSON export of document in current active tab
 * Chrome Omnibox
   * Chrome users can access the Nuxeo omnibox by entering keyword `nx` in the URL box, then TAB.
