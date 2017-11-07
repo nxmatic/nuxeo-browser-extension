@@ -47,8 +47,8 @@ Features include:
 ## Build
 ### GitHub
 ```
-$ git clone git@github.com:nuxeo/nuxeo-chrome-extension.git
-$ cd nuxeo-chrome-extension
+$ git clone git@github.com:nuxeo/nuxeo-browser-extension.git
+$ cd nuxeo-browser-extension
 $ npm install
 $ gulp build:<browser>
 # or
