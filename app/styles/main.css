@@ -137,7 +137,7 @@ ul {
 .nav-link a {
  font-size: 15px;
  text-decoration: none;
- color: #00ADED;
+ color: #1F28BF;
  margin: 0 5px;
 }
 
@@ -158,7 +158,7 @@ HEADINGS
 
 .heading > .nxrow {
   padding-left: 10px;
-  background: #1F28BF;
+  background: #0D112A;
 }
 
 .logo {
@@ -238,7 +238,7 @@ a.useful-link {
 
 a.button:hover {
   background-color: #fff;
-  color: #00ADED;
+  color: #1F28BF;
   transition: all 300ms ease-in-out;
 }
 
@@ -289,7 +289,7 @@ a.reindex-page {
 }
 
 #traces-button.enabled {
-  border-color: #1F28BF;
+  border-color: #0D112A;
   line-height: 13px;
   border-style: solid;
   border-width: 2px;
@@ -315,7 +315,7 @@ a.reindex-page {
 }
 
 #dropdown-content a {
-    color: #00ADED;
+    color: #1F28BF;
     padding: 8px 16px;
     text-decoration: none;
     display: block;
@@ -389,7 +389,7 @@ form {
 }
 
 #search-repo {
-  color: #1F28BF;
+  color: #0D112A;
 }
 
 #loading-gif {
@@ -422,7 +422,7 @@ form {
   width: 165px;
   font-weight: 600;
   background-color: #fff;
-  color: #00ADED;
+  color: #1F28BF;
 }
 
 #reindex-repo:hover,
@@ -434,7 +434,7 @@ form {
 
 .active#reindex-repo,
 .active#reindex-nxql {
-  background-color: #1F28BF;
+  background-color: #0D112A;
   color: #fff;
 }
 
@@ -482,7 +482,7 @@ form {
 .doc-title {
   font-weight: bold;
   text-decoration: none;
-  color: #00ADED;
+  color: #1F28BF;
 }
 
 .doc-title:hover {
@@ -491,7 +491,7 @@ form {
 }
 
 .json-icon {
-  color: #00ADED;
+  color: #1F28BF;
   cursor:pointer;
 }
 
@@ -532,7 +532,7 @@ ABOUT
 }
 
 .about {
-  color: #1F28BF;
+  color: #0D112A;
 }
 
 #back,
@@ -546,7 +546,7 @@ ABOUT
 
 #apache {
   text-decoration: none;
-  color: #00ADED;
+  color: #1F28BF;
 }
 
 #back:hover,
@@ -614,6 +614,6 @@ div.nuxeoctl-command {
 
 div.deps-list,
 div.monospace {
-  color: #1F28BF;
+  color: #0D112A;
   font-weight: 500;
 }
