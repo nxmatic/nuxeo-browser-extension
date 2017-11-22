@@ -54,6 +54,7 @@ module.exports = function () {
       selector = `${selector}-button`;
     }
     browser.waitForVisible(`#${selector}`);
+    browser.pause(500);
     if (action === 'click on') {
       browser.$(`#${selector}`).click();
       if (!(browser.execute(() => chrome.tabs.create.called).value)) {
