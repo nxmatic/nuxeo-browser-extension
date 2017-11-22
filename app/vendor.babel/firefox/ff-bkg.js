@@ -30,13 +30,18 @@ function pageActionOnNuxeo(tabInfo) {
   const login = '/login.jsp';
   tabUrl = tabInfo.url;
   chrome.cookies.getAll({
-    url: tabUrl,
+    // workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=1417828
+    // url: tabUrl,
     name: 'JSESSIONID',
   }, (cookies) => {
     disableIcon();
     chrome.browserAction.disable(tabInfo.id);
     cookies.forEach((cookie) => {
-      if ((cookie.value).match(re) && ((tabUrl).indexOf(login) < 0)) {
+      if ((cookie.value).match(re) &&
+        ((tabUrl).indexOf(login) < 0) &&
+        // workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=1417828
+        ((tabUrl).indexOf(cookie.domain) > 1) &&
+        ((tabUrl).indexOf(cookie.path) > 1)) {
         enableIcon();
         chrome.browserAction.enable(tabInfo.id);
       }
