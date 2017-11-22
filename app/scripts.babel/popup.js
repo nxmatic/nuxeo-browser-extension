@@ -205,7 +205,7 @@ limitations under the License.
             $('#message').css('display', 'none');
             $('#studio, #hot-reload-button').css('display', 'flex');
             $('#studio').click(() => {
-              _gaq.push(['_trackEvent', 'studio-button', 'clicked']);
+              _gaq.push(['_trackEvent', 'studio', 'clicked']);
 
               const studioUrl = `https://connect.nuxeo.com/nuxeo/site/studio/ide?project=${pkgName}`;
               app.browser.createTabs(studioUrl, bkg.studioExt.server.tabId);
@@ -223,10 +223,10 @@ limitations under the License.
               bkg.dependencyMismatch = false;
             });
           } else {
-            $('#studio-button, #hot-reload-button').css('display', 'none');
+            $('#studio, #hot-reload-button').css('display', 'none');
             $('#message').css('display', 'none');
             noPkgFound();
-            $('#studio-button, #hot-reload-button').click(() => {
+            $('#studio, #hot-reload-button').click(() => {
               bkg.notification('no_studio_project',
                 'No associated Studio project',
                 'If you\'d like to use this function, please associate your Nuxeo server with a studio project',
