@@ -14,7 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-let dependencyMismatch = false;
+let persistedVars = {};
+persistedVars.dependencyMismatch = false;
+
+function persistVar(key, value){
+  persistedVars[key] = value;
+}
 
 window.bkgHotReload = (startLoading, stopLoading, validate, showDependencyError) => {
   let nuxeo;
@@ -30,7 +35,12 @@ window.bkgHotReload = (startLoading, stopLoading, validate, showDependencyError)
       .execute()
       .then((res) => {
         // Error handling for Nuxeo 9.3 and later
-        stopLoading();
+        try {
+          stopLoading();
+        }
+        catch(e) {
+          // Popup is closed
+        }
         if ((res.length > 0 && res[0].status && res[0].status === 'success') || (res.status && res.status === 204)) {
           notification(res[0].status, 'Success!', res[0].message, '../images/nuxeo-128.png', false);
           chrome.tabs.reload(window.studioExt.server.tabId);
@@ -39,9 +49,15 @@ window.bkgHotReload = (startLoading, stopLoading, validate, showDependencyError)
         } else if (res.length > 0 && res[0].status && res[0].status === 'updateInProgress') {
           notification(res[0].status, 'Error', res[0].message, '../images/access_denied.png', false);
         } else if (res.length > 0 && res[0].status && res[0].status === 'dependencyMismatch') {
-          const dependencies = res[0].deps;
-          showDependencyError(dependencies);
-          dependencyMismatch = true;
+          notification(res[0].status, 'Dependency Mismatch', res[0].message, '../images/access_denied.png', false);
+          persistedVars.uninstalledDeps = res[0].deps;
+          try {
+            showDependencyError(persistedVars.uninstalledDeps);
+          }
+          catch(e) {
+            // Popup is closed
+          }
+          persistedVars.dependencyMismatch = true;
         }
       })
       .catch((e) => {

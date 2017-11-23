@@ -135,8 +135,8 @@ limitations under the License.
     }
 
     function checkDependencyMismatch() {
-      if (bkg.dependencyMismatch) {
-        showDependencyError(bkg.dependencies);
+      if (bkg.persistedVars.dependencyMismatch && bkg.persistedVars.uninstalledDeps.length > 0) {
+        showDependencyError(bkg.persistedVars.uninstalledDeps);
       } else {
         hideDependencyError();
       }
@@ -216,11 +216,11 @@ limitations under the License.
             $('#force-hot-reload-button').click(() => {
               bkg.bkgHotReload(startLoadingHR, stopLoading, false, showDependencyError);
               hideDependencyError();
-              bkg.dependencyMismatch = false;
+              bkg.persistVar('dependencyMismatch', false);
             });
             $('#cancel-button').click(() => {
               hideDependencyError();
-              bkg.dependencyMismatch = false;
+              bkg.persistVar('dependencyMismatch', false);
             });
           } else {
             $('#studio, #hot-reload-button').css('display', 'none');
