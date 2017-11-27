@@ -36,35 +36,42 @@ window.restart = function (startLoadingRS, stopLoading) {
       })
       .catch((e) => {
         console.log(e);
-        e.response.json().then((json) => {
-          stopLoading();
-          const msg = json.message;
-          const err = e.response.status;
-          if (msg == null) {
-            notification('success', 'Success!', 'Nuxeo server is restarting...', '../images/nuxeo-128.png', false);
-            setTimeout(() => {
-              chrome.tabs.reload(studioExt.server.tabId);
-            }, 4000);
-          } else if (err === 401) {
-            notification('access_denied',
-              'Access denied!',
-              'You must have Administrator rights to perform this function.',
-              '../images/access_denied.png',
-              false);
-          } else if (err >= 500) {
-            notification('server_error',
-              'Server Error',
-              'Please check Studio project and/or dependencies for mismatch and ensure that Dev Mode is activated.',
-              '../images/access_denied.png',
-              false);
-          } else {
-            notification('unknown_error',
-              'Unknown Error',
-              'An unknown error has occurred. Please try again later.',
-              '../images/access_denied.png',
-              false);
-          }
-        });
+        if (e.response) {
+          e.response.json().then((json) => {
+            stopLoading();
+            const msg = json.message;
+            const err = e.response.status;
+            if (msg == null) {
+              notification('success', 'Success!', 'Nuxeo server is restarting...', '../images/nuxeo-128.png', false);
+              setTimeout(() => {
+                chrome.tabs.reload(studioExt.server.tabId);
+              }, 4000);
+            } else if (err === 401) {
+              notification('access_denied',
+                'Access denied!',
+                'You must have Administrator rights to perform this function.',
+                '../images/access_denied.png',
+                false);
+            } else if (err >= 500) {
+              notification('server_error',
+                'Server Error',
+                'Please check Studio project and/or dependencies for mismatch and ensure that Dev Mode is activated.',
+                '../images/access_denied.png',
+                false);
+            } else {
+              notification('unknown_error',
+                'Unknown Error',
+                'An unknown error has occurred. Please try again later.',
+                '../images/access_denied.png',
+                false);
+            }
+          });
+        } else if (e instanceof TypeError) {
+          notification('success', 'Success!', 'Nuxeo server is restarting...', '../images/nuxeo-128.png', false);
+          setTimeout(() => {
+            chrome.tabs.reload(studioExt.server.tabId);
+          }, 4000);
+        }
       });
   });
 };
