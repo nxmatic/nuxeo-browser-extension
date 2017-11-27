@@ -34,16 +34,19 @@ window.bkgHotReload = (startLoading, stopLoading, validate, showDependencyError)
       })
       .execute()
       .then((res) => {
-        // Error handling for Nuxeo 9.3 and later
         try {
           stopLoading();
         }
         catch(e) {
           // Popup is closed
         }
-        if ((res.length > 0 && res[0].status && res[0].status === 'success') || (res.status && res.status === 204)) {
-          notification(res[0].status, 'Success!', res[0].message, '../images/nuxeo-128.png', false);
+        if (res.length > 0 && res[0].status && res[0].status === 'success') {
+          notification((res[0].status), 'Success!', res[0].message, '../images/nuxeo-128.png', false);
           chrome.tabs.reload(window.studioExt.server.tabId);
+        } else if (res.status && res.status === 204) {
+          notification('success', 'Success!', 'A Hot Reload has successfully been completed.', '../images/nuxeo-128.png', false);
+          chrome.tabs.reload(window.studioExt.server.tabId);
+        // Error handling for Nuxeo 9.3 and later
         } else if (res.length > 0 && res[0].status && res[0].status === 'error') {
           notification(res[0].status, 'Error', res[0].message, '../images/access_denied.png', false);
         } else if (res.length > 0 && res[0].status && res[0].status === 'updateInProgress') {
@@ -99,7 +102,6 @@ window.bkgHotReload = (startLoading, stopLoading, validate, showDependencyError)
               });
             }
           } else {
-            console.log(e);
             startLoading();
             nuxeo.operation('Service.HotReloadStudioSnapshot').execute()
               .then(() => {
