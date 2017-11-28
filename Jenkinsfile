@@ -16,6 +16,7 @@ def formatSlack(begin) {
 def archive_paths = 'ftest/target/tomcat/log/*.log, ftest/target/screenshots/*, ftest/target/wdio/* ftest/target/cucumber-reports/*'
 
 node(env.SLAVE) {
+    sh "echo ${env.SLAVE}"
     try {
         timestamps {
             timeout(30) {
