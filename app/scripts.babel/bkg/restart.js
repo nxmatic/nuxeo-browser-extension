@@ -30,9 +30,18 @@ window.restart = function (startLoadingRS, stopLoading) {
       fetchProperties: [],
       url: nuxeo._baseURL.concat('site/connectClient/uninstall/restart'),
     })
-      .then(() => {
-        stopLoading();
-        notification('error', 'Something went wrong...', 'Please try again later.', '../images/access_denied.png', false);
+      .then((res) => {
+        if (res.status && res.status >= 200 && res.status < 300) {
+          stopLoading();
+          notification('info', 'Restarting server...', 'Attempting to restart Nuxeo server.', '../images/nuxeo-128.png', false);
+          setTimeout(() => {
+            chrome.tabs.reload(studioExt.server.tabId);
+          }, 5000);
+        } else {
+          console.log(res);
+          stopLoading();
+          notification('error', 'Something went wrong...', 'An error occurred.', '../images/access_denied.png', false);
+        }
       })
       .catch((e) => {
         console.log(e);
