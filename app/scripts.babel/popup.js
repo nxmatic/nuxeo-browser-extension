@@ -487,8 +487,14 @@ limitations under the License.
           if (searchTerm.indexOf('_') > -1) {
             searchTerm = searchTerm.replace(/_/g, '&UNDERSCORE');
           }
-          if (searchTerm.indexOf('_') > -1) {
-            searchTerm = searchTerm.replace(/_/g, '&BACKSLASH');
+          if (searchTerm.indexOf('\\') > -1) {
+            searchTerm = searchTerm.replace('\\', '&BACKSLASH');
+          }
+          if (searchTerm.indexOf('"') > -1) {
+            searchTerm = searchTerm.replace('"', '\\"');
+          }
+          if (searchTerm.indexOf('\'') > -1) {
+            searchTerm = searchTerm.replace('\'', '\\\'');
           }
           const jsonQuery = `SELECT * FROM Document WHERE ecm:fulltext = "${searchTerm}"`;
           docSearch(jsonQuery, input);
