@@ -31,12 +31,14 @@ window.restart = function (startLoadingRS, stopLoading) {
       url: nuxeo._baseURL.concat('site/connectClient/uninstall/restart'),
     })
       .then((res) => {
+        // Handle restart success since 9.10
         if (res.status && res.status >= 200 && res.status < 300) {
           stopLoading();
           notification('info', 'Restarting server...', 'Attempting to restart Nuxeo server.', '../images/nuxeo-128.png', false);
           setTimeout(() => {
             chrome.tabs.reload(studioExt.server.tabId);
           }, 5000);
+        // Handle errors for 8.10 and FT up to 9.3
         } else {
           console.log(res);
           stopLoading();
@@ -50,11 +52,13 @@ window.restart = function (startLoadingRS, stopLoading) {
             stopLoading();
             const msg = json.message;
             const err = e.response.status;
+            // Handle restart success for 8.10 and FT up to 9.3
             if (msg == null) {
               notification('success', 'Success!', 'Nuxeo server is restarting...', '../images/nuxeo-128.png', false);
               setTimeout(() => {
                 chrome.tabs.reload(studioExt.server.tabId);
               }, 4000);
+            // Handle errors since 9.10
             } else if (err === 401) {
               notification('access_denied',
                 'Access denied!',
