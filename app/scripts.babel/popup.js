@@ -460,7 +460,7 @@ limitations under the License.
         $('#search-results').empty();
         const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         const pathPattern = /^\//;
-        const input = $('#search').val();
+        let input = $('#search').val();
         if (input === '') {
           $('.no-result').css('display', 'none');
           $('#search-results').empty();
@@ -483,14 +483,13 @@ limitations under the License.
           $('#loading-gif').css('display', 'none');
           $('#search').css('text-indent', '5px');
         } else {
-          let searchTerm = input;
-          if (searchTerm.indexOf('_') > -1) {
-            searchTerm = searchTerm.replace(/_/g, '&UNDERSCORE');
+          if (input.indexOf('_') > -1) {
+            input = input.replace(/_/g, '&UNDERSCORE');
           }
-          if (searchTerm.indexOf('_') > -1) {
-            searchTerm = searchTerm.replace(/_/g, '&BACKSLASH');
+          if (input.indexOf('\\') > -1) {
+            input = input.replace(/_/g, '&BACKSLASH');
           }
-          const jsonQuery = `SELECT * FROM Document WHERE ecm:fulltext = "${searchTerm}"`;
+          const jsonQuery = `SELECT * FROM Document WHERE ecm:fulltext = "${input}"`;
           docSearch(jsonQuery, input);
           $('#loading-gif').css('display', 'none');
           $('#search').css('text-indent', '5px');
