@@ -136,6 +136,14 @@ limitations under the License.
 
     function checkDependencyMismatch() {
       if (bkg.persistedVars.dependencyMismatch && bkg.persistedVars.uninstalledDeps.length > 0) {
+        const msgHeight = $('div.deps-popup').height();
+        const htmlHeight = $('html').height();
+        if (msgHeight > 360) {
+          const heightDiff = msgHeight - 360;
+          $('html').css('height', (htmlHeight + heightDiff));
+        } else {
+          $('html').css('height', 'auto');
+        }
         showDependencyError(bkg.persistedVars.uninstalledDeps);
       } else {
         hideDependencyError();
