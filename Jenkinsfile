@@ -1,4 +1,5 @@
  properties([
+    [$class: 'BuildDiscarderProperty', strategy: [$class: 'LogRotator', daysToKeepStr: '60', numToKeepStr: '60', artifactNumToKeepStr: '1']],
     pipelineTriggers([
         triggers: [
             [
