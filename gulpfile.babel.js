@@ -124,6 +124,10 @@ function prependScript(node, file) {
   node.prepend(`<script src="${file}"></script>`);
 }
 
+function appendScript(node, file) {
+  node.append(`<script src="${file}"></script>`);
+}
+
 gulp.task('lint', lint([
   'app/scripts.babel/*.js',
   'app/vendor.babel/**/*.js',
@@ -136,6 +140,7 @@ gulp.task('extras', () => {
     'app/*.*',
     'app/_locales/**',
     'app/libs/**',
+    '!app/libs/highlight.js',
     '!app/vendor.babel',
     '!app/scripts.babel',
     '!app/*.json',
@@ -197,6 +202,7 @@ gulp.task('build:chrome', ['build:base'], (done) => {
   }
   gulp.src(dist('base', '**/*'))
     .pipe(filter(['**', '!**/about.html']))
+    .pipe(filter(['**', '!**/json.html']))
     .pipe(gulp.dest(dist('chrome')));
 
   gulp.src(dist('base', 'about.html'))
@@ -206,6 +212,15 @@ gulp.task('build:chrome', ['build:base'], (done) => {
       $('#version').text(`Version ${version}`);
     }))
     .pipe(gulp.dest(dist('chrome')));
+
+  gulp.src(dist('base', 'json.html'))
+    .pipe(cheerio(($) => {
+      const $body = $('body');
+      appendScript($body, 'libs/highlight.js');
+    }))
+    .pipe(gulp.dest(dist('chrome')));
+
+  gulp.src('app/libs/highlight.js').pipe(gulp.dest(dist('chrome/libs')));
 
   util.log(`Building Chrome Extension: ${version}`);
 
@@ -233,6 +248,15 @@ gulp.task('build:sinon-chrome', ['build:chrome'], () => {
     .pipe(filter(['**', '!**/es-reindex.html']))
     .pipe(gulp.dest(dist(target)));
 
+  gulp.src(dist('base', 'json.html'))
+    .pipe(cheerio(($) => {
+      const $body = $('body');
+      appendScript($body, 'libs/highlight.js');
+    }))
+    .pipe(gulp.dest(dist('chrome')));
+
+  gulp.src('app/libs/highlight.js').pipe(gulp.dest(dist('chrome/libs')));
+
   // Add sinon-chrome.min script
   gulp.src(require.resolve('sinon-chrome/bundle/sinon-chrome.min.js'))
     .pipe(gulp.dest(dist(target, 'scripts')))
@@ -251,7 +275,7 @@ gulp.task('build:sinon-chrome', ['build:chrome'], () => {
       const $head = $('head');
       // !! Order matters; as we use `prepend`, last added will be first.
       prependScript($head, 'scripts/background.js');
-      prependScript($head, 'scripts/injecter.js')
+      prependScript($head, 'scripts/injecter.js');
       prependScript($head, 'scripts/sinon-chrome.min.js');
     }))
     .pipe(gulp.dest(dist(target)));
@@ -261,7 +285,7 @@ gulp.task('build:sinon-chrome', ['build:chrome'], () => {
       const $head = $('head');
       // !! Order matters; as we use `prepend`, last added will be first.
       prependScript($head, 'scripts/background.js');
-      prependScript($head, 'scripts/injecter.js')
+      prependScript($head, 'scripts/injecter.js');
       prependScript($head, 'scripts/sinon-chrome.min.js');
       const date = new Date().getFullYear();
       $('#version').text(`Version ${version}`);

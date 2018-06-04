@@ -17,6 +17,10 @@ limitations under the License.
 $(() => {
   chrome.runtime.getBackgroundPage((bkg) => {
     document.getElementById('json-string').textContent = bkg._text;
-    hljs.initHighlighting();
+    try {
+      hljs.initHighlighting();
+    } catch (e) {
+      console.log('Sorry! JSON highlighting only available in Chrome.');
+    }
   });
 });
