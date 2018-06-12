@@ -94,7 +94,7 @@ limitations under the License.
       let nuxeoctlCommand = 'nuxeoctl mp-install';
       deps.forEach((dep) => {
         const li = document.createElement('li');
-        li.textContent(`${dep}`);
+        li.textContent = dep;
         $('#deps-list').append(li);
         nuxeoctlCommand += ` ${dep}`;
       });
