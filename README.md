@@ -68,6 +68,11 @@ To run isolated test scenarios, add the `@watch` tag to the relevant scenarios a
 $ npm run test-watch
 ```
 
+...or build and run with Maven:
+```
+$ mvn clean verify -f ftest/pom.xml
+```
+
 # Contributing / Reporting issues
 
 Create a ticket with a description of your bug on [JIRA](https://jira.nuxeo.com/browse/BDE/).
