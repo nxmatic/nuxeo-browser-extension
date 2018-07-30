@@ -101,6 +101,14 @@ limitations under the License.
       $('div.nuxeoctl-command').append(nuxeoctlCommand);
       $('div.shade').show();
       $('div.deps-popup').show();
+      const msgHeight = document.getElementsByClassName('deps-popup')[0].offsetHeight;
+      const htmlHeight = $('html').height();
+      if (msgHeight > 360) {
+        const heightDiff = msgHeight - 360;
+        $('html').css('height', (htmlHeight + heightDiff));
+      } else {
+        $('html').css('height', 'auto');
+      }
     }
 
     function hideDependencyError() {
@@ -112,14 +120,6 @@ limitations under the License.
 
     function checkDependencyMismatch() {
       if (bkg.persistedVars.dependencyMismatch && bkg.persistedVars.uninstalledDeps.length > 0) {
-        const msgHeight = $('div.deps-popup').height();
-        const htmlHeight = $('html').height();
-        if (msgHeight > 360) {
-          const heightDiff = msgHeight - 360;
-          $('html').css('height', (htmlHeight + heightDiff));
-        } else {
-          $('html').css('height', 'auto');
-        }
         showDependencyError(bkg.persistedVars.uninstalledDeps);
       } else {
         hideDependencyError();
@@ -263,6 +263,7 @@ limitations under the License.
             $('#cancel-button').click(() => {
               hideDependencyError();
               bkg.persistVar('dependencyMismatch', false);
+              $('html').css('height', 'auto');
             });
           } else {
             $('#studio, #hot-reload-button').css('display', 'none');
@@ -388,7 +389,6 @@ limitations under the License.
         jsonIcon.addClass('json-icon');
         jsonIcon.attr('id', `${uid}`);
         $('title', jsonIcon).text('View document JSON');
-        console.log(jsonIcon[0]);
         jsonTag.appendChild(jsonIcon[0]);
         pathTag.setAttribute('colspan', '20');
         pathTag.className = 'doc-path';
@@ -562,7 +562,7 @@ limitations under the License.
           $('#loading-gif').css('display', 'none');
           $('#search').css('text-indent', '5px');
           $('body').css('overflow-y', 'hidden');
-          $('html').outerHeight(height + 66);
+          $('html').css('height', 'auto');
         } else if (uuidPattern.test(input)) {
           getJsonFromGuid(input);
           $('#loading-gif').css('display', 'none');

@@ -55,13 +55,13 @@ window.bkgHotReload = (startLoading, stopLoading, validate, showDependencyError)
           notification(res[0].status, 'Dependency Mismatch', res[0].message, '../images/access_denied.png', false);
           console.log(res[0].message);
           persistedVars.uninstalledDeps = res[0].deps || '';
+          persistedVars.dependencyMismatch = true;
           try {
             showDependencyError(persistedVars.uninstalledDeps);
           }
           catch(e) {
             // Popup is closed
           }
-          persistedVars.dependencyMismatch = true;
         }
       })
       .catch((e) => {
