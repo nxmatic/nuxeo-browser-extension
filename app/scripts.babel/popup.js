@@ -291,6 +291,11 @@ limitations under the License.
             }
           });
 
+        nuxeo.connect()
+          .then((client) => {
+            $('#platform-version').text(` ${client.serverVersion}`);
+          });
+
         const serverString = DOMPurify.sanitize(nuxeo._baseURL);
         $('div.server-name-url').text(serverString);
 
