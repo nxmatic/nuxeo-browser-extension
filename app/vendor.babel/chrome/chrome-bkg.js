@@ -3,35 +3,6 @@
 let tabUrl;
 let docUrl;
 
-function disableIcon(tabId) {
-  return chrome.pageAction.setIcon({
-    tabId,
-    path: {
-      16: '../images/nuxeo-grey-16.png',
-      19: '../images/nuxeo-grey-19.png',
-      32: '../images/nuxeo-grey-32.png',
-      38: '../images/nuxeo-grey-38.png',
-    },
-  });
-}
-
-function enableIcon(tabId) {
-  return chrome.pageAction.setIcon({
-    tabId,
-    path: {
-      16: '../images/nuxeo-16.png',
-      19: '../images/nuxeo-19.png',
-      32: '../images/nuxeo-32.png',
-      38: '../images/nuxeo-38.png',
-    },
-  });
-}
-
-function disableExt(tabInfo) {
-  disableIcon(tabInfo.id);
-  chrome.pageAction.hide(tabInfo.id);
-}
-
 function pageActionOnNuxeo(tabInfo) {
   const re = /.*\.nuxeo$/;
   const login = '/login.jsp';
@@ -40,15 +11,17 @@ function pageActionOnNuxeo(tabInfo) {
     url: tabUrl,
     name: 'JSESSIONID',
   }, (cookies) => {
-    disableIcon(tabInfo.id);
     chrome.pageAction.hide(tabInfo.id);
     cookies.forEach((cookie) => {
       if ((cookie.value).match(re) && ((tabUrl).indexOf(login) < 0)) {
         chrome.pageAction.show(tabInfo.id);
-        enableIcon(tabInfo.id);
       }
     });
   });
+}
+
+function disableExt(tabInfo) {
+  chrome.pageAction.hide(tabInfo.id);
 }
 
 function getInfoForTab(tabs) {
