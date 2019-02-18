@@ -20,7 +20,7 @@ node(env.SLAVE) {
     sh "echo ${env.SLAVE}"
     try {
         timestamps {
-            timeout(30) {
+            timeout(60) {
                 stage('checkout') {
                     // manually clean before checkout
                     sh "rm -rf node_modules"
