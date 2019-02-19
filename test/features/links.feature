@@ -15,7 +15,7 @@ Feature: Links
       | MVEL               | Use of MVEL in Automation Chains \| Nuxeo Documentation                            |
       | Workflow Variables | Variables Available in the Automation Context \| Nuxeo Documentation               |
       | Escalation Rules   | Escalation Service \| Nuxeo Documentation                                          |
-      | Nuxeo Elements     | webcomponents.org - Discuss & share web components                                 |
+      | Nuxeo Elements     | nuxeo                                                                              |
       | Nuxeo Layouts      | Nuxeo Showcase - Layout Service (forms, views, and actions)                        |
       | Style Guide        | Nuxeo Platform - Style Guide                                                       |
       | Automation Doc     | Nuxeo Automation Documentation                                                     |
