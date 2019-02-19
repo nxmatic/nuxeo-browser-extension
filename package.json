@@ -57,10 +57,7 @@
     "build": "gulp clean build",
     "gulp": "gulp",
     "watch": "gulp watch",
-    "test": "./node_modules/.bin/wdio test/wdio.conf.js",
-    "test810": "./node_modules/.bin/wdio test_810/wdio.conf.js",
-    "test910": "./node_modules/.bin/wdio test_910/wdio.conf.js",
-    "test1010": "./node_modules/.bin/wdio test_1010/wdio.conf.js"
+    "test": "./node_modules/.bin/wdio test/wdio.conf.js"
   },
   "dependencies": {
     "chai": "^4.1.2",

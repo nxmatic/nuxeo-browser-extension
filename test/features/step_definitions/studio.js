@@ -16,6 +16,7 @@ limitations under the License.
 
 const { Given, Then, When } = require('cucumber');
 const chai = require('chai');
+const chrome = require('sinon-chrome');
 
 const assert = chai.assert;
 const expect = chai.expect;
@@ -66,7 +67,7 @@ Then(/^I (can't )?see the (.+) document type/, (notVisible, docType) => {
 });
 
 Then(/^the Nuxeo page refreshes/, () => {
-  browser.waitUntil(() => browser.execute(() => chrome.tabs.reload.called).value, 20000);
+  browser.waitUntil(() => browser.execute(() => chrome.tabs.reload.called).value, 40000);
   const tabIds = browser.getTabIds();
   for (let i = 0; i < tabIds.length; i += 1) {
     if (browser.getTitle().indexOf('Nuxeo Platform') === -1) {
