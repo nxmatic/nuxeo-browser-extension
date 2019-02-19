@@ -31,12 +31,6 @@ const copyrighted = [
   'app/vendor.babel/firefox/*.js',
   'test/features/step_definitions/*.js',
   'test/*.js',
-  'test_810/features/step_definitions/*.js',
-  'test_810/*.js',
-  'test_910/features/step_definitions/*.js',
-  'test_910/*.js',
-  'test_1010/features/step_definitions/*.js',
-  'test_1010/*.js',
   './LICENSE.txt'
 ]
 
