@@ -113,6 +113,7 @@ Then(/the (.+) page opens/, (title) => {
   const tabIds = browser.getTabIds();
   for (let i = 0; i < tabIds.length; i += 1) {
     browser.switchTab(tabIds[i]);
+    browser.pause(500);
     if (title === browser.getTitle()) {
       break;
     }

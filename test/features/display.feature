@@ -35,5 +35,5 @@ Feature: Popup Display
     Examples:
       | name     | title                              |
       | Apache   | Apache License, Version 2.0        |
-      | Feedback | ProdPad - Customer Feedback Portal |
+      | Feedback | - We'd love to hear your ideas!    |
 
