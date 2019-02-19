@@ -16,6 +16,7 @@ limitations under the License.
 
 const { Given, Then, When } = require('cucumber');
 const chai = require('chai');
+const chrome = require('sinon-chrome');
 
 const assert = chai.assert;
 const expect = chai.expect;

@@ -3,15 +3,15 @@
   <parent>
     <groupId>org.nuxeo.ecm.distribution</groupId>
     <artifactId>nuxeo-distribution</artifactId>
-    <version>11.1-SNAPSHOT</version>
+    <version>10.10</version>
     <relativePath></relativePath>
   </parent>
 
   <artifactId>nuxeo-browser-extension-ftest</artifactId>
-  <name>Functional Tests for Nuxeo Browser Extension</name>
+  <name>Functional Tests for Nuxeo Browser Extension on latest Nuxeo 10.10 HF</name>
 
   <properties>
-    <nuxeo.tested.version>${nuxeo.distribution.version}</nuxeo.tested.version>
+    <nuxeo.tested.version>[10.10]</nuxeo.tested.version>
   </properties>
 
   <dependencies>
@@ -25,7 +25,7 @@
     <dependency>
       <groupId>org.nuxeo.web.ui</groupId>
       <artifactId>nuxeo-web-ui-marketplace</artifactId>
-      <version>2.5.0-SNAPSHOT</version>
+      <version>2.4.0</version>
       <type>zip</type>
       <scope>test</scope>
     </dependency>
@@ -46,6 +46,13 @@
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
@@ -182,17 +189,6 @@
       <snapshots>
         <updatePolicy>always</updatePolicy>
         <enabled>true</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>internal-snapshots</id>
-      <url>http://mavenin.nuxeo.com/nexus/content/groups/internal-snapshots</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-        <updatePolicy>never</updatePolicy>
       </snapshots>
     </repository>
   </repositories>
