@@ -41,7 +41,7 @@ Given(/^the (.+) page is open(?: on ([Ff]irefox|[Cc]hrome))?/, (page, arg) => {
   browser.url(url);
   // http://chaijs.com/api/bdd/
   if (page === 'Popup') {
-    expect(browser.getUrl()).to.include('popup.html');
+    expect(browser.getTitle()).to.equal('Nuxeo Dev Tools');
     injectMocks();
   } else {
     expect(browser.execute(() => {

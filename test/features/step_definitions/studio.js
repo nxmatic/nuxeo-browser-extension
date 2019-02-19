@@ -20,7 +20,7 @@ const chai = require('chai');
 const assert = chai.assert;
 const expect = chai.expect;
 const should = chai.should();
-const nxPath = 'http://localhost:8080/nuxeo';
+const nxPath = 'http://localhost:8080/nuxeo/nxpath/default';
 
 Then(/^I am taken to my Studio project/, () => {
   const tabIds = browser.getTabIds();
@@ -41,28 +41,27 @@ When(/I have a (.+) document in Nuxeo/, (docType) => {
 });
 
 When(/^I navigate to the document/, () => {
-  browser.url(`${nxPath}/ui/#!/browse${this.doc.path}`);
+  browser.url(`${nxPath}${this.doc.path}@view_documents`);
 });
 
 When(/^I try to create a document/, () => {
-  browser.waitForShadowDomElement(['html body nuxeo-app', 'nuxeo-document-create-button', '#tray #createBtn'], 5000);
-  browser.shadowDomElement(['html body nuxeo-app', 'nuxeo-document-create-button', '#tray #createBtn']).click();
+  browser.$('//*[@id="nxw_newDocument_form:nxw_newDocument_link"]').waitForVisible();
+  browser.$('//*[@id="nxw_newDocument_form:nxw_newDocument_link"]').click();
 });
 
 Then(/^I (can't )?see the (.+) document type/, (notVisible, docType) => {
-  browser.waitForShadowDomElement(['html body nuxeo-app', 'nuxeo-document-create-popup', '#createDocDialog']);
-  const customDocType = browser.shadowDomElement(['html body nuxeo-app',
-    'nuxeo-document-create-popup', '#createDocDialog #holder iron-pages #simpleCreation',
-    `iron-pages .vertical .container paper-dialog-scrollable paper-button[name="${docType}"]`]).value;
+  browser.$('#nxw_newDocument_after_view_box').waitForVisible();
   if (notVisible) {
-    const tabIds = browser.getTabIds();
-    browser.switchTab(tabIds[0]);
-    return expect(customDocType).to.equal(null);
+    if (!browser.$(`//*[@id="nxw_newDocument_after_view_fancy_subview:nxw_newDocument_after_view_fancyform:${docType}"]`).isVisible()) {
+      return true;
+    } else {
+      return false;
+    }
   } else {
-    const tabIds = browser.getTabIds();
-    browser.switchTab(tabIds[0]);
-    return expect(customDocType).to.exist;
+    browser.$(`//*[@id="nxw_newDocument_after_view_fancy_subview:nxw_newDocument_after_view_fancyform:${docType}"]`).isVisible().should.be.true;
   }
+  const tabIds = browser.getTabIds();
+  return browser.switchTab(tabIds[0]);
 });
 
 Then(/^the Nuxeo page refreshes/, () => {
