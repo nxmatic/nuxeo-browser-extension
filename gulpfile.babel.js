@@ -264,7 +264,6 @@ gulp.task('build:chrome:manifest', () => {
 });
 
 gulp.task('build:chrome', gulp.series(
-  'build:chrome:version',
   'build:chrome:base',
   'build:chrome:about',
   'build:chrome:json',
@@ -380,7 +379,6 @@ gulp.task('build:firefox:manifest', () => {
 });
 
 gulp.task('build:firefox', gulp.series(
-  'build:firefox:version',
   'build:firefox:base',
   'build:firefox:about',
   'build:firefox:manifest'
@@ -391,7 +389,7 @@ gulp.task('version:chrome', () => {
 });
 
 gulp.task('version:firefox', () => {
-  return updateVersionForRelease('firefox');
+  return updateVersionForRelease('firefox', version);
 });
 
 gulp.task('zip:chrome', () => {
@@ -447,6 +445,10 @@ gulp.task('build',
     gulp.parallel(
       'build:firefox',
       'build:chrome'
+    ),
+    gulp.parallel(
+      'build:firefox:version',
+      'build:chrome:version'
     ),
     'size',
     'build:sinon-chrome'
@@ -523,12 +525,15 @@ gulp.task('release',
     'clean',
     'copyright',
     'build:base',
+    'version:minor',
     gulp.parallel(
       'build:chrome',
       'build:firefox'
     ),
-    'version:minor',
-    'version:chrome',
+    gulp.parallel(
+      'version:chrome',
+      'version:firefox'
+    ),
     gulp.parallel(
       'zip:chrome',
       'zip:firefox'
@@ -541,12 +546,15 @@ gulp.task('release:major',
     'clean',
     'copyright',
     'build:base',
+    'version:major',
     gulp.parallel(
       'build:chrome',
       'build:firefox'
     ),
-    'version:major',
-    'version:chrome',
+    gulp.parallel(
+      'version:chrome',
+      'version:firefox'
+    ),
     gulp.parallel(
       'zip:chrome',
       'zip:firefox'
