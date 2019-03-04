@@ -357,6 +357,9 @@ limitations under the License.
           } else {
             playgroundUrl = ('http://nuxeo.github.io/api-playground/#/').concat(serverURL);
           }
+          if (!JSON.parse(text).installed.includes('nuxeo-web-ui')) {
+            $('#designer-livepreview').hide();
+          }
           return registerLink('#api-playground', playgroundUrl);
         });
 
