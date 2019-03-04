@@ -182,13 +182,17 @@ limitations under the License.
       }
     }
 
+    function adjustStorageButtons() {
+      $('.highlight-option').hide();
+      $('#save').css('right', -15);
+      $('#save').css('top', 5);
+      $('#reset').css('right', -37);
+      $('#reset').css('top', 5);
+    }
+
     $(document).ready(() => {
       if (app.browser.name === 'Firefox') {
-        $('.highlight-option').hide();
-        $('#save').css('right', -15);
-        $('#save').css('top', 5);
-        $('#reset').css('right', -37);
-        $('#reset').css('top', 5);
+        adjustStorageButtons();
       }
 
       $('#searchclear').click(() => {
@@ -340,7 +344,7 @@ limitations under the License.
             $('#platform-version').text(` ${client.serverVersion}`);
             if (!client.serverVersion.gt(client.SERVER_VERSIONS.LTS_2019)) {
               chrome.storage.sync.set({ highlight: true }, () => {
-                $('.highlight-option').hide();
+                adjustStorageButtons();
               });
             }
           });
