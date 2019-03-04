@@ -50,9 +50,11 @@ function tracesEnabled(button, page) {
 
 Then(/^I can see that (.+) (is|are) (enabled|disabled) on the (Automation Documentation|Popup extension) page/, (button, verb, mode, page) => {
   if (mode === 'enabled') {
-    tracesEnabled(button, page).should.be.true;
+    browser.waitUntil(() => tracesEnabled(button, page), 5000);
+    return tracesEnabled(button, page).should.be.true;
   } else {
-    tracesEnabled(button, page).should.be.false;
+    browser.waitUntil(() => tracesEnabled(button, page) === false, 5000);
+    return tracesEnabled(button, page).should.be.false;
   }
 });
 
