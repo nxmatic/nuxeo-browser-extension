@@ -183,6 +183,14 @@ limitations under the License.
     }
 
     $(document).ready(() => {
+      if (app.browser.name === 'Firefox') {
+        $('.highlight-option').hide();
+        $('#save').css('right', -15);
+        $('#save').css('top', 5);
+        $('#reset').css('right', -37);
+        $('#reset').css('top', 5);
+      }
+
       $('#searchclear').click(() => {
         $('#search').val('');
         $('.no-result').css('display', 'none');
