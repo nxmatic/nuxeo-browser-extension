@@ -279,7 +279,7 @@ limitations under the License.
                 throw new Error(error);
               });
           } else {
-            const jsonUrl = `${nuxeo._baseURL}api/v1/path${input}?enrichers.document=acls,permissions`;
+            const jsonUrl = `${nuxeo._baseURL}api/v1/path${input}?enrichers.document=acls,permissions&properties=*`;
             app.browser.createTabs(jsonUrl, bkg.studioExt.server.tabId);
           }
         });
@@ -342,7 +342,8 @@ limitations under the License.
         nuxeo.connect()
           .then((client) => {
             $('#platform-version').text(` ${client.serverVersion}`);
-            if (!client.serverVersion.gt(client.SERVER_VERSIONS.LTS_2019)) {
+            if (!client.serverVersion.version === '10.3'
+              && client.serverVersion.lt(client.SERVER_VERSIONS.LTS_2019)) {
               chrome.storage.sync.set({ highlight: true }, () => {
                 adjustStorageButtons();
               });
