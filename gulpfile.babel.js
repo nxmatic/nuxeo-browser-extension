@@ -48,10 +48,16 @@ function readVersion(vendor) {
   return manifest.version.split('\.');
 }
 
-// Increment build version
+// Create timestamped build version
 function buildVersion(vendor) {
   let [major, minor, build] = readVersion(vendor);
   return `${ major }.${ minor }.${ buildNumber() }`;
+}
+
+// Increment fix version
+function fixVersion(vendor) {
+  let [major, minor, build] = readVersion(vendor);
+  return `${ major }.${ minor }.${ parseInt(build) + 1 }`;
 }
 
 // Increment minor version
@@ -466,7 +472,14 @@ gulp.task('watch:tasks', (done) => {
     'app/vendor.babel/**/*.js',
     'app/scripts.babel/*.js',
     'app/scripts.babel/bkg/*.js'
-  ]).on('change', gulp.series('clean', 'build:base', 'build:chrome'));
+  ]).on('change',
+    gulp.series(
+      'clean',
+      'build:base',
+      'build:chrome:version',
+      'build:chrome'
+    )
+  );
   gulp.watch([
     'dist/chrome/**/'
   ]).on('change', function () {
@@ -492,11 +505,23 @@ gulp.task('watch:lint', (done) => {
   done();
 })
 
-gulp.task('watch', gulp.series('build:base', 'build:chrome', 'watch:tasks'));
+gulp.task('watch',
+  gulp.series(
+    'build:base',
+    'build:chrome:version',
+    'build:chrome',
+    'watch:tasks'
+  )
+);
 
 gulp.task('package:chrome', gulp.series('build:chrome', 'zip:chrome'));
 
 gulp.task('package:firefox', gulp.series('build:firefox', 'zip:firefox'));
+
+gulp.task('version:fix', done => {
+  version = fixVersion('chrome');
+  done();
+});
 
 gulp.task('version:minor', done => {
   version = minorVersion('chrome');
@@ -516,6 +541,27 @@ gulp.task('package',
     gulp.parallel(
       'package:chrome',
       'package:firefox'
+    )
+  )
+);
+
+gulp.task('release:fix',
+  gulp.series(
+    'clean',
+    'copyright',
+    'build:base',
+    'version:fix',
+    gulp.parallel(
+      'build:chrome',
+      'build:firefox'
+    ),
+    gulp.parallel(
+      'version:chrome',
+      'version:firefox'
+    ),
+    gulp.parallel(
+      'zip:chrome',
+      'zip:firefox'
     )
   )
 );
