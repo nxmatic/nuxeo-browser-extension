@@ -33,7 +33,7 @@ node(env.SLAVE) {
                         credentialsId: 'bde-connect-creds-ft',
                         passwordVariable: 'CONNECT_CREDS_PSW',
                         usernameVariable: 'CONNECT_CREDS_USR')]) {
-                            def jdk = tool name: 'java-8-oracle'
+                            def jdk = tool name: 'java-11-openjdk'
                             env.JAVA_HOME = "${jdk}"
                             def mvnHome = tool name: 'maven-3.3', type: 'hudson.tasks.Maven$MavenInstallation'
                             sh "set +x; echo ${env.CLID}  | sed 's/--/\\n/' >${env.RESOURCES_PATH}/instance.clid"
