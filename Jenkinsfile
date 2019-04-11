@@ -48,7 +48,8 @@ node(env.SLAVE) {
                     step([$class: 'CucumberReportPublisher', jsonReportDirectory: 'ftest/target/cucumber-reports/', fileIncludePattern: '*.json'])
                     archiveArtifacts "${archive_paths}"
                     // TODO cobertura coverage
-                    if (env.BRANCH_NAME == 'master') {
+                    if (env.BRANCH_NAME == 'master' || env.BRANCH_NAME == '1010' || env.BRANCH_NAME == '910' || env.BRANCH_NAME == '810') {
+                        git poll: false, url: 'git@github.com:nuxeo/nuxeo-browser-extension.git'
                         step([$class: 'JiraIssueUpdater', issueSelector: [$class: 'DefaultIssueSelector'], scm: scm])
                     }
                     def status = currentBuild.result == null ? 'SUCCESS' : currentBuild.result;
