@@ -298,7 +298,7 @@ limitations under the License.
                 throw new Error(error);
               });
           } else {
-            const jsonUrl = `${nuxeo._baseURL}api/v1/id${input}?enrichers.document=acls,permissions`;
+            const jsonUrl = `${nuxeo._baseURL}api/v1/id/${input}?enrichers.document=acls,permissions`;
             app.browser.createTabs(jsonUrl, bkg.studioExt.server.tabId);
           }
         });
