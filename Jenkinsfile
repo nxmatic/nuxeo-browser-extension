@@ -1,13 +1,6 @@
  properties([
     [$class: 'BuildDiscarderProperty', strategy: [$class: 'LogRotator', daysToKeepStr: '60', numToKeepStr: '60', artifactNumToKeepStr: '1']],
-    pipelineTriggers([
-        triggers: [
-            [
-                $class: 'ReverseBuildTrigger',
-                upstreamProjects: "${env.UPSTREAM_PROJECT}", threshold: hudson.model.Result.SUCCESS
-            ]
-        ]
-    ])
+    pipelineTriggers([cron('0 2 * * *')])
  ])
 
 def formatSlack(begin) {
