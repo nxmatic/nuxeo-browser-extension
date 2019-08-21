@@ -7,7 +7,7 @@ def formatSlack(begin) {
   return "${begin} <${currentBuild.absoluteUrl}|${env.JOB_NAME}>";
 }
 
-def archive_paths = "ftest/target/tomcat/log/*.log, test_${env.NX_VERSION}/screenshots/*, package/*"
+def archive_paths = "ftest/target/tomcat/log/*.log, test/screenshots/**, package/**"
 
 node(env.SLAVE) {
     sh "echo ${env.SLAVE}"
