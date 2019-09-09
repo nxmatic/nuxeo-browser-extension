@@ -22,32 +22,37 @@ const expect = chai.expect;
 const should = chai.should();
 
 When(/^I try to create a document/, () => {
-  browser.waitForShadowDomElement(['html body nuxeo-app', 'nuxeo-document-create-button', '#tray #createBtn'], 5000);
-  browser.shadowDomElement(['html body nuxeo-app', 'nuxeo-document-create-button', '#tray #createBtn']).click();
+  const el = $('html body nuxeo-app').shadow$('nuxeo-document-create-button').shadow$('#tray #createBtn');
+  el.waitForExist(5000);
+  el.click();
 });
 
 Then(/^I (can't )?see the (.+) document type/, (notVisible, docType) => {
-  browser.waitForShadowDomElement(['html body nuxeo-app', 'nuxeo-document-create-popup', '#createDocDialog']);
-  const customDocType = browser.shadowDomElement(['html body nuxeo-app',
-    'nuxeo-document-create-popup', '#createDocDialog #holder iron-pages #simpleCreation',
-    `iron-pages .vertical .container paper-dialog-scrollable paper-button[name="${docType}"]`]).value;
+  const el = $('html body nuxeo-app').shadow$('nuxeo-document-create-popup').shadow$('#createDocDialog');
+  el.waitForExist(5000);
+  const customDocType = $('html body nuxeo-app')
+    .shadow$('nuxeo-document-create-popup')
+    .shadow$('#createDocDialog #holder iron-pages #simpleCreation')
+    .shadow$(`iron-pages .vertical .container paper-dialog-scrollable paper-button[name="${docType}"]`);
   if (notVisible) {
-    const tabIds = browser.getTabIds();
-    browser.switchTab(tabIds[0]);
-    return expect(customDocType).to.equal(null);
+    expect(customDocType.ELEMENT).to.equal(undefined);
+    return expect(customDocType.error).to.exist;
   } else {
-    const tabIds = browser.getTabIds();
-    browser.switchTab(tabIds[0]);
-    return expect(customDocType).to.exist;
+    expect(customDocType.ELEMENT).to.exist;
+    return expect(customDocType.error).to.equal(undefined);
   }
 });
 
 Then(/^the Nuxeo page refreshes/, () => {
-  browser.waitUntil(() => browser.execute(() => chrome.tabs.reload.called).value, 40000);
-  const tabIds = browser.getTabIds();
+  browser.waitUntil(() => {
+    return browser.execute(() => {
+      return chrome.tabs.reload.called;
+    })
+  }, 50000);
+  const tabIds = browser.getWindowHandles();
   for (let i = 0; i < tabIds.length; i += 1) {
     if (browser.getTitle().indexOf('Nuxeo Platform') === -1) {
-      browser.switchTab(tabIds[i]);
+      browser.switchToWindow(tabIds[i]);
     } else {
       return browser.refresh();
     }

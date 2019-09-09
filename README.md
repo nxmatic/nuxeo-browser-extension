@@ -81,15 +81,32 @@ Run `gulp watch` and load the unpacked extension in your preferred browser for y
   * Click on the **Load Unpacked** button.
   * Select nuxeo-browser-extension/dist/**chrome**.
 
+#### Debugging
+
+##### Popup Script
+  * Right click on popup page
+  * Click **Inspect**
+  * Click on the **Console** tab
+
+##### Background Script
+  * *Options* > *More Tools* > *Extensions*
+  * Scroll down to **Nuxeo Dev Tools**
+  * Ensure **Developer Mode** is activated (top right corner)
+  * Click on **background page**
+
 ### Tests
+Ensure a Nuxeo server is running and:
+  * registered to the `bde-test` Studio project
+  * CORS config is activated
+  * dev mode is activated
 ```
 $ npm install
-$ npm run test
+$ connectUsr=${CONNECT_USERNAME} connectPsw=${CONNECT_PASSWORD} npm run test
 ```
 
 ...or build and run with Maven:
 ```
-$ mvn clean verify -f ftest/pom.xml
+$ mvn clean verify -f ftest/pom.xml -DconnectUsr=${CONNECT_USERNAME} -DconnectPsw=${CONNECT_PASSWORD}
 ```
 
 ### Releases

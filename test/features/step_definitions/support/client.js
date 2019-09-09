@@ -64,6 +64,7 @@ const revertOptions = (username, password) => ({
   url: 'https://connect.nuxeo.com/nuxeo/site/studio/v2/project/bde-test/workspace/ws.resources/nuxeo.war/ui/nuxeo-home.html',
   method: 'DELETE',
   auth: {
+    method: 'basic',
     user: username,
     pass: password,
   },
@@ -85,6 +86,7 @@ const getDashboardOptions = (username, password) => ({
   url: 'https://connect.nuxeo.com/nuxeo/site/studio/v2/project/bde-test/workspace/ws.resources/nuxeo.war/ui/nuxeo-home.html',
   method: 'GET',
   auth: {
+    method: 'basic',
     user: username,
     pass: password,
   },

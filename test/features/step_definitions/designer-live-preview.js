@@ -30,13 +30,13 @@ const should = chai.should();
 const dashboardUrl = 'https://connect.nuxeo.com/nuxeo/site/studio/v2/project/bde-test/workspace/ws.resources/nuxeo.war/ui/nuxeo-home.html';
 
 When(/^Designer Live Preview retrieves the modifications/, () => {
-  const tabIds = browser.getTabIds();
+  const tabIds = browser.getWindowHandles();
   findTabByTitle('Nuxeo Dev Tools', tabIds);
   const isEnabled = browser.execute(() => window.isEnabled());
   const redirectedUrls = browser.execute(() => window.redirectedUrls);
-  const dashboardModified = Object.values(redirectedUrls.value).indexOf(dashboardUrl) > -1;
-  assert(isEnabled.value.should.be.true
-    && redirectedUrls.value.should.not.be.empty
+  const dashboardModified = Object.values(redirectedUrls).indexOf(dashboardUrl) > -1;
+  assert(isEnabled.should.be.true
+    && redirectedUrls.should.not.be.empty
     && dashboardModified.should.be.true);
 });
 

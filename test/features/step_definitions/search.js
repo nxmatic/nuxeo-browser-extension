@@ -20,14 +20,12 @@ const expect = require('chai').expect;
 When(/I enter (.+) in (.+) input/, (text, selector) => {
   browser.$(`#${selector}`).addValue(text);
   // Wait until debouncing is ok
-  browser.waitForVisible('#loading-gif');
-  browser.screenshot();
-  browser.waitForVisible('#loading-gif', 2000, true);
+  $('#loading-gif').waitForDisplayed();
+  $('#loading-gif').waitForDisplayed(2000, true);
 });
 
 Then(/I wait until (.+) appears/, (selector) => {
-  browser.waitForExist(`${selector} > *`);
-  browser.screenshot();
+  $(`${selector} > *`).waitForExist();
 });
 
 Then(/the server responds with (\d+) documents?/, (size) => {
