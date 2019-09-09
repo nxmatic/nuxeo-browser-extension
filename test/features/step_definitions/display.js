@@ -27,7 +27,7 @@ const should = chai.should();
 Then(/^I see (.+) as the connected server/, (url) => {
   // Check url on popup
   expect(url).to.be.a('string');
-  expect(browser.$('.server-name-url').getText()).to.equal(url);
+  expect($('div.server-name-url').getText()).to.equal(url);
 });
 
 When(/^I (see|click on) the extension (.+) (link|button|element)/, (action, selector, element) => {
@@ -35,7 +35,7 @@ When(/^I (see|click on) the extension (.+) (link|button|element)/, (action, sele
   if (element === 'button') {
     selector = `${selector}-button`;
   }
-  browser.waitForVisible(`#${selector}`);
+  $(`#${selector}`).waitForDisplayed();
   browser.pause(500);
   if (action === 'click on') {
     try {
@@ -45,22 +45,23 @@ When(/^I (see|click on) the extension (.+) (link|button|element)/, (action, sele
       browser.pause(500);
       browser.$(`#${selector}`).click();
     }
-    if (!(browser.execute(() => chrome.tabs.create.called).value)) {
-      expect(browser.execute(() => {
+    if (!(browser.execute(() => chrome.tabs.create.called))) {
+      const browserUrl = browser.execute(() => {
         getCurrentTabUrl(() => {});
         return window.studioExt.server.url;
-      }).value).to.be.equal('http://localhost:8080/nuxeo/');
+      });
+      expect(browserUrl).to.equal('http://localhost:8080/nuxeo/');
       inject();
     }
   }
 });
 
 When(/I hover on the (.+) element/, (element) => {
-  const selector = element.replace(/\s+/g, '-').toLowerCase();
-  browser.waitForExist(`#${selector}`).should.be.true;
-  browser.moveToObject(`#${selector}`);
+  const selector = $(`#${element.replace(/\s+/g, '-').toLowerCase()}`);
+  selector.waitForExist(1000);
+  selector.moveTo();
   if (selector === 'useful-links') {
-    browser.waitForVisible('#dropdown-content');
+    $('#dropdown-content').waitForDisplayed();
   }
 });
 
@@ -69,6 +70,6 @@ Then(/^I refresh the page/, () => {
 });
 
 Then(/I am connected to API Playground on (.+)/, (server) => {
-  browser.waitForVisible('::shadow div.connection a');
-  expect(browser.$('::shadow div.connection a').getText()).to.equal(server);
+  $('::shadow div.connection a').waitForDisplayed();
+  expect($('::shadow div.connection a').getText()).to.equal(server);
 });

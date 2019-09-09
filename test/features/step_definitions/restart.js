@@ -28,11 +28,11 @@ const nuxeo = new Nuxeo({
 });
 
 Then(/I see the confirmation dialog/, () => {
-  browser.waitForVisible('div.confirmation-modal');
+  $('div.confirmation-modal').waitForDisplayed();
 });
 
 When(/I confirm the dialog/, () => {
-  browser.$('button.confirm').click();
+  $('button.confirm').click();
 });
 
 Then(/the server restarts/, { timeout: 120000 }, () => {
@@ -41,7 +41,7 @@ Then(/the server restarts/, { timeout: 120000 }, () => {
     browser.pause(5000);
     nuxeo.connect()
       .then(async (client) => {
-        connected = await nuxeo.connected;
+        connected = await client.connected;
       })
       .catch(() => {
         connected = false;
@@ -51,7 +51,7 @@ Then(/the server restarts/, { timeout: 120000 }, () => {
     browser.pause(5000);
     nuxeo.connect()
       .then(async (client) => {
-        connected = await nuxeo.connected;
+        connected = await client.connected;
       })
       .catch(() => {
         connected = false;
@@ -60,15 +60,16 @@ Then(/the server restarts/, { timeout: 120000 }, () => {
 });
 
 Then(/I can log back into Nuxeo/, () => {
-  browser.timeouts('implicit', 30000);
-  const tabIds = browser.getTabIds();
-  browser.switchTab(tabIds[1]);
-  browser.pause(10000);
+  browser.setTimeout({
+    'implicit': 60000
+  });
+  const tabIds = browser.getWindowHandles();
+  browser.switchToWindow(tabIds[1]);
   browser.refresh();
-  browser.$('#username').waitForVisible();
+  browser.$('#username').waitForDisplayed();
   browser.$('#username').addValue('Administrator');
   browser.$('#password').addValue('Administrator');
   browser.$('input.login_button').click();
-  browser.switchTab(tabIds[0]);
+  browser.switchToWindow(tabIds[0]);
   browser.refresh();
 });

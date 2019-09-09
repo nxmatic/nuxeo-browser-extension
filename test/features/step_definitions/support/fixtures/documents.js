@@ -20,7 +20,7 @@ function init(docType) {
   const title = `My_${docType}`;
   const doc = {
     'entity-type': 'document',
-    name: title.replace(/[^a-z0-9.]/gi, '_'),
+    name: title.replace(/[^a-z0-9.]/gi, '_').toLowerCase(),
     type: docType.trim(),
     properties: {
       'dc:title': title,
@@ -35,6 +35,9 @@ function create(parent, document) {
     .then((doc) => {
       liveDocuments.push(doc.path);
       return doc;
+    })
+    .catch((e) => {
+      console.log(e);
     });
 }
 

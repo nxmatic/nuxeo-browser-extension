@@ -38,8 +38,8 @@
         <activeByDefault>true</activeByDefault>
       </activation>
       <properties>
-        <nodeVersion>v10.12.0</nodeVersion>
-        <npmVersion>6.7.0</npmVersion>
+        <nodeVersion>v10.16.3</nodeVersion>
+        <npmVersion>6.11.3</npmVersion>
       </properties>
     </profile>
   </profiles>

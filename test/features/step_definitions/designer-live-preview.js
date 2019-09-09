@@ -17,19 +17,28 @@ limitations under the License.
 const { Given, Then, When } = require('cucumber');
 const chai = require('chai');
 const login = require('./support/fixtures/auth.js').login;
+const findTabByTitle = require('./support/fixtures/nav.js').findTabByTitle;
 const modifyDashboard = require('./support/client.js').modifyDashboard;
+const getDashboard = require('./support/client.js').getDashboard;
 const AfterAll = require('./support/hooks.js').AfterAll;
+const Before = require('./support/hooks.js').Before;
 
 const assert = chai.assert;
 const expect = chai.expect;
 const should = chai.should();
 
-Then(/^I am taken to my Studio project/, () => {
+const dashboardUrl = 'https://connect.nuxeo.com/nuxeo/site/studio/v2/project/bde-test/workspace/ws.resources/nuxeo.war/ui/nuxeo-home.html';
+
+When(/^Designer Live Preview retrieves the modifications/, () => {
   const tabIds = browser.getWindowHandles();
-  browser.switchToWindow(tabIds[2]);
-  try {
-    expect(browser.getUrl()).to.have.string('https://connect.nuxeo.com/nuxeo/site/studio/ide?project=bde-test');
-  } catch (err) {
-    expect(browser.getUrl()).to.have.string('bde-test', 'https://sso.nuxeo.com/cas/login?service');
-  }
+  findTabByTitle('Nuxeo Dev Tools', tabIds);
+  const isEnabled = browser.execute(() => window.isEnabled());
+  const redirectedUrls = browser.execute(() => window.redirectedUrls);
+  const dashboardModified = Object.values(redirectedUrls).indexOf(dashboardUrl) > -1;
+  assert(isEnabled.should.be.true
+    && redirectedUrls.should.not.be.empty
+    && dashboardModified.should.be.true);
 });
+
+Then(/^my changes can be seen in the dashboard/, () => getDashboard(connectUsr, connectPsw)
+  .then(dashboard => assert(dashboard.indexOf('TESTING TESTING 123...') > -1)));

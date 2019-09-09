@@ -22,31 +22,35 @@ const expect = chai.expect;
 const should = chai.should();
 
 When(/^I try to create a document/, () => {
-  browser.$('//*[@id="nxw_newDocument_form:nxw_newDocument_link"]').waitForVisible();
+  browser.$('//*[@id="nxw_newDocument_form:nxw_newDocument_link"]').waitForDisplayed();
   browser.$('//*[@id="nxw_newDocument_form:nxw_newDocument_link"]').click();
 });
 
 Then(/^I (can't )?see the (.+) document type/, (notVisible, docType) => {
-  browser.$('#nxw_newDocument_after_view_box').waitForVisible();
+  browser.$('#nxw_newDocument_after_view_box').waitForDisplayed();
   if (notVisible) {
-    if (!browser.$(`//*[@id="nxw_newDocument_after_view_fancy_subview:nxw_newDocument_after_view_fancyform:${docType}"]`).isVisible()) {
+    if (!browser.$(`//*[@id="nxw_newDocument_after_view_fancy_subview:nxw_newDocument_after_view_fancyform:${docType}"]`).isDisplayed()) {
       return true;
     } else {
       return false;
     }
   } else {
-    browser.$(`//*[@id="nxw_newDocument_after_view_fancy_subview:nxw_newDocument_after_view_fancyform:${docType}"]`).isVisible().should.be.true;
+    browser.$(`//*[@id="nxw_newDocument_after_view_fancy_subview:nxw_newDocument_after_view_fancyform:${docType}"]`).isDisplayed().should.be.true;
   }
-  const tabIds = browser.getTabIds();
-  return browser.switchTab(tabIds[0]);
+  const tabIds = browser.getWindowHandles();
+  return browser.switchToWindow(tabIds[0]);
 });
 
 Then(/^the Nuxeo page refreshes/, () => {
-  browser.waitUntil(() => browser.execute(() => chrome.tabs.reload.called).value, 40000);
-  const tabIds = browser.getTabIds();
+  browser.waitUntil(() => {
+    return browser.execute(() => {
+      return chrome.tabs.reload.called;
+    })
+  }, 50000);
+  const tabIds = browser.getWindowHandles();
   for (let i = 0; i < tabIds.length; i += 1) {
     if (browser.getTitle().indexOf('Nuxeo Platform') === -1) {
-      browser.switchTab(tabIds[i]);
+      browser.switchToWindow(tabIds[i]);
     } else {
       return browser.refresh();
     }

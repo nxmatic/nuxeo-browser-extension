@@ -19,10 +19,10 @@ const { Given, Then, When } = require('cucumber');
 function toggleTraces(button, page) {
   if (page === 'Popup extension') {
     const selector = button.replace(/\s+/g, '-').toLowerCase();
-    browser.$(`#${selector}-button`).waitForVisible();
+    browser.$(`#${selector}-button`).waitForDisplayed();
     browser.$(`#${selector}-button`).click();
   } else {
-    browser.$('//a[@href="/nuxeo/site/automation/doc/toggleTraces"]').waitForVisible();
+    browser.$('//a[@href="/nuxeo/site/automation/doc/toggleTraces"]').waitForDisplayed();
     browser.$('//a[@href="/nuxeo/site/automation/doc/toggleTraces"]').click();
   }
 }
@@ -31,7 +31,7 @@ function tracesEnabled(button, page) {
   if (page === 'Popup extension') {
     browser.pause(500);
     const selector = button.replace(/\s+/g, '-').toLowerCase();
-    browser.$(`#${selector}-button`).waitForVisible();
+    browser.$(`#${selector}-button`).waitForDisplayed();
     const elementClass = browser.$(`#${selector}-button`).getAttribute('class');
     const enabled = elementClass.indexOf('enabled') > -1;
     if (enabled === true) {
@@ -59,9 +59,9 @@ Then(/^I can see that (.+) (is|are) (enabled|disabled) on the (Automation Docume
 });
 
 Then(/I click on the (.+) operation/, (operation) => {
-  const tabIds = browser.getTabIds();
-  browser.switchTab(tabIds[2]);
-  browser.$(`//a[text()="${operation}"]`).waitForVisible;
+  const tabIds = browser.getWindowHandles();
+  browser.switchToWindow(tabIds[2]);
+  browser.$(`//a[text()="${operation}"]`).waitForDisplayed;
   browser.$(`//a[text()="${operation}"]`).click();
 });
 

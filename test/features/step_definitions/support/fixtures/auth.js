@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 function login(username, password, button) {
-  browser.$('#username').waitForVisible();
+  browser.$('#username').waitForDisplayed();
   browser.$('#username').addValue(username);
   browser.$('#password').addValue(password);
   browser.$(button).click();

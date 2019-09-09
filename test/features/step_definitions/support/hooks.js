@@ -22,11 +22,12 @@ function isTagged(tag, scenario) {
 }
 
 Before((scenario) => {
-  const tabIds = browser.getTabIds();
+  const tabIds = browser.getWindowHandles();
   if (tabIds.length > 2) {
     for (let i = 2; i < tabIds.length; i += 1) {
-      browser.switchTab(tabIds[i]);
-      browser.close();
+      browser.switchToWindow(tabIds[i]);
+      browser.closeWindow();
+      browser.switchToWindow(tabIds[0]);
     }
   }
 });
