@@ -1,8 +1,19 @@
-const nuxeo = require('./features/step_definitions/support/client.js').nuxeo;
+const nuxeo = require('./test/features/step_definitions/support/client.js').nuxeo;
 const path = require('path');
+const cucumberJson = require('wdio-cucumberjs-json-reporter');
 
 exports.config = {
-
+    //
+    // ====================
+    // Runner Configuration
+    // ====================
+    //
+    // WebdriverIO allows it to run your tests in arbitrary locations (e.g. locally or
+    // on a remote machine).
+    runner: 'local',
+    //
+    // Override default path ('/wd/hub') for chromedriver service.
+    // path: '/',
     //
     // ==================
     // Specify Test Files
@@ -12,6 +23,8 @@ exports.config = {
     // NPM script (see https://docs.npmjs.com/cli/run-script) then the current working
     // directory is where your package.json resides, so `wdio` will be called from there.
     //
+    path: '/wd/hub',
+    port: 4444, // default for Selenium Standalone
     specs: [
         './test/features/*.feature'
     ],
@@ -26,7 +39,7 @@ exports.config = {
     // Define your capabilities here. WebdriverIO can run multiple capabilities at the same
     // time. Depending on the number of capabilities, WebdriverIO launches several test
     // sessions. Within your capabilities you can overwrite the spec and exclude options in
-    // order to group specific specs to a specific capability.
+    // order to group specific specs to a specific capbility.
     //
     // First, you can define how many instances should be started at the same time. Let's
     // say you have 3 different capabilities (Chrome, Firefox, and Safari) and you have
@@ -48,9 +61,9 @@ exports.config = {
         maxInstances: 1,
         //
         browserName: 'chrome',
-        javascriptEnabled: true,
-        acceptSslCerts: true,
-        chromeOptions: {
+        // javascriptEnabled: true,
+        // acceptSslCerts: true,
+        'goog:chromeOptions': {
           args: [
             '--no-sandbox',
             '--headless',
@@ -95,7 +108,7 @@ exports.config = {
     baseUrl: 'http://localhost:8080/nuxeo',
     //
     // Default timeout for all waitFor* commands.
-    waitforTimeout: 40000,
+    waitforTimeout: 60000,
     //
     // Default timeout in milliseconds for request
     // if Selenium Grid doesn't send response
@@ -104,60 +117,55 @@ exports.config = {
     // Default request retries count
     connectionRetryCount: 3,
     //
-    // Initialize the browser instance with a WebdriverIO plugin. The object should have the
-    // plugin name as key and the desired plugin options as properties. Make sure you have
-    // the plugin installed before running any tests. The following plugins are currently
-    // available:
-    // WebdriverCSS: https://github.com/webdriverio/webdrivercss
-    // WebdriverRTC: https://github.com/webdriverio/webdriverrtc
-    // Browserevent: https://github.com/webdriverio/browserevent
-    // plugins: {
-    //     webdrivercss: {
-    //         screenshotRoot: 'my-shots',
-    //         failedComparisonsRoot: 'diffs',
-    //         misMatchTolerance: 0.05,
-    //         screenWidth: [320,480,640,1024]
-    //     },
-    //     webdriverrtc: {},
-    //     browserevent: {}
-    // },
-    //
     // Test runner services
     // Services take over a specific job you don't want to take care of. They enhance
     // your test setup with almost no effort. Unlike plugins, they don't add new
     // commands. Instead, they hook themselves up into the test process.
     services: ['selenium-standalone'],
-    // seleniumInstallArgs: {
-    //   version : "3.141",
-    //   baseURL : "https://selenium-release.storage.googleapis.com",
-    //   drivers : {
-    //     chrome : {
-    //       version : "2.45",
-    //       arch    : process.arch,
-    //       baseURL : "https://chromedriver.storage.googleapis.com",
-    //     }
-    //   }
-    // },
-    //
+    // options
+    // chromeDriverArgs: ['--port=4321', '--url-base=\'/\''], // default for ChromeDriver
+    seleniumArgs: {
+      version : "3.141.59",
+      drivers : {
+        chrome : {
+          version : "76.0.3809.68",
+          arch    : process.arch,
+        }
+      }
+    },
+    seleniumInstallArgs: {
+      version : "3.141.59",
+      baseURL : "https://selenium-release.storage.googleapis.com",
+      drivers : {
+        chrome : {
+          version : "76.0.3809.68",
+          arch    : process.arch,
+          baseURL : "https://chromedriver.storage.googleapis.com",
+        }
+      }
+    },
+    seleniumLogs: './',
     // Framework you want to run your specs with.
     // The following are supported: Mocha, Jasmine, and Cucumber
-    // see also: http://webdriver.io/guide/testrunner/frameworks.html
+    // see also: https://webdriver.io/docs/frameworks.html
     //
     // Make sure you have the wdio adapter package for the specific framework installed
     // before running any tests.
     framework: 'cucumber',
     //
+    // The number of times to retry the entire specfile when it fails as a whole
+    // specFileRetries: 1,
+    //
     // Test reporter for stdout.
     // The only one supported by default is 'dot'
-    // see also: http://webdriver.io/guide/reporters/dot.html
-    reporters: ['spec', 'multiple-cucumber-html'],
-    reporterOptions: {
-      htmlReporter: {
-        jsonFolder: './ftest/target/cucumber-reports',
-        reportFolder: './ftest/target/cucumber-reports/html'
-      }
-    },
-    //
+    // see also: https://webdriver.io/docs/dot-reporter.html
+    reporters: [ 'spec',
+        [ 'cucumberjs-json', {
+            jsonFolder: './ftest/target/cucumber-reports',
+            },
+        ],
+    ],
+ //
     // If you are using Cucumber you need to specify the location of your step definitions.
     cucumberOpts: {
         require: ['./test/features/step_definitions/*.js'],        // <string[]> (file/dir) require files before executing features
@@ -172,7 +180,7 @@ exports.config = {
         profile: [],        // <string[]> (name) specify the profile to use
         strict: false,      // <boolean> fail if there are any undefined or pending steps
         tags: [],           // <string[]> (expression) only execute the features or scenarios with tags matching the expression
-        timeout: 40000,     // <number> timeout for step definitions
+        timeout: 60000,     // <number> timeout for step definitions
         ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings.
     },
 
@@ -184,20 +192,12 @@ exports.config = {
     // it and to build services around it. You can either apply a single function or an array of
     // methods to it. If one of them returns with a promise, WebdriverIO will wait until that promise got
     // resolved to continue.
-    /**
-     * Gets executed once before all workers get launched.
-     * @param {Object} config wdio configuration object
-     * @param {Array.<Object>} capabilities list of capabilities details
-     */
+    //
     // onPrepare: function (config, capabilities) {
     // },
-    /**
-     * Gets executed just before initialising the webdriver session and test framework. It allows you
-     * to manipulate configurations depending on the capability or spec.
-     * @param {Object} config wdio configuration object
-     * @param {Array.<Object>} capabilities list of capabilities details
-     * @param {Array.<String>} specs List of spec file paths that are to be run
-     */
+    //
+    // Gets executed just before initialising the webdriver session and test framework. It allows you
+    // to manipulate configurations depending on the capability or spec.
     beforeSession: function (config, capabilities, specs) {
       const chrome = require('sinon-chrome');
       global.liveDocuments = [];
@@ -210,111 +210,36 @@ exports.config = {
         id: 1
       }]);
     },
-    /**
-     * Gets executed before test execution begins. At this point you can access to all global
-     * variables like `browser`. It is the perfect place to define custom commands.
-     * @param {Array.<Object>} capabilities list of capabilities details
-     * @param {Array.<String>} specs List of spec file paths that are to be run
-     */
+    //
+    // Gets executed before test execution begins. At this point you can access to all global
+    // variables like `browser`. It is the perfect place to define custom commands.
+    //
     // before: function (capabilities, specs) {
     // },
-    /**
-     * Runs before a WebdriverIO command gets executed.
-     * @param {String} commandName hook command name
-     * @param {Array} args arguments that command would receive
-     */
+    //
+    // Runs before a WebdriverIO command gets executed.
+    // @param {String} commandName hook command name
+    // @param {Array} args arguments that command would receive
+    //
     // beforeCommand: function (commandName, args) {
     // },
 
-    /**
-     * Runs before a Cucumber feature
-     * @param {Object} feature feature details
-     */
+    //
+    // Runs before a Cucumber feature
+    // @param {Object} feature feature details
+    //
     // beforeFeature: function (feature) {
     // },
-    /**
-     * Runs before a Cucumber scenario
-     * @param {Object} scenario scenario details
-     */
+    //
+    // Runs before a Cucumber scenario
+    // @param {Object} scenario scenario details
+    //
     beforeScenario: function (scenario) {
-      /**
-       * This function runs in the browser context
-       * @param {string|Array<string>} selectors
-       * @return {?Element}
-       */
-
-      function findInShadowDom(selectors) {
-        let selectorsArray = [];
-        if (!Array.isArray(selectors)) {
-          selectorsArray = [selectors];
-        } else {
-          selectorsArray = selectors;
-        }
-
-        function findElement(selector) {
-          let currentElement = document;
-          for (let i = 0; i < selector.length; i += 1) {
-            if (i > 0) {
-              currentElement = currentElement.shadowRoot;
-            }
-
-            if (currentElement) {
-              currentElement = currentElement.querySelector(selector[i]);
-            }
-
-            if (!currentElement) {
-              break;
-            }
-          }
-
-          return currentElement;
-        }
-
-        if (!(document.body.createShadowRoot || document.body.attachShadow)) {
-          selectorsArray = [selectors.join(' ')];
-        }
-        return findElement(selectorsArray);
-      }
-
-      /**
-       * Add a command to return an element within a shadow dom.
-       * The command takes an array of selectors. Each subsequent
-       * array member is within the preceding element's shadow dom.
-       *
-       * Example:
-       *
-       *     const elem = browser.shadowDomElement(['foo-bar', 'bar-baz', 'baz-foo']);
-       *
-       * Browsers which do not have native ShadowDOM support assume each selector is a direct
-       * descendant of the parent.
-       */
-      try {
-        browser.addCommand('shadowDomElement', function (selector) {
-          return this.execute(findInShadowDom, selector);
-        });
-      } catch(e){};
-
-      /**
-       * Provides the equivalent functionality as the above shadowDomElement command, but
-       * adds a timeout. Will wait until the selectors match an element or the timeout
-       * expires.
-       *
-       * Example:
-       *
-       *     const elem = browser.waitForShadowDomElement(['foo-bar', 'bar-baz', 'baz-foo'], 2000);
-       */
-      try {
-        browser.addCommand('waitForShadowDomElement', function async(selector, timeout, timeoutMsg, interval) {
-          return this.waitUntil(() => {
-            const elem = this.execute(findInShadowDom, selector);
-            return elem && elem.value;
-          }, timeout, timeoutMsg, interval);
-        });
-      } catch(e){};
-
-      return nuxeo.repository()
-        .fetch('/default-domain')
-        .then((doc) => { this.doc = doc; });
+      //
+      // This function runs in the browser context
+      // @param {string|Array<string>} selectors
+      // @return {?Element}
+      //
     },
     /**
      * Runs before a Cucumber step
@@ -322,25 +247,28 @@ exports.config = {
      */
     // beforeStep: function (step) {
     // },
-    /**
-     * Runs after a Cucumber step
-     * @param {Object} stepResult step result
-     */
-    // afterStep: function (stepResult) {
-    // },
-    /**
-     * Runs after a Cucumber scenario
-     * @param {Object} scenario scenario details
-     */
+    //
+    // Runs after a Cucumber step
+    // @param {Object} stepResult step result
+    //
+    afterStep: function (stepResult) {
+      cucumberJson.attach(browser.takeScreenshot(), 'image/png');
+    },
+    //
+    // Runs after a Cucumber scenario
+    // @param {Object} scenario scenario details
+    //
     afterScenario: function (scenario) {
       // Delete all documents
       const userWorkspaces = '/default-domain/UserWorkspaces/';
       return Promise.all(liveDocuments
         .filter(doc => path.dirname(doc) === '/default-domain')
         .map(doc => {
-          nuxeo.repository().delete(doc).catch((err) => {
-            console.log(err);
-          });
+          nuxeo.repository()
+            .delete(doc)
+            .catch((err) => {
+              console.log(err);
+            });
         }))
         .then(() => {
           return liveDocuments = [];

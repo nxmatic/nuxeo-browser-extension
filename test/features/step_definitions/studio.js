@@ -25,8 +25,8 @@ const expect = chai.expect;
 const should = chai.should();
 
 Then(/^I am taken to my Studio project/, () => {
-  const tabIds = browser.getTabIds();
-  browser.switchTab(tabIds[2]);
+  const tabIds = browser.getWindowHandles();
+  browser.switchToWindow(tabIds[2]);
   try {
     expect(browser.getUrl()).to.have.string('https://connect.nuxeo.com/nuxeo/site/studio/ide?project=bde-test');
   } catch (err) {

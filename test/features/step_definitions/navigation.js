@@ -36,12 +36,12 @@ Given(/^the (.+) page is open/, (page) => {
     // Extension pages
     if (currentUrl.indexOf(`${page.toLowerCase()}.html`) === -1) {
       const url = `file://${__dirname}/../../../dist/sinon-chrome/${page.toLowerCase()}.html`;
-      let tabIds = browser.getTabIds();
+      let tabIds = browser.getWindowHandles();
       if (tabIds.length > 0 && browser.getTitle() !== '') {
         browser.execute((url) => { // eslint-disable-line no-shadow
           window.open(url);
         });
-        tabIds = browser.getTabIds();
+        tabIds = browser.getWindowHandles();
         findTabByTitle('', tabIds);
         browser.url(url);
       } else {
@@ -49,17 +49,18 @@ Given(/^the (.+) page is open/, (page) => {
       }
     }
     expect(browser.getTitle()).to.be.oneOf(['Nuxeo Dev Tools', `${page} - Nuxeo Dev Tools`]);
-    expect(browser.execute(() => {
+    const browserUrl = browser.execute(() => {
       getCurrentTabUrl(() => {});
       return window.studioExt.server.url;
-    }).value).to.be.equal('http://localhost:8080/nuxeo/');
+    });
+    expect(browserUrl).to.equal('http://localhost:8080/nuxeo/');
     inject();
-    let tabIds = browser.getTabIds();
+    let tabIds = browser.getWindowHandles();
     if (tabIds.length === 1) {
       openNuxeo();
       browser.pause(500);
       // Switch to Nuxeo
-      tabIds = browser.getTabIds();
+      tabIds = browser.getWindowHandles();
       findTabByTitle('Nuxeo Platform', tabIds);
       // Log in to Nuxeo
       login('Administrator', 'Administrator', 'input.login_button');
@@ -68,14 +69,14 @@ Given(/^the (.+) page is open/, (page) => {
       findTabByTitle('Nuxeo Dev Tools', tabIds);
     }
   } else if (page === 'Studio') {
-    let tabIds = browser.getTabIds();
+    let tabIds = browser.getWindowHandles();
     if (tabIds.length > 1) {
       browser.execute(() => {
         const url = 'https://connect.nuxeo.com/nuxeo/site/studio/ide?project=bde-test';
         window.open(url);
       });
       browser.pause(500);
-      tabIds = browser.getTabIds();
+      tabIds = browser.getWindowHandles();
       findTabByTitle('Welcome - Nuxeo • Connect – Customer Portal', tabIds);
     } else {
       const url = 'https://connect.nuxeo.com/nuxeo/site/studio/ide?project=bde-test';
@@ -84,7 +85,7 @@ Given(/^the (.+) page is open/, (page) => {
     expect(browser.getTitle()).to.equal('Welcome - Nuxeo • Connect – Customer Portal');
   } else if (page === 'Nuxeo') {
     openNuxeo();
-    const tabIds = browser.getTabIds();
+    const tabIds = browser.getWindowHandles();
     findTabByTitle('Nuxeo Dev Tools', tabIds);
   } else {
     assert.fail([`"${page} page" unknown. See "navigation" step definition.`]);
@@ -104,19 +105,19 @@ Then(/^I log into (.+)/, (page) => {
 });
 
 Then(/the (.+) page opens/, (titleToFind) => {
-  const tabIds = browser.getTabIds();
+  const tabIds = browser.getWindowHandles();
   findTabByTitle(titleToFind, tabIds);
   return browser.getTitle().should.equal(titleToFind);
 });
 
 When(/I go to the (.+) page/, (page) => {
-  const tabIds = browser.getTabIds();
+  const tabIds = browser.getWindowHandles();
   if (page === 'Popup extension') {
     page = 'Nuxeo Dev Tools';
   }
   findTabByTitle(page, tabIds);
   browser.refresh();
-  expect(browser.getTitle()).to.equal(page);
+  expect(browser.getTitle()).to.include(page);
 });
 
 When(/I have a (.+) document in Nuxeo/, (docType) => {
