@@ -369,6 +369,7 @@ limitations under the License.
         });
 
         registerLink('#automation-doc', nuxeo._baseURL.concat('site/automation/doc/'));
+        registerLink('#nuxeo-status', 'https://status.nuxeo.com/');
         registerLink('#explorer', 'https://explorer.nuxeo.com');
         registerLink('#nxql', 'https://doc.nuxeo.com/nxdoc/nxql/');
         registerLink('#el-scripting', 'https://doc.nuxeo.com/nxdoc/understand-expression-and-scripting-languages-used-in-nuxeo/');
