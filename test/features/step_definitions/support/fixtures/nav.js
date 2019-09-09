@@ -20,16 +20,16 @@ const assert = chai.assert;
 function findTabByTitle(titleToFind, tabIds) {
   let title = browser.getTitle();
   for (let i = 0; i < tabIds.length; i += 1) {
-    if (title === titleToFind) {
+    if (title.indexOf(titleToFind) > -1) {
       break;
     } else {
-      browser.switchTab(tabIds[i]);
+      browser.switchToWindow(tabIds[i]);
       browser.pause(500);
       title = browser.getTitle();
     }
   }
   title = browser.getTitle();
-  if (title !== titleToFind) {
+  if (title.indexOf(titleToFind) === -1) {
     return assert.fail([`"${titleToFind}" page not found.`]);
   }
   return title;

@@ -36,4 +36,3 @@ Feature: Popup Display
       | name     | title                              |
       | Apache   | Apache License, Version 2.0        |
       | Feedback | - We'd love to hear your ideas!    |
-
