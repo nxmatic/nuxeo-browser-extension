@@ -9,6 +9,8 @@ Feature: Links
 
     Examples:
       | name               | title                                                                              |
+      | Nuxeo Status       | Nuxeo Status                                                                       |
+      | Automation Doc     | Nuxeo Automation Documentation                                                     |
       | Explorer           | Nuxeo Platform Explorer                                                            |
       | NXQL               | NXQL \| Nuxeo Documentation                                                        |
       | EL Scripting       | Understand Expression and Scripting Languages Used in Nuxeo \| Nuxeo Documentation |
@@ -18,12 +20,6 @@ Feature: Links
       | Nuxeo Elements     | nuxeo                                                                              |
       | Nuxeo Layouts      | Nuxeo Showcase - Layout Service (forms, views, and actions)                        |
       | Style Guide        | Nuxeo Platform - Style Guide                                                       |
-      | Automation Doc     | Nuxeo Automation Documentation                                                     |
-
- # Scenario: Studio button
- #    Given the Popup extension page is open
- #    And I have a valid Studio project
- #    When I click on the extension Studio button
 
   Scenario: API Playground link
     Given the Popup extension page is open
