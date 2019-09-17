@@ -36,10 +36,10 @@ Then(/^I (can't )?see the (.+) document type/, (notVisible, docType) => {
     .shadow$('#createDocDialog #holder iron-pages #simpleCreation')
     .shadow$(`iron-pages .vertical .container paper-dialog-scrollable paper-button[name="${docType}"]`);
   if (notVisible) {
-    expect(customDocType.ELEMENT).to.equal(undefined);
+    expect(customDocType.elementId).to.equal(undefined);
     return expect(customDocType.error).to.exist;
   } else {
-    expect(customDocType.ELEMENT).to.exist;
+    expect(customDocType.elementId).to.exist;
     return expect(customDocType.error).to.equal(undefined);
   }
 });
