@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-const { AfterAll, Before } = require('cucumber');
+const { After, AfterAll, Before } = require('cucumber');
 const revertDashboard = require('./client.js').revertDashboard;
 
 function isTagged(tag, scenario) {
@@ -32,6 +32,14 @@ Before((scenario) => {
       browser.closeWindow();
       browser.switchToWindow(tabIds[0]);
     }
+  }
+});
+
+// Work around while waiting for resolution of https://github.com/webdriverio/webdriverio/issues/4207
+After((scenario) => {
+  const path = `./test/screenshots/${scenario.pickle.name.replace(/ /g, '_')}_${Date.now()}.png`;
+  if(scenario.result.status === 'failed'){
+    browser.saveScreenshot(path);
   }
 });
 
