@@ -19,6 +19,7 @@ const chrome = require('sinon-chrome');
 const chai = require('chai');
 const inject = require('./support/fixtures/mocks.js').inject;
 const login = require('./support/fixtures/auth.js').login;
+const After = require('./support/hooks.js').After;
 
 const assert = chai.assert;
 const expect = chai.expect;

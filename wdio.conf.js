@@ -1,6 +1,5 @@
 const nuxeo = require('./test/features/step_definitions/support/client.js').nuxeo;
 const path = require('path');
-const cucumberJson = require('wdio-cucumberjs-json-reporter');
 
 exports.config = {
     //
@@ -251,9 +250,8 @@ exports.config = {
     // Runs after a Cucumber step
     // @param {Object} stepResult step result
     //
-    afterStep: function (stepResult) {
-      cucumberJson.attach(browser.takeScreenshot(), 'image/png');
-    },
+    // afterStep: function (stepResult) {
+    // },
     //
     // Runs after a Cucumber scenario
     // @param {Object} scenario scenario details

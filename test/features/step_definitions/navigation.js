@@ -23,6 +23,7 @@ const inject = require('./support/fixtures/mocks.js').inject;
 const login = require('./support/fixtures/auth.js').login;
 const findTabByTitle = require('./support/fixtures/nav.js').findTabByTitle;
 const openNuxeo = require('./support/fixtures/nav.js').openNuxeo;
+const After = require('./support/hooks.js').After;
 
 const nxPath = 'http://localhost:8080/nuxeo/nxpath/default';
 const assert = chai.assert;

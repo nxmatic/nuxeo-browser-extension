@@ -16,7 +16,7 @@ limitations under the License.
 
 const { Given, Then, When } = require('cucumber');
 const Nuxeo = require('nuxeo');
-const expect = require('chai').expect;
+const After = require('./support/hooks.js').After;
 
 const nuxeo = new Nuxeo({
   baseURL: 'http://localhost:8080/nuxeo/',
