@@ -18,6 +18,7 @@ const { Given, Then, When } = require('cucumber');
 const chai = require('chai');
 const login = require('./support/fixtures/auth.js').login;
 const modifyDashboard = require('./support/client.js').modifyDashboard;
+const After = require('./support/hooks.js').After;
 const AfterAll = require('./support/hooks.js').AfterAll;
 
 const assert = chai.assert;

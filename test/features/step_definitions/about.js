@@ -16,6 +16,7 @@ limitations under the License.
 
 const { Given, Then, When } = require('cucumber');
 const expect = require('chai').expect;
+const After = require('./support/hooks.js').After;
 
 Then(/I see the version number/, () => {
   $('#version').waitForDisplayed();

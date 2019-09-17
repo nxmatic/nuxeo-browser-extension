@@ -20,6 +20,7 @@ const login = require('./support/fixtures/auth.js').login;
 const findTabByTitle = require('./support/fixtures/nav.js').findTabByTitle;
 const modifyDashboard = require('./support/client.js').modifyDashboard;
 const getDashboard = require('./support/client.js').getDashboard;
+const After = require('./support/hooks.js').After;
 const AfterAll = require('./support/hooks.js').AfterAll;
 const Before = require('./support/hooks.js').Before;
 
