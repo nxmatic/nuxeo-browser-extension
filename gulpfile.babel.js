@@ -433,7 +433,7 @@ gulp.task('clean', () => {
     'package',
     'app/scripts',
     'app/vendor',
-    'test*/screenshots'
+    'test*/screenshots/*.png'
   ]);
 });
 

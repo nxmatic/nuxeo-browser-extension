@@ -15,6 +15,7 @@ limitations under the License.
 */
 
 const { Given, Then, When } = require('cucumber');
+const After = require('./support/hooks.js').After;
 
 function toggleTraces(button, page) {
   if (page === 'Popup extension') {

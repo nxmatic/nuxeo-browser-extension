@@ -10,5 +10,5 @@ app/scripts
 app/vendor
 npm-debug.log
 target
-test*/screenshots
+test*/screenshots/*.png
 ftest/src/test/resources/instance.clid
