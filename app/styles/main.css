@@ -166,9 +166,12 @@ HEADINGS
 .logo {
   margin-top: 10px;
   align-self: flex-start;
-  background-image: url("../images/nuxeo_block-30.png");
   width: 36px;
   height: 36px;
+  background-image: url("../images/nuxeo_block-30.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
 }
 
 .server-main {
@@ -430,11 +433,6 @@ SEARCH
  opacity: 0.4;
 }
 
-:-moz-placeholder {
- color: #FF9E00;
- opacity: 0.4;
-}
-
 .searchclear {
     position: absolute;
     margin: auto;
@@ -633,6 +631,33 @@ ABOUT
 #version,
 #copyright {
   margin: 10px;
+}
+
+#k {
+  display: none;
+  position: absolute;
+  z-index: 15;
+  top: 30%;
+  left: 35%;
+  height: 200px;
+  width: 160px;
+  background-image: url("../images/1_.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
+  -webkit-animation: mymove 0.2s infinite;
+  animation: mymove 0.2s infinite;
+  animation-direction: alternate;
+}
+
+@-webkit-keyframes mymove {
+  from {-webkit-transform: rotate(15deg);}
+  to {-webkit-transform: rotate(-15deg);}
+}
+
+@keyframes mymove {
+  from {transform: rotate(15deg);}
+  to {transform: rotate(-15deg);}
 }
 
 /*==============================================================================
