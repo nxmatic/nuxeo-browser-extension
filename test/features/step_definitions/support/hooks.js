@@ -18,7 +18,7 @@ const { After, AfterAll, Before } = require('cucumber');
 const revertDashboard = require('./client.js').revertDashboard;
 
 function isTagged(tag, scenario) {
-  return scenario.pickle.tags.find(o => o.name === tag);
+  return scenario.pickle.tags.find((o) => o.name === tag);
 }
 
 Before((scenario) => {
@@ -35,7 +35,7 @@ Before((scenario) => {
 // Work around while waiting for resolution of https://github.com/webdriverio/webdriverio/issues/4207
 After((scenario) => {
   const path = `./test/screenshots/${scenario.pickle.name.replace(/ /g, '_')}_${Date.now()}.png`;
-  if(scenario.result.status === 'failed'){
+  if (scenario.result.status === 'failed') {
     browser.saveScreenshot(path);
   }
 });

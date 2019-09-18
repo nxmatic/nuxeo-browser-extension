@@ -20,7 +20,7 @@ limitations under the License.
   app.browser = {
     name: 'Chrome',
 
-    getBackgroundPage: cb => chrome.runtime.getBackgroundPage(cb),
+    getBackgroundPage: (cb) => chrome.runtime.getBackgroundPage(cb),
 
     createTabs: (url, tabId) => chrome.tabs.query({ active: true },
       (tabs) => {
