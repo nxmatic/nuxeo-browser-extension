@@ -42,4 +42,4 @@ When(/^Designer Live Preview retrieves the modifications/, () => {
 });
 
 Then(/^my changes can be seen in the dashboard/, () => getDashboard(connectUsr, connectPsw)
-  .then(dashboard => assert(dashboard.indexOf('TESTING TESTING 123...') > -1)));
+  .then((dashboard) => assert(dashboard.indexOf('TESTING TESTING 123...') > -1)));
