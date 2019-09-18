@@ -660,6 +660,61 @@ limitations under the License.
           $('#search').css('text-indent', '5px');
         }
       }, 1000));
+
+      function konamiCanada(cb) {
+        let input = '';
+        const key = '38384040373937396665';
+        document.addEventListener(('keydown'), (e) => {
+          input += (`${e.keyCode}`);
+          if (input === key) {
+            return cb();
+          }
+          if (!key.indexOf(input)) return true;
+          input = (`${e.keyCode}`);
+          return true;
+        });
+      }
+
+      function canada() {
+        $('#logo').css('background-image', 'url("../images/icon.png")');
+        $('a.button:hover').css('background', '#910B0B');
+        $('#search-term').css('color', '#FE0000');
+        $('body').css('color', '#FE0000');
+        $('body').css('background-color', '#fff');
+        $('.server-name').css('color', '#FE0000');
+        $('a.button').css('background', '#FE0000');
+        $('.useful-links').css('color', '#FE0000');
+        $('.useful-link').css('color', '#FE0000');
+        $('.nav-link').css('color', '#FE0000');
+        $('#search').attr('placeholder', 'Sorry, please enter a search term, eh?');
+        $('::-webkit-input-placeholder').css('color', '#FE0000');
+        $('#about').text('Aboot');
+      }
+
+      function k() {
+        $('#k').css('display', 'block');
+        setInterval(() => {
+          const imgUrl = $('#k').css('background-image');
+          console.log(imgUrl.indexOf('1_'));
+          if (imgUrl.indexOf('1_') === -1) {
+            $('#k').css('background-image', 'url("../images/1_.png")');
+          } else {
+            $('#k').css('background-image', 'url("../images/1.png")');
+          }
+        }, 200);
+        setTimeout(() => {
+          $('#k').animate({ left: '-150%' }, 500);
+          setTimeout(() => {
+            canada();
+          }, 500);
+        }, 2500);
+      }
+
+
+      konamiCanada(() => {
+        k();
+        console.log('O Canada!');
+      });
     });
   });
 })(window);
