@@ -62,7 +62,7 @@ Then(/the server restarts/, { timeout: 120000 }, () => {
 
 Then(/I can log back into Nuxeo/, () => {
   browser.setTimeout({
-    'implicit': 60000
+    implicit: 60000,
   });
   const tabIds = browser.getWindowHandles();
   browser.switchToWindow(tabIds[1]);

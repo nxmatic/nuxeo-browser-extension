@@ -20,7 +20,7 @@ limitations under the License.
   app.browser = {
     name: 'Firefox',
 
-    getBackgroundPage: bkg => bkg(chrome.extension.getBackgroundPage()),
+    getBackgroundPage: (bkg) => bkg(chrome.extension.getBackgroundPage()),
 
     createTabs: (url, tabId) => chrome.tabs.query({ active: true }, // eslint-disable-line no-unused-vars
       (tabs) => {

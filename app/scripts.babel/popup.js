@@ -273,7 +273,7 @@ limitations under the License.
               .schemas('*')
               .enrichers({ document: ['acls', 'permissions'] })
               .get({ resolveWithFullResponse: true })
-              .then(result => result.json())
+              .then((result) => result.json())
               .then(openJsonWindow)
               .catch((error) => {
                 throw new Error(error);
@@ -292,7 +292,7 @@ limitations under the License.
               .schemas('*')
               .enrichers({ document: ['acls', 'permissions'] })
               .get({ resolveWithFullResponse: true })
-              .then(result => result.json())
+              .then((result) => result.json())
               .then(openJsonWindow)
               .catch((error) => {
                 throw new Error(error);

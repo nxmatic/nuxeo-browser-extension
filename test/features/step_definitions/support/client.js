@@ -52,7 +52,7 @@ const modifyOptions = (username, password) => ({
 
 function modifyDashboard(username, password) {
   return request(modifyOptions(username, password))
-    .then(res => res)
+    .then((res) => res)
     .catch((err) => {
       console.log(err.statusCode);
       console.log(err.error);
@@ -75,7 +75,7 @@ const revertOptions = (username, password) => ({
 
 function revertDashboard(username, password) {
   return request(revertOptions(username, password))
-    .then(res => res)
+    .then((res) => res)
     .catch((err) => {
       console.log(err.statusCode);
       console.log(err.error);
@@ -97,7 +97,7 @@ const getDashboardOptions = (username, password) => ({
 
 function getDashboard(username, password) {
   return request(getDashboardOptions(username, password))
-    .then(res => res)
+    .then((res) => res)
     .catch((err) => {
       console.log(err.statusCode);
       console.log(err.error);
