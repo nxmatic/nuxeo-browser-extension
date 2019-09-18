@@ -105,6 +105,7 @@ $ connectUsr=${CONNECT_USERNAME} connectPsw=${CONNECT_PASSWORD} npm run test
 ```
 
 ...or build and run with Maven:
+* instance.clid is in **./ftest/src/test/resources**
 ```
 $ mvn clean verify -f ftest/pom.xml -DconnectUsr=${CONNECT_USERNAME} -DconnectPsw=${CONNECT_PASSWORD}
 ```
