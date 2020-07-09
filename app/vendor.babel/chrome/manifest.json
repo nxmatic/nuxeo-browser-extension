@@ -29,7 +29,6 @@
     "https://ajax.googleapis.com/",
     "notifications",
     "background",
-    "declarativeContent",
     "<all_urls>",
     "webRequest",
     "webRequestBlocking",
