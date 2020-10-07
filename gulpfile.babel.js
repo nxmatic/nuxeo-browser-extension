@@ -607,3 +607,11 @@ gulp.task('release:major',
     )
   )
 );
+
+gulp.task('zip:source', () => {
+  let filename = `BrowserDeveloperExtension-SourceCode-${ version }.zip`;
+  util.log(`Building file: ${ filename }`);
+  return gulp.src(['./**','!/dist/**','!./package/**','!./node_modules/**','!.git*','!./.git/**']).pipe($.zip(filename)).pipe(gulp.dest('.'));
+});
+
+gulp.task('create-source-archive', gulp.series('clean','zip:source'));
