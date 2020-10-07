@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Nuxeo Dev Tools",
-  "version": "3.0.2",
+  "version": "3.1.0",
   "description": "",
   "icons": {
     "48": "images/nuxeo-48.png",

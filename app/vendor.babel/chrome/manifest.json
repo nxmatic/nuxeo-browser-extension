@@ -1,6 +1,6 @@
 {
   "name": "Nuxeo Dev Tools",
-  "version": "3.0.3",
+  "version": "3.1.0",
   "manifest_version": 2,
   "content_security_policy": "script-src 'self' https://ssl.google-analytics.com; object-src 'self'",
   "description": "A handy collection of shortcuts and tools for the Nuxeo developer",
