@@ -267,12 +267,28 @@ limitations under the License.
 
       let onUI;
       let nuxeo;
+      let repository = 'default';
+
+      const regexes = {};
+      regexes.uuid = /[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/;
+      regexes.repo = /[A-Za-z_\.0-9-]+/;
+      regexes.path = /\/[A-Za-z\.0-9_\- \/%~:?#'"]+/;
+
+      regexes.jsf = {};
+      regexes.jsf.nxpath = new RegExp(`(?:nxpath/(?<repoPath>${regexes.repo.source})(?<path>${regexes.path.source}))`);
+      regexes.jsf.nxdoc = new RegExp(`(?:nxdoc/(?<repoId>${regexes.repo.source})/(?<docid>${regexes.uuid.source}))`);
+      regexes.jsf.doc = new RegExp(`/nuxeo/(${regexes.jsf.nxpath.source}|${regexes.jsf.nxdoc.source})`);
+
+      regexes.ui = {};
+      regexes.ui.browse = new RegExp(`(?:browse(?<path>\/.+?(?=\\?|$)))`);
+      regexes.ui.docid = new RegExp(`(?:doc[\/A-Za-z_\.0-9]+(?<docid>${regexes.uuid.source}))`);
+      regexes.ui.doc = new RegExp(`/nuxeo(?:/repo/(?<repo>${regexes.repo.source})|)/ui/#!/(?:${regexes.ui.browse.source}|${regexes.ui.docid.source})`);
 
       function getJsonFromPath(input) {
         input = decodeURIComponent(input);
         chrome.storage.sync.get('highlight', (res) => {
           if (res.highlight) {
-            nuxeo.request(`/path${input}`)
+            nuxeo.request(`/repo/${repository}/path${input}`)
               .schemas('*')
               .enrichers({ document: ['acls', 'permissions'] })
               .get({ resolveWithFullResponse: true })
@@ -282,7 +298,7 @@ limitations under the License.
                 throw new Error(error);
               });
           } else {
-            const jsonUrl = `${nuxeo._baseURL}api/v1/path${input}?enrichers.document=acls,permissions&properties=*`;
+            const jsonUrl = `${nuxeo._baseURL}api/v1/repo/${repository}/path${input}?enrichers.document=acls,permissions&properties=*`;
             app.browser.createTabs(jsonUrl, bkg.studioExt.server.tabId);
           }
         });
@@ -291,7 +307,7 @@ limitations under the License.
       function getJsonFromGuid(input) {
         chrome.storage.sync.get('highlight', (res) => {
           if (res.highlight) {
-            nuxeo.request(`/id/${input}`)
+            nuxeo.request(`/repo/${repository}/id/${input}`)
               .schemas('*')
               .enrichers({ document: ['acls', 'permissions'] })
               .get({ resolveWithFullResponse: true })
@@ -301,7 +317,7 @@ limitations under the License.
                 throw new Error(error);
               });
           } else {
-            const jsonUrl = `${nuxeo._baseURL}api/v1/id/${input}?enrichers.document=acls,permissions&properties=*`;
+            const jsonUrl = `${nuxeo._baseURL}api/v1/repo/${repository}/id/${input}?enrichers.document=acls,permissions&properties=*`
             app.browser.createTabs(jsonUrl, bkg.studioExt.server.tabId);
           }
         });
@@ -383,39 +399,29 @@ limitations under the License.
         registerLink('#nuxeo-layouts', 'http://showcase.nuxeo.com/nuxeo/layoutDemo/');
         registerLink('#style-guide', 'http://showcase.nuxeo.com/nuxeo/styleGuide/');
 
-        const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-        const pathPattern = /^\//;
-        const docPattern = /nxpath\/[A-Za-z_\.0-9-]+(\/[A-Za-z\.0-9_\- \/%~:?#'"]+)|(?:nxdoc[\/A-Za-z_\.0-9]+)([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})/;
-        const uiDocPattern = /nuxeo\/ui\/#!\/browse(\/.+?(?=\?|$))|(?:nuxeo\/ui\/#!\/doc[\/A-Za-z_\.0-9]+)([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})/;
-        const matchGroupDoc = docPattern.exec(bkg.tabUrl);
-        const matchGroupUiDoc = uiDocPattern.exec(bkg.tabUrl);
+        const jsfMatchs = regexes.jsf.doc.exec(bkg.tabUrl);
+        const uiMatchs = regexes.ui.doc.exec(bkg.tabUrl);
 
-        function exportCurrentLink(docPath) {
+        function exportCurrentLink(docPathOrId) {
           $('#export-current').css('display', 'block');
           $('#export-current').click(() => {
-            if (uuidPattern.test(docPath)) {
-              getJsonFromGuid(docPath);
-            } else if (pathPattern.test(docPath)) {
-              getJsonFromPath(docPath);
+            if (regexes.uuid.test(docPathOrId)) {
+              getJsonFromGuid(docPathOrId);
+            } else if (docPathOrId.startsWith('/')) {
+              getJsonFromPath(docPathOrId);
             }
           });
         }
 
-        if (matchGroupDoc) {
-          onUI = false;
-          if (matchGroupDoc[1]) {
-            exportCurrentLink(matchGroupDoc[1]);
-          } else if (matchGroupDoc[2]) {
-            exportCurrentLink(matchGroupDoc[2]);
-          }
-        } else if (matchGroupUiDoc) {
-          onUI = true;
-          if (matchGroupUiDoc[1]) {
-            exportCurrentLink(matchGroupUiDoc[1]);
-          } else if (matchGroupUiDoc[2]) {
-            exportCurrentLink(matchGroupUiDoc[2]);
+        if (jsfMatchs || uiMatchs) {
+          onUI = !!uiMatchs;
+          const groups = (jsfMatchs || uiMatchs).groups;
+          repository = groups.repoPath || groups.repoId || groups.repo || 'default';
+          if (groups.path || groups.docid) {
+            exportCurrentLink(groups.path || groups.docid);
           }
         }
+
       });
 
       let height = $('html').height();
@@ -560,10 +566,9 @@ limitations under the License.
           bkg.reindex();
         } else {
           $('#reindex-form').show();
-          const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
           const input = $('#reindex-input').val();
           $('#reindex-input').val('');
-          const matchGroupId = uuidPattern.exec(input);
+          const matchGroupId = regexes.uuid.exec(input);
           if (matchGroupId) {
             bkg.reindexDocId(input);
           } else {
@@ -619,7 +624,6 @@ limitations under the License.
 
       $('#search').keyup(debounce(() => {
         $('#search-results').empty();
-        const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         const pathPattern = /^\//;
         const input = $('#search').val();
         if (input === '') {
@@ -629,7 +633,7 @@ limitations under the License.
           $('#search').css('text-indent', '5px');
           $('body').css('overflow-y', 'hidden');
           $('html').css('height', 'auto');
-        } else if (uuidPattern.test(input)) {
+        } else if (regexes.uuid.test(input)) {
           getJsonFromGuid(input);
           $('#loading-gif').css('display', 'none');
           $('#search').css('text-indent', '5px');
