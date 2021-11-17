@@ -51,7 +51,7 @@ window.bkgHotReload = (startLoading, stopLoading, validate, showDependencyError)
           notification(res[0].status, 'Error', res[0].message, '../images/access_denied.png', false);
         } else if (res.length > 0 && res[0].status && res[0].status === 'updateInProgress') {
           notification(res[0].status, 'Error', res[0].message, '../images/access_denied.png', false);
-        } else if (res.length > 0 && res[0].status && res[0].status === 'dependencyMismatch') {
+        } else if (res.length > 0 && res[0].status && res[0].status === 'DEPENDENCY_MISMATCH') {
           notification(res[0].status, 'Dependency Mismatch', res[0].message, '../images/access_denied.png', false);
           console.log(res[0].message);
           persistedVars.uninstalledDeps = res[0].deps || '';
