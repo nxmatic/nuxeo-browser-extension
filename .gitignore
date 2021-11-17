@@ -12,3 +12,4 @@ npm-debug.log
 target
 test*/screenshots/*.png
 ftest/src/test/resources/instance.clid
+/.idea/
