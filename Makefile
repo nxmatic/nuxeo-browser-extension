@@ -4,6 +4,8 @@ include make.d/nexus.mk
 
 in-ci ?= $(in-cluster)
 
+
+
 workspace: ## setup workspace, including npm and environment variables
 
 install-and-build: install build
@@ -26,18 +28,16 @@ test:
 gulp-command = npx gulp
 
 release: ## Make release
-release: set-version create-release
+release: version~print create-release
 
-set-version: # Create a change-set and tag it (version can be overridden with `version-tag=vX.X.X`).
-set-version: $(call version-if-release,,set-version~do)
-
-set-version~do:
-	@: $(info Set version $(version-tag))
-	export TAG_VERSION = $(version-tag)
+create-release: export TAG_VERSION=$(version)
 
 create-release:
 	@: $(info Create release $(version-tag))
 	$(gulp-command) release
+
+publish-release-gh: export GITHUB_USER=$(git-github-username)
+publish-release-gh: export GITHUB_TOKEN=$(git-github-password)
 
 publish-release-gh:
 	gh release create $(version-tag) ./package/*/*.zip --title 'Nuxeo Browser Extension ${version-tag}' -n '    Release Note - Browser Developer Extensions - Version $(version-tag)'

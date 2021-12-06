@@ -19,8 +19,6 @@
 
 def volumeName = env.JOB_NAME.replaceAll('/','-').toLowerCase()
 
-def pullRequestLabels = []
-
 def containerScript = ""
 
 bootstrapTemplate = readTrusted('Jenkinsfile-pod.yaml')
@@ -67,6 +65,7 @@ pipeline {
                     }
                 }
                 container('maven') {
+                    sh 'jx gitops git setup'
                     sh 'rm -fr .tmp && make workspace'
                 }
             }
