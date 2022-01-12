@@ -112,16 +112,13 @@ $ mvn clean verify -f ftest/pom.xml -DconnectUsr=${CONNECT_USERNAME} -DconnectPs
 
 ### Releases
 
-Major releases (new features):
+Our release pipeline is bound to any anotated tag created. Distribution artifacts are uploaded and available through [Github release screen](https://github.com/nuxeo/nuxeo-browser-extension/releases).
 
-```
-gulp release:major
+```shell
+$ git tag -a v1.2.3 -m "Release 1.2.3"
 ```
 
-Minor releases (small improvements and bugfixes):
-```
-gulp release
-```
+Release pipeline are executed on Jenkins and can be followed here: [](https://jenkins.nos.build.nuxeo.com/job/nuxeo/job/nuxeo-browser-extension/view/tags/)
 
 
 # Contributing / Reporting issues

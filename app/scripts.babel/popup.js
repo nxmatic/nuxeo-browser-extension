@@ -198,7 +198,7 @@ limitations under the License.
       // for version upper 72
       $('#designer-livepreview-need-update').hide();
       if (app.browser.name === 'Chrome') {
-        let version = parseInt(/(Firefox|Chrome)\/(?<version>[0-9\.]*)/g.exec(navigator.userAgent).groups.version.split('.')[0]);
+        const version = parseInt(/(Firefox|Chrome)\/(?<version>[0-9\.]*)/g.exec(navigator.userAgent).groups.version.split('.')[0]);
         if (version < 72) {
           $('#designer-livepreview').hide();
           $('#designer-livepreview-need-update').show();
