@@ -277,7 +277,7 @@ limitations under the License.
       let repository = 'default';
 
       const regexes = {};
-      regexes.uuid = /[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/;
+      regexes.uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
       regexes.repo = /[A-Za-z_\.0-9-]+/;
       regexes.path = /\/[A-Za-z\.0-9_\- \/%~:?#'"]+/;
 
