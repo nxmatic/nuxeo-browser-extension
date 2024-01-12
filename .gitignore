@@ -18,3 +18,4 @@ ftest/src/test/resources/instance.clid
 ftest/.settings/
 selenium-standalone.txt
 .local
+.nix/.devenv
