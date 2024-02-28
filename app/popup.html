@@ -20,13 +20,12 @@
     <title>Nuxeo Dev Tools</title>
     <link rel=stylesheet href=libs/bootstrap.min.css>
     <link rel=stylesheet href=styles/main.css>
-    <script src="libs/jquery.js"></script>
-    <script src="libs/bootstrap.js"></script>
-    <script src="libs/jquery.confirm.js"></script>
-    <script src="libs/purify.min.js"></script>
-    <script src=scripts/browser.js></script>
-    <script src=scripts/popup.js></script>
-
+    <script type="application/javascript" src="libs/bootstrap.min.js"></script>
+    <script type="application/javascript" src="libs/jquery.min.js"></script>
+    <script type="application/javascript" src="libs/jquery-confirm.min.js"></script>
+    <script type="application/javascript" src="libs/purify.min.js"></script>
+    <script type="application/javascript" src=scripts/browser.js></script>
+    <script type="application/javascript" src=scripts/popup.js></script>
   </head>
   <body>
     <div class="shade">
@@ -76,7 +75,7 @@
               <li><div class="server-name-url"></div></li>
               <li id="connect-url">
                 <form class="search-container" id="options">
-                  <input type="text" id="connect-url-input" class="form" placeholder="connect.nuxeo.com" results="5" />
+                  <input type="text" id="connect-url-input" class="form" placeholder="https://connect.nuxeo.com" results="5" />
                   <div class="highlight-option">
                     <input type="checkbox" id="highlight-input" class="form" name="highlight">
                     <p id='highlight-label'>Highlight JSON</p>

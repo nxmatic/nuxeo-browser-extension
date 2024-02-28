@@ -28,26 +28,26 @@ const studioExt = window.studioExt = window.studioExt || {};
 
 let dependencies;
 
-let CONNECT_DOMAIN = 'connect.nuxeo.com';
-let CONNECT_URL = `https://${CONNECT_DOMAIN}`;
+let CONNECT_URL = new URL('https://connect.nuxeo.com');
 
 // Use the new Promise-based functions
-getFromStorage('org.nuxeo.connect.url').then((res) => {
-  if (!res.value || res.value.length === 0) {
+getFromStorage('org.nuxeo.connect.url').then((value) => {
+  if (!value || value.length === 0) {
     return;
   }
-  CONNECT_DOMAIN = new URL(res.value).hostname;  
-  CONNECT_URL = res.value
+  CONNECT_URL = new URL(value);
 }).catch((error) => {
   console.error(error);
 });
 
-const setStudioUrl = window.setStudioUrl = (domain) => setToStorage({ value: domain }).then(() => {
-  CONNECT_DOMAIN = domain;
-  CONNECT_URL = `https://${CONNECT_DOMAIN}`;
-}).catch((error) => {
-  console.error(error);
-});
+const setConnectUrl = window.setConnectUrl = (url) => 
+  setToStorage({ 
+    'org.nuxeo.connect.url': url.toString() 
+  }).then(() => {
+    CONNECT_URL = url;
+  }).catch((error) => {
+    console.error(error);
+  });
 
 const notification = window.notification = (idP, titleP, messageP, img, interaction, clickHandler) => {
   const click = clickHandler;
@@ -123,6 +123,17 @@ const defaultServerError = {
 };
 
 const getCurrentTabUrl = window.getCurrentTabUrl = (callback) => {
+  // Check if tabUrl is available in the query parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const tabUrl = urlParams.get('tabUrl');
+
+  if (tabUrl) {
+    // If tabUrl is available, call the callback with tabUrl and return
+    callback(tabUrl);
+    return;
+  }
+
+  // If tabUrl is not available, continue with the original logic
   const queryInfo = {
     active: true,
     currentWindow: true,
@@ -151,7 +162,6 @@ const getCurrentTabUrl = window.getCurrentTabUrl = (callback) => {
     console.error(error);
   });
 };
-
 function newDefaultNuxeo() { return newNuxeo({ baseURL: window.studioExt.server.url }); }
 
 function handleErrors(error, serverError) {

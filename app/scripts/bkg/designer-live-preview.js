@@ -121,9 +121,11 @@ const enable = (projectName, nuxeoInstanceBaseUrl) => {
   // URL's port is not allowed in urlPattern, thus had to be removed.
   nuxeoBaseUrl = nuxeoInstanceBaseUrl;
   const urlPattern = `${nuxeoInstanceBaseUrl.replace(/:\d+/, '')}*`;
+  const connectLocation = CONNECT_URL.toString();
+  const workspaceLocation = new URL('/nuxeo/site/studio/v2/project/${projectName}/workspace/ws.resources', CONNECT_URL).toString();
 
   browser.cookies
-    .getAll({ domain: CONNECT_DOMAIN })
+    .getAll({ domain: CONNECT_URL.hostname })
     .then((cookies) => {
       const cookieHeader = cookies
         .map(x => x.name + '=' + x.value)
@@ -136,7 +138,7 @@ const enable = (projectName, nuxeoInstanceBaseUrl) => {
   }, ['blocking']);
 
   browser.webRequest.onBeforeRequest.addListener(addNewResources, {
-    urls: [`${CONNECT_URL}/nuxeo/site/studio/v2/project/${projectName}/workspace/ws.resources`],
+    urls: [workspaceLocation],
   }, ['requestBody']);
 
   let extraInfoSpec = ['blocking', 'requestHeaders']
@@ -145,15 +147,15 @@ const enable = (projectName, nuxeoInstanceBaseUrl) => {
   }
   // https://groups.google.com/a/chromium.org/g/chromium-extensions/c/vYIaeezZwfQ
   browser.webRequest.onBeforeSendHeaders.addListener(addCookieHeaderForConnectRequest, {
-    urls: [`${CONNECT_URL}/*`],
+    urls: [`${connectLocation}/*`],
   }, extraInfoSpec);
 
   browser.webRequest.onCompleted.addListener(revertToDefault, {
-    urls: [`${CONNECT_URL}/*`],
+    urls: [`${connectLocation}/*`],
   }, ['responseHeaders']);
 
   // fetch available resources from Studio Project
-  return fetch(`${CONNECT_URL}/nuxeo/site/studio/v2/project/${projectName}/workspace/ws.resources`, {
+  return fetch(workspaceLocation, {
     credentials: 'include',
   }).then((response) => {
     if (response.ok) {

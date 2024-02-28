@@ -42,9 +42,7 @@ limitations under the License.
 
     println JsonOutput.toJson([installed: addons]);`;
 
-   chrome.runtime.getBackgroundPage((bkg) => {
-    console.log('bkg is of type ' + typeof bkg);
-    console.log('bkg is of type ' + bkg.constructor.name);
+  function handleBackgroundPage(bkg) {
     function debounce(fn, delay) {
       let timer = null;
       return function (...args) {
@@ -114,10 +112,10 @@ limitations under the License.
         $('#designer-live-preview-button').removeClass('enabled');
       }
 
-      const studioUrl = `${bkg.CONNECT_URL}/nuxeo/site/studio/ide?project=${packageName}`;
-      $('#log-into-studio').attr('href', studioUrl);
+      const packageLocation = new URL(`/nuxeo/site/studio/ide?project=${packageName}`, bkg.CONNECT_URL).toString();
+      $('#log-into-studio').attr('href', new URL('/nuxeo', bkg.CONNECT_URL).toString());
       $('#studio').click(() => {
-        app.browser.createTabs(`${bkg.CONNECT_URL}/nuxeo/site/studio/ide?project=${packageName}`, bkg.studioExt.server.tabId);
+        app.browser.createTabs(packageLocation, bkg.studioExt.server.tabId);
       });
       $('#hot-reload-button').click(() => {
         bkg.bkgHotReload(startLoadingHR, stopLoading, true, showDependencyError);
@@ -223,8 +221,8 @@ limitations under the License.
         $('#connect-url').toggle();
       });
 
-      if (bkg.CONNECT_DOMAIN !== 'connect.nuxeo.com') {
-        $('#connect-url-input').val(bkg.CONNECT_DOMAIN);
+      if (bkg.CONNECT_URL.hostname !== 'connect.nuxeo.com') {
+        $('#connect-url-input').val(bkg.CONNECT_URL.toString());
       }
 
       chrome.storage.sync.get('highlight', (res) => {
@@ -245,7 +243,7 @@ limitations under the License.
         const input = $('#connect-url-input').val();
         const highlight = $('#highlight-input').prop('checked');
         if (input.length > 0) {
-          bkg.setStudioUrl(input, () => {
+          bkg.setConnectUrl(input, () => {
             $('#connect-url').hide();
           });
         }
@@ -261,7 +259,7 @@ limitations under the License.
           confirmButton: 'Reset',
           cancelButton: 'Cancel',
           confirm: () => {
-            bkg.setStudioUrl('connect.nuxeo.com', () => {
+            bkg.setConnectUrl('https://connect.nuxeo.com', () => {
               $('#connect-url-input').val('');
               $('#connect-url').hide();
             });
@@ -331,8 +329,6 @@ limitations under the License.
           }
         });
       }
-      console.log('from current TAB URL');
-
       bkg.getCurrentTabUrl((url) => {
         nuxeo = bkg.newNuxeo({
           baseURL: url,
@@ -346,7 +342,7 @@ limitations under the License.
           }).catch((e) => {
             console.log(e);
           });
-        chrome.tabs.executeScript(checkStudioPkg, noStudioPackageFound, (text) => {
+        bkg.executeScript(checkStudioPkg, noStudioPackageFound, (text) => {
           const pkgName = JSON.parse(text).studio;
           if (pkgName) {
             studioPackageFound(pkgName);
@@ -731,5 +727,9 @@ limitations under the License.
         console.log('O Canada!');
       });
     });
-  });
+  }
+
+  window.handleBackgroundPage = handleBackgroundPage;
+
+  app.browser.getBackgroundPage(handleBackgroundPage);
 })(window);

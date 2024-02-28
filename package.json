@@ -33,6 +33,7 @@
     "gulp-zip": "^5.1.0",
     "highlight": "^0.2.4",
     "jquery": "^3.7.1",
+    "jquery-confirm": "^3.3.4",
     "jsdom": "^24.0.0",
     "list-directory-contents": "0.0.3",
     "merge-stream": "^2.0.0",

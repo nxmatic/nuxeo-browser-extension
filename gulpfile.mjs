@@ -190,15 +190,18 @@ gulp.task('extras', () => gulp
 gulp.task('libs', () => gulp
   .src(
     [
-      'libs/**',
-      '!libs/highlight.js',
+      'node_modules/bootstrap/dist/css/bootstrap.min.css',
+      'node_modules/bootstrap/dist/js/bootstrap.min.js',
+      'node_modules/bootstrap/dist/js/bootstrap.min.js.map',
+      'node_modules/jquery/dist/jquery.min.js',
+      'node_modules/jquery/dist/jquery.min.map',
+      'node_modules/jquery-confirm/dist/jquery-confirm.min.css',
+      'node_modules/jquery-confirm/dist/jquery-confirm.min.js',
+      'node_modules/dompurify/dist/purify.min.js',
+      'node_modules/dompurify/dist/purify.min.js.map',
     ],
-    {
-      base: 'libs',
-      dot: true,
-    },
   )
-  .pipe(gulp.dest('build/base')));
+  .pipe(gulp.dest('build/base/libs')));
 
 gulp.task('styles', () => gulp.src('app/styles/*.css').pipe(gulp.dest('build/base/styles')));
 
@@ -237,7 +240,7 @@ gulp.task('babel:vendor:chrome', () => gulp
   .pipe(gulp.dest('build/chrome.babel')));
 
 gulp.task('babel:vendor:firefox', () => gulp
-  .src('app/vendor/firefox/*. js')
+  .src('app/vendor/firefox/*.js')
   .pipe(
     babel({
       presets: ['@babel/env'],
@@ -309,7 +312,7 @@ gulp.task('background:chrome', () => (
     .src([
       './node_modules/webextension-polyfill/dist/browser-polyfill.js',
       './node_modules/nuxeo/nuxeo.js',
-      './node_modules/purify/lib/purify.js',
+      './node_modules/dompurify/dist/purify.js',
       './app/vendor/chrome/bkg.js',
       './build/base.babel/bkg.js',
     ])
@@ -373,12 +376,14 @@ gulp.task('build:chrome:json', () => gulp
   .pipe(
     cheerio(($) => {
       const $body = $('body');
-      appendScript($body, 'libs/highlight.js');
+      appendScript($body, 'node_modules/highlight/lib/highlight.js');
     }),
   )
   .pipe(gulp.dest('build/chrome')));
 
-gulp.task('build:chrome:highlight', () => gulp.src('libs/highlight.js').pipe(gulp.dest('build/chrome/libs')));
+gulp.task('build:chrome:highlight', () => gulp
+  .src('node_modules/highlight/lib/highlight.js')
+  .pipe(gulp.dest('build/chrome/libs')));
 
 gulp.task(
   'build:chrome',

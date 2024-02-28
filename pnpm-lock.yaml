@@ -100,6 +100,9 @@ devDependencies:
   jquery:
     specifier: ^3.7.1
     version: 3.7.1
+  jquery-confirm:
+    specifier: ^3.3.4
+    version: 3.3.4
   jsdom:
     specifier: ^24.0.0
     version: 24.0.0
@@ -5110,6 +5113,12 @@ packages:
       '@types/node': 20.11.19
       merge-stream: 2.0.0
       supports-color: 8.1.1
+    dev: true
+
+  /jquery-confirm@3.3.4:
+    resolution: {integrity: sha512-SF3mX2kWAK9FP/Hut1uLHI30LPZ9DAki3Jq6JId9vg6AlMVugjlh40APtuxPQ/0C44XTkQFSVyRrg57NMbaicA==}
+    dependencies:
+      jquery: 3.7.1
     dev: true
 
   /jquery@3.7.1:
