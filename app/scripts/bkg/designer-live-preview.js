@@ -122,7 +122,7 @@ const enable = (projectName, nuxeoInstanceBaseUrl) => {
   nuxeoBaseUrl = nuxeoInstanceBaseUrl;
   const urlPattern = `${nuxeoInstanceBaseUrl.replace(/:\d+/, '')}*`;
   const connectLocation = CONNECT_URL.toString();
-  const workspaceLocation = new URL('/nuxeo/site/studio/v2/project/${projectName}/workspace/ws.resources', CONNECT_URL).toString();
+  const workspaceLocation = new URL(`/nuxeo/site/studio/v2/project/${projectName}/workspace/ws.resources`, CONNECT_URL).toString();
 
   browser.cookies
     .getAll({ domain: CONNECT_URL.hostname })
@@ -184,7 +184,6 @@ const isEnabled = () => {
   return Object.keys(redirectedUrls).length !== 0;
 }
 
-window.CONNECT_URL = CONNECT_URL;
 window.designerLivePreview = {
   enable,
   disable,

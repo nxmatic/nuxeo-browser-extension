@@ -31,20 +31,37 @@ let dependencies;
 let CONNECT_URL = new URL('https://connect.nuxeo.com');
 
 // Use the new Promise-based functions
-getFromStorage('org.nuxeo.connect.url').then((value) => {
-  if (!value || value.length === 0) {
-    return;
-  }
-  CONNECT_URL = new URL(value);
-}).catch((error) => {
-  console.error(error);
-});
+getFromStorage('org.nuxeo.connect.url')
+  .then((entry) => {
+    if (entry === undefined || (typeof entry === 'object' && !Array.isArray(entry) && Object.keys(entry).length === 0)) {
+      // entry is undefined or an empty object, return null
+      return null;
+    }
+    if (typeof entry === 'string') {
+      // entry is a string, use it directly
+      return entry;
+    } else if (typeof entry === 'object' && !Array.isArray(entry) && entry.hasOwnProperty('org.nuxeo.connect.url')) {
+      // entry is a non-empty object (JSON map), retrieve the value
+      return entry['org.nuxeo.connect.url'];
+    } else {
+      throw new Error('Unexpected storage entry: ' + entry);
+    }
+  })
+  .then((value) => {
+    if (!value) {
+      return
+    }
+    CONNECT_URL = new URL(value);
+  })
+  .catch((error) => {
+    console.error(error);
+  });
 
 const setConnectUrl = window.setConnectUrl = (url) => 
   setToStorage({ 
-    'org.nuxeo.connect.url': url.toString() 
+    'org.nuxeo.connect.url': url.toString(),
   }).then(() => {
-    CONNECT_URL = url;
+    window.CONNECT_URL = CONNECT_URL = url;
   }).catch((error) => {
     console.error(error);
   });
