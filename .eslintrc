@@ -1,23 +1,27 @@
 {
+  "parser": "@babel/eslint-parser",
   "parserOptions": {
-    "ecmaVersion": 6
+    "ecmaVersion": 2022,
+    "ecmaFeatures": {
+      "legacyDecorators": true,
+      "importAssertions": true
+    }
   },
   "extends": [
     "eslint:recommended",
-    "airbnb-base",
+    "airbnb-base"
   ],
-  "parser": "@babel/eslint-parser",
   "rules": {
     "func-names": 0,
     "indent": ["error", 2],
+    "import/no-extraneous-dependencies": ["error", {"devDependencies": ["**/*"]}],
     "max-len": [2, 120, 2, {
       "ignoreUrls": true,
       "ignoreTemplateLiterals": true,
       "ignoreRegExpLiterals": true,
       "ignoreStrings": true,
-      "ignoreComments": false,
+      "ignoreComments": false
     }],
-    "no-undef": 0,
     "no-console": 0,
     "no-else-return": 0,
     "no-multi-assign": 0,
@@ -28,31 +32,25 @@
     "no-unused-expressions": 0,
     "no-use-before-define": ["error", {"variables": false}],
     "no-useless-escape": 0,
+    "operator-linebreak": "off",
     "prefer-destructuring": ["error", {
       "array": false,
-      "object": false,
+      "object": false
     }, {
       "enforceForRenamedProperties": false
     }],
     "radix": 0,
-    "wrap-iife": [2, "inside"],
+    "wrap-iife": [2, "inside"]
   },
   "globals": {
-    "$": true,
+    "chrome": true,
+    "browser": true,
     "app": true,
-    "disableTabExtension": true,
-    "getCurrentTabUrl": true,
-    "hljs": true,
+    "navigator": true,
+    "window": true,
+    "document": true,
     "Nuxeo": true,
-    "nuxeo": true,
-    "studioExt": true,
-  },
-  overrides: [
-    {
-      files: ['gulpfile.mjs'], // replace with the path to your gulpfile
-      rules: {
-        'import/no-extraneous-dependencies': ['error', { devDependencies: true }],
-      },
-    },
-  ]
+    "disableTabExtension": true,
+    "hljs": true
+  }
 }
