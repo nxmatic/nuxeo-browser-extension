@@ -24,6 +24,13 @@ on:
 
 jobs:
   deploy:
+    permissions:
+      checks: write
+      contents: read
+      id-token: write
+      packages: write
+      pull-requests: write
+      statuses: write
     runs-on:
       - ${{ github.repository_owner != github.actor && 'ubuntu-latest' || 'self-hosted' }}
   
@@ -49,3 +56,31 @@ jobs:
       
       - name: Build
         run: pnpm build:chrome
+
+      - name: Zip the packages
+        run: |
+          pushd dist
+          zip -r chrome.zip chrome
+          popd
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} 
+          asset_path: ./dist/chrome.zip
+          asset_name: chrome.zip
+          asset_content_type: application/zip
