@@ -123,26 +123,23 @@ function loadPage(serviceWorker) {
         .catch(stopLoading);
     });
     $('#designer-live-preview-button').click(() => {
-      let designerLivePreviewPromise;
-
-      if (serviceWorker.designerLivePreview.isEnabled()) {
-        designerLivePreviewPromise = serviceWorker.designerLivePreview
-          .disable()
-          .then(() => {
-            $('#designer-live-preview-button').removeClass('enabled');
-            $('#designer-live-preview-button').addClass('disabled');
-          });
-      } else {
-        designerLivePreviewPromise = serviceWorker.designerLivePreview
-          .enable(packageName)
-          .then(() => {
-            $('#designer-live-preview-button').addClass('enabled');
-            $('#designer-live-preview-button').removeClass('disabled');
-          });
-      }
-
-      designerLivePreviewPromise
-        .catch(() => {
+      serviceWorker.designerLivePreview
+        .isEnabled()
+        .then((enabled) => (enabled
+          ? { beforeClass: 'enabled', afterClass: 'disabled', action: serviceWorker.designerLivePreview.disable }
+          : { beforeClass: 'disabled', afterClass: 'enabled', action: serviceWorker.designerLivePreview.enable }
+        ))
+        .then((transition) => {
+          transition.action.call(serviceWorker.designerLivePreview, packageName);
+          return transition;
+        })
+        .then(({ beforeClass, afterClass }) => {
+          $('#designer-live-preview-button').removeClass(beforeClass);
+          $('#designer-live-preview-button').addClass(afterClass);
+        })
+        // eslint-disable-next-line no-unused-vars
+        .catch((error) => {
+          console.error(error);
           $('#designer-livepreview-message').css('display', 'block');
           setTimeout(() => {
             $('#designer-livepreview-message').css('display', 'none');
@@ -171,7 +168,7 @@ function loadPage(serviceWorker) {
     $('#message').css('display', 'none');
     $('#nopkg').css('display', 'block');
     $('#studio, #hot-reload-button').click(() => {
-      serviceWorker.desktopNotifier.INSTANCE.notify(
+      serviceWorker.desktopNotifier.notify(
         'no_studio_project',
         'No associated Studio project',
         "If you'd like to use this function, please associate your Nuxeo server with a studio project",
@@ -617,8 +614,9 @@ function loadPage(serviceWorker) {
             $('#search').css('text-indent', '5px');
           })
           .catch((error) => {
+            console.error(error);
             error.response.json().then((json) => {
-              serviceWorker.desktopNotifier.INSTANCE.notify(
+              serviceWorker.desktopNotifier.notify(
                 'error',
                 json.code,
                 json.message,

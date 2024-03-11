@@ -18,6 +18,8 @@
     "activeTab",
     "notifications",
     "background",
+    "declarativeNetRequest",
+    "declarativeNetRequestFeedback",
     "webRequest"
   ],
   "host_permissions": [

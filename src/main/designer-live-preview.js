@@ -18,18 +18,24 @@ limitations under the License.
 class DesignerLivePreview {
   // eslint-disable-next-line no-unused-vars
   constructor(worker) {
+    this.worker = worker;
+
+    // Set defaukt properties for the class
     this.userCookies = '';
     this.redirectedUrls = {};
 
     // Bind methods
+    this.addCookieHeaderForConnectRequest = this.addCookieHeaderForConnectRequest.bind(this);
+    this.addNewResources = this.addNewResources.bind(this);
+    this.disable = this.disable.bind(this);
+    this.enable = this.enable.bind(this);
+    this.isEnabled = this.isEnabled.bind(this);
+    this.redirectRequestToConnectIfNeeded = this.redirectRequestToConnectIfNeeded.bind(this);
+    this.revertToDefault = this.revertToDefault.bind(this);
     this.storeRedirectedUrlsLocally = this.storeRedirectedUrlsLocally.bind(this);
   }
 
-  userCookies() {
-    return this.userCookies;
-  }
-
-  storeRedirectedUrlsLocally(json) {
+  storeRedirectedUrlsLocally(rootUrl, json) {
     Object.keys(json).forEach((basePath) => {
       const nuxeoInstanceBasePath = basePath.replace(
         /^\/(nuxeo\.war\/?\/)?/,
@@ -39,7 +45,7 @@ class DesignerLivePreview {
       const files = Object.keys(json[basePath]);
       if (files.length > 0) {
         files.forEach((resource) => {
-          const nuxeoInstanceResource = `${this.nuxeo.baseUrl}${nuxeoInstanceBasePath}/${resource}`;
+          const nuxeoInstanceResource = `${rootUrl}${nuxeoInstanceBasePath}/${resource}`;
           // FIXME Warning this replace should be removed (needs fixing on connect side)
           const connectResource = json[basePath][resource].replace(
             /http:\/\//,
@@ -86,22 +92,6 @@ class DesignerLivePreview {
     return {
       requestHeaders,
     };
-    // return chrome.cookies
-    //   .getAll({ domain: CONNECT_DOMAIN })
-    //   .then((cookies) => {
-    //     const cookieHeader = cookies
-    //       .map(x => x.name + '=' + x.value)
-    //       .join('; ')
-    //
-    //     requestHeaders.push({
-    //       name: 'Cookie',
-    //       value: cookieHeader,
-    //     });
-    //
-    //     return {
-    //       requestHeaders,
-    //     };
-    //   });
   }
 
   addNewResources(details) {
@@ -138,108 +128,126 @@ class DesignerLivePreview {
     }
   }
 
-  enable(projectName, nuxeoInstanceBaseUrl) {
-    this.disable(); // Ensure we don't have multiple listeners
-    // URL's port is not allowed in urlPattern, thus had to be removed.
-    this.nuxeo.baseUrl = nuxeoInstanceBaseUrl;
-    const urlPattern = `${nuxeoInstanceBaseUrl.replace(/:\d+/, '')}*`;
-
+  enable(projectName) {
     const cleanupFunctions = [];
-
-    this.connectLocator.url().then((connectUrl) => {
-      const connectLocation = connectUrl.toString();
-      const workspaceLocation = new URL(
+    const connectLoader = (connectUrl) => chrome.cookies
+      .getAll({ domain: connectUrl.hostname })
+      .then((cookies) => cookies
+        .map((x) => `${x.name}=${x.value}`)
+        .join('; '))
+      .then((cookieHeader) => {
+        this.userCookies = cookieHeader;
+      })
+      .then(() => new URL(
         `/nuxeo/site/studio/v2/project/${projectName}/workspace/ws.resources`,
         connectUrl
-      ).toString();
+      ))
+      .then((workspaceUrl) => ([connectUrl.toString(), workspaceUrl.toString()]));
 
-      chrome.cookies
-        .getAll({ domain: connectUrl.hostname })
-        .then((cookies) => {
-          const cookieHeader = cookies
-            .map((x) => `${x.name}=${x.value}`)
-            .join('; ');
-          this.userCookies = cookieHeader;
-        }); // This was missing
-
-      chrome.webRequest.onBeforeRequest.addListener(
-        this.redirectRequestToConnectIfNeeded,
-        {
-          urls: [urlPattern],
-        },
-        ['blocking']
-      );
-      cleanupFunctions.push(() => chrome
-        .webRequest
-        .onBeforeRequest
-        .removeListener(this.redirectRequestToConnectIfNeeded));
-
-      chrome.webRequest.onBeforeRequest.addListener(
-        this.addNewResources,
-        {
-          urls: [workspaceLocation],
-        },
-        ['requestBody']
-      );
-      cleanupFunctions.push(() => chrome
-        .webRequest
-        .onBeforeRequest
-        .removeListener(this.addNewResources));
-
-      const extraInfoSpec = ['blocking', 'requestHeaders'];
-      if (
-        Object.prototype.hasOwnProperty.call(
-          chrome.webRequest.OnBeforeSendHeadersOptions,
-          'EXTRA_HEADERS'
-        )
-      ) {
-        extraInfoSpec.push('extraHeaders');
-      }
-      // https://groups.google.com/a/chromium.org/g/chromium-extensions/c/vYIaeezZwfQ
-      chrome.webRequest.onBeforeSendHeaders.addListener(
-        this.addCookieHeaderForConnectRequest,
-        {
-          urls: [`${connectLocation}/*`],
-        },
-        extraInfoSpec
-      );
-      cleanupFunctions.push(() => chrome
-        .webRequest
-        .onBeforeSendHeaders
-        .removeListener(this.addCookieHeaderForConnectRequest));
-
-      chrome.webRequest.onCompleted.addListener(
-        this.revertToDefault,
-        {
-          urls: [`${connectLocation}/*`],
-        },
-        ['responseHeaders']
-      );
-      cleanupFunctions.push(() => chrome
-        .webRequest
-        .onCompleted
-        .removeListener(this.revertToDefault));
-
-      // fetch available resources from Studio Project
-      return fetch(workspaceLocation, {
-        credentials: 'include',
-      }).then((response) => {
-        if (!response.ok) {
-          throw new Error('Not logged in to connect.');
-        }
-        return response.json().then((json) => {
-          this.storeRedirectedUrlsLocally(json);
-          console.log(`Enabled Designer Live Preview for ${this.nuxeo.baseUrl}`);
+    return Promise
+      .all([
+        this.disable(), // Ensure we don't have multiple listeners
+        this.worker.connectLocator // Retrieve workspace location
+          .url()
+          .then(connectLoader),
+        Promise.resolve(this.worker.serverConnector.rootUrl) // Provide nuxeo location
+      ])
+      // eslint-disable-next-line no-unused-vars
+      .then(([_, [connectLocation, workspaceLocation], nuxeoLocation]) => Promise
+        .resolve()
+        .then(() => { // redirect connect requests to nuxeo side
+          chrome.webRequest.onBeforeRequest.addListener(
+            this.redirectRequestToConnectIfNeeded,
+            {
+              urls: [`${connectLocation}/*`],
+            },
+            ['blocking']
+          );
+          cleanupFunctions.push(() => chrome
+            .webRequest
+            .onBeforeRequest
+            .removeListener(this.redirectRequestToConnectIfNeeded));
+        })
+        .then(() => { // add new resources to be redirected
+          chrome.webRequest.onBeforeRequest.addListener(
+            this.addNewResources,
+            {
+              urls: [workspaceLocation],
+            },
+            ['requestBody']
+          );
+          cleanupFunctions.push(() => chrome
+            .webRequest
+            .onBeforeRequest
+            .removeListener(this.addNewResources));
+        })
+        .then(() => { // add cookie header for connect request
+          const extraInfoSpec = ['blocking', 'requestHeaders'];
+          if (
+            Object.prototype.hasOwnProperty.call(
+              chrome.webRequest.OnBeforeSendHeadersOptions,
+              'EXTRA_HEADERS'
+            )
+          ) {
+            extraInfoSpec.push('extraHeaders');
+          }
+          // https://groups.google.com/a/chromium.org/g/chromium-extensions/c/vYIaeezZwfQ
+          chrome.webRequest.onBeforeSendHeaders.addListener(
+            this.addCookieHeaderForConnectRequest,
+            {
+              urls: [`${connectLocation}/*`],
+            },
+            extraInfoSpec
+          );
+          cleanupFunctions.push(() => chrome
+            .webRequest
+            .onBeforeSendHeaders
+            .removeListener(this.addCookieHeaderForConnectRequest));
+        })
+        .then(() => { // restore default
+          chrome.webRequest.onCompleted.addListener(
+            this.revertToDefault,
+            {
+              urls: [`${connectLocation}/*`],
+            },
+            ['responseHeaders']
+          );
+          cleanupFunctions.push(() => chrome
+            .webRequest
+            .onCompleted
+            .removeListener(this.revertToDefault));
+        })
+        .then(() => fetch( // fetch connect workspace to get redirected URLs
+          workspaceLocation, {
+            credentials: 'include',
+          }
+        ))
+        .then((response) => {
+          if (!response.ok || response.url !== workspaceLocation) {
+            throw new Error('Not logged in to connect.');
+          }
+          const contentType = response.headers.get('content-type');
+          if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Unexpected content type');
+          }
+          return response.json();
+        })
+        .then((jsonData) => {
+          console.log(`Retrieved ${JSON.stringify(jsonData)} from ${workspaceLocation}`);
+          this.storeRedirectedUrlsLocally(nuxeoLocation, jsonData);
+        })
+        .then(() => {
+          console.log(`Enabled Designer Live Preview for ${projectName} from ${connectLocation} to ${nuxeoLocation}`);
           return true;
-        }).then((status) => {
+        })
+        .then((status) => {
           this.cleanupFunctions = cleanupFunctions;
           return status;
-        }); // end of response
-      }); // end of fetch
-    }); // end of getURL
+        }));
   }
 
-  disable() {
+  // eslint-disable-next-line no-unused-vars
+  disable(projectName) {
     return new Promise((resolve) => {
       if (!this.cleanupFunctions) {
         return resolve();
@@ -254,7 +262,7 @@ class DesignerLivePreview {
   }
 
   isEnabled() {
-    return Object.keys(this.redirectedUrls).length !== 0;
+    return Promise.resolve(Object.keys(this.redirectedUrls).length !== 0);
   }
 }
 

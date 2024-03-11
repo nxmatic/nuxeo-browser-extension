@@ -45,20 +45,18 @@ class ServiceWorkerMessageHandler {
       if (typeof service[request.action] !== 'function') {
         return Promise.reject(new Error(`Invalid action ${JSON.stringify(request)}`));
       }
-      return Promise.resolve(service[request.action](...request.params));
+      console.log(`ServiceWorkerMessageHandler.handle(${JSON.stringify(request)}) called`);
+      return Promise
+        .resolve(service[request.action](...request.params))
+        .then((result) => {
+          console.log(`${JSON.stringify(result)} <- ServiceWorkerMessageHandler.handle(${JSON.stringify(request)})`);
+          return result;
+        });
     };
 
     withConnectedWorker(this.worker)
-      .then((worker) => {
-        console.log(`ServiceWorkerMessageHandler.handle(${JSON.stringify(request)}) called`);
-        return handleRequest(worker);
-      })
-      .then((result) => {
-        sendResponse(result);
-        setTimeout(() => console.log(`${JSON.stringify(result)} <- ServiceWorkerMessageHandler.handle(${JSON.stringify(request)})`), 0);
-
-        return result;
-      })
+      .then(handleRequest)
+      .then(sendResponse)
       .catch((error) => {
         sendResponse({
           error: error.toString(),
