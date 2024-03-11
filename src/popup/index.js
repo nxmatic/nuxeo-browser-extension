@@ -331,7 +331,7 @@ function loadPage(serviceWorker) {
       function doGetJson(path) {
         serviceWorker.browserStore.get({ highlight: true }).then((res) => {
           if (res.highlight) {
-            serviceWorker.documentBrowser.getJsonFromPath(repository, path)
+            serviceWorker.documentBrowser.jsonOf(repository, path)
               .then(openJsonWindow);
           } else {
             const jsonPath = `api/v1/repo/${repository}/${path}?enrichers.document=acls,permissions&properties=*`;
@@ -591,13 +591,13 @@ function loadPage(serviceWorker) {
               $('table').css('margin-top', '20px');
               res.entries.forEach((doc) => {
                 $('html').outerHeight($('html').height());
-                const icon = doc.get('common:icon');
-                const title = doc.get('dc:title');
+                const icon = doc.properties['common:icon'];
+                const title = doc.properties['dc:title'];
                 const re = /^(.*[\/])/;
                 const path = re.exec(doc.path)[1];
                 const uid = doc.uid;
-                const vMajor = doc.get('uid:major_version');
-                const vMinor = doc.get('uid:minor_version');
+                const vMajor = doc.properties['uid:major_version'];
+                const vMinor = doc.properties['uid:minor_version'];
                 showSearchResults(icon, title, path, uid, vMajor, vMinor);
               });
               $('.doc-title').click((event) => {
@@ -633,7 +633,7 @@ function loadPage(serviceWorker) {
       let openJsonWindow = (jsonObject) => {
         const jsonString = JSON.stringify(jsonObject, undefined, 2);
         serviceWorker.jsonHighlighter.input(DOMPurify.sanitize(jsonString));
-        serviceWorker.serverLocator.loadNewExtensionTab('json.html');
+        serviceWorker.serverLocator.loadNewExtensionTab('json/index.html');
       };
 
       $('#restart-button').on('click', () => {

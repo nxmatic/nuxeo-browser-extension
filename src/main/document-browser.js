@@ -11,6 +11,7 @@ class DocumentBrowser {
     this.worker = worker;
 
     // Bind methods
+    this.jsonOf = this.jsonOf.bind(this);
     this.openDocument = this.openDocument.bind(this);
     this.openDocFromId = this.openDocFromId.bind(this);
     this.openDocFromPath = this.openDocFromPath.bind(this);
@@ -130,7 +131,7 @@ class DocumentBrowser {
       });
   }
 
-  getJson(repository, path) {
+  jsonOf(repository, path) {
     return this.worker.serverConnector.withNuxeo()
       .then((nuxeo) => nuxeo
         .request(`/repo/${repository}/${path}`)

@@ -181,23 +181,26 @@ class ServerConnector {
       }));
   }
 
-  query(schemas = ['dublincore', 'common', 'uid'], query) {
+  query(input, schemas = ['dublincore', 'common', 'uid']) {
     return Promise.all([this.runtimeInfo(), this.withNuxeo()])
       .then(([runtimeInfo, nuxeo]) => {
-        const username = runtimeInfo.nuxeo._auth.username;
+        const userid = runtimeInfo.nuxeo.user.id;
         const defaultSelectClause = '* FROM Document';
-        const defaultWhereClause = `ecm:path STARTSWITH "/default-domain/UserWorkspaces/${username}"`;
+        const defaultWhereClause = `ecm:path STARTSWITH "/default-domain/UserWorkspaces/${userid}"`;
         const defaultQuery = `SELECT ${defaultSelectClause} WHERE ${defaultWhereClause}"`;
-        const sortBy = query && query.sortBy ? query.sortBy : 'dc:modified DESC';
+        const defaultSortBy = 'dc:modified DESC';
 
-        if (!query || (typeof query === 'object' && !query.query)) {
-          query = defaultQuery;
+        if (!input || (typeof input === 'object' && !input.query)) {
+          input.query = defaultQuery;
+        }
+        if (!input.sortBy) {
+          input.sortBy = defaultSortBy;
         }
 
         return nuxeo
           .repository()
           .schemas(schemas)
-          .query({ query, sortBy });
+          .query(input);
       });
   }
 
