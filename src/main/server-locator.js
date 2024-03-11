@@ -26,7 +26,9 @@ class ServerLocator {
         '))'
       ].join(''));
       const matchGroups = nxPattern.exec(tabInfo.url);
-      if (!matchGroups) return null;
+      if (!matchGroups) {
+        return null;
+      }
       const [, extractedUrl] = matchGroups;
       console.log(`ServerLocator.nuxeoUrlOf(${tabInfo.url}) -> ${extractedUrl}`);
       return extractedUrl;
@@ -35,11 +37,12 @@ class ServerLocator {
     this.tabInfo = null;
 
     // Bind  methods
-    this.listenToChromeEvents = this.listenToChromeEvents.bind(this);
-    this.enableExtensionIfNuxeoServerTab = this.enableExtensionIfNuxeoServerTab.bind(this);
     this.disableExtension = this.disableExtension.bind(this);
-    this.loadNewExtensionTab = this.loadNewExtensionTab.bind(this);
+    this.enableExtensionIfNuxeoServerTab = this.enableExtensionIfNuxeoServerTab.bind(this);
     this.getCurrentTabUrl = this.getCurrentTabUrl.bind(this);
+    this.isNuxeoServerTab = this.isNuxeoServerTab.bind(this);
+    this.listenToChromeEvents = this.listenToChromeEvents.bind(this);
+    this.loadNewExtensionTab = this.loadNewExtensionTab.bind(this);
     this.reloadServerTab = this.reloadServerTab.bind(this);
   }
 
@@ -84,13 +87,35 @@ class ServerLocator {
   }
 
   enableExtensionIfNuxeoServerTab(tabInfo) {
-    return new Promise((resolve, reject) => {
-      // If the tab is not a Nuxeo server tab, disable the extension
-      chrome.action.disable(tabInfo.id);
+    return this.isNuxeoServerTab(tabInfo)
+      .then((rootUrl) => {
+        if (rootUrl) return rootUrl;
+        return new Promise((resolve) => {
+          chrome.action.disable(tabInfo.id);
+          resolve(null);
+        });
+      })
+      .then((rootUrl) => {
+        if (!rootUrl) return null;
+        return this.worker.serverConnector
+          .onNewServer(rootUrl, tabInfo)
+          .then(() => this.worker.browserStore
+            .set({ tabInfo })
+            .then((store) => {
+              console.log(`Enabled extension for ${JSON.stringify(store.tabInfo)}...`);
+              chrome.action.enable(store.tabInfo.id);
+            }))
+          .then(() => rootUrl);
+      })
+      .catch((error) => Promise.reject(error));
+  }
 
+  isNuxeoServerTab(tabInfo) {
+    return new Promise((resolve, reject) => {
       const rootUrl = this.nuxeoUrlOf(tabInfo);
       if (!rootUrl) {
-        return resolve(); // Not a Nuxeo server tab
+        chrome.action.disable(tabInfo.id);
+        return resolve(null); // Not a Nuxeo server tab
       }
       this.tabInfo = tabInfo;
       const automationReportUrl = `${rootUrl}/site/automation`;
@@ -104,31 +129,23 @@ class ServerLocator {
               title: `Not logged in page: ${tabInfo.url}...`,
               message: 'You are not authenticated. Please log in and try again.',
               iconUrl: '../images/access_denied.png',
-              requireInteraction: false
             });
-            return this.reloadServerTab(0);
+            chrome.action.disable(tabInfo.id);
+            return this.reloadServerTab(0)
+              .then(() => resolve(null));
           }
           response.text().then((errorText) => {
             this.worker.desktopNotifier.notify('error', {
               title: `Not a Nuxeo server tab : ${tabInfo.url}...`,
               message: `Got errors while accessing automation status page at ${automationReportUrl}. Error: ${errorText}`,
               iconUrl: '../images/access_denied.png',
-              requireInteraction: false
             });
           });
+          chrome.action.disable(tabInfo.id);
           return reject(new Error(`Not a Nuxeo server tab : ${tabInfo.url}...`));
         }
         this.worker.desktopNotifier.cancel('unauthenticated');
-        // eslint-disable-next-line consistent-return
-        return this.worker.serverConnector
-          .onNewServer(rootUrl, tabInfo)
-          .then(() => this.worker.browserStore
-            .set(tabInfo)
-            .then(() => {
-              chrome.action.enable(tabInfo.id);
-            })
-            .then(() => resolve()))
-          .catch((error) => reject(error));
+        return resolve(rootUrl);
       }).catch((error) => reject(error));
     });
   }
