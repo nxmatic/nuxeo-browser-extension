@@ -27,6 +27,7 @@ class ServerLocator {
       ].join(''));
       const matchGroups = nxPattern.exec(tabInfo.url);
       if (!matchGroups) {
+        console.log(`ServerLocator.nuxeoUrlOf(${tabInfo.url}) -> null`);
         return null;
       }
       const [, extractedUrl] = matchGroups;
