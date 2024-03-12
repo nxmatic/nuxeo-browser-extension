@@ -12,7 +12,7 @@ class ServerConnector {
     this.onNewServer = this.onNewServer.bind(this);
     this.connect = this.connect.bind(this);
     this.disconnect = this.disconnect.bind(this);
-    this.executeOperaton = this.executeOperation.bind(this);
+    this.executeOperation = this.executeOperation.bind(this);
     this.executeScript = this.executeScript.bind(this);
     this.isConnected = this.isConnected.bind(this);
     this.handleErrors = this.handleErrors.bind(this);
