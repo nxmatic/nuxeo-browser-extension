@@ -7,6 +7,7 @@ class ServiceWorkerBridge {
       'browserStore',
       'chromeNotifier',
       'connectLocator',
+      'declarativeNetEngine',
       'designerLivePreview',
       'developmentMode',
       'jsonHighlighter',

@@ -2,6 +2,7 @@
 /* eslint-disable comma-dangle */
 import BrowserStore from './browser-store';
 import ConnectLocator from './connect-locator';
+import DeclararactiveNetCompoments from './declarative-net-engine';
 import DesignerLivePreview from './designer-live-preview';
 import DesktopNotifier from './desktop-notifier';
 import DocumentBrowser from './document-browser';
@@ -11,6 +12,8 @@ import RuntimeBuildComponent from './runtime-build-info';
 import ServerConnector from './server-connector';
 import ServerLocator from './server-locator';
 import StudioHotReloader from './studio-hot-reloader';
+
+const DeclarativeNetEngine = DeclararactiveNetCompoments.DeclarativeNetEngine;
 
 class ServiceWorkerMessageHandler {
   constructor(worker) {
@@ -40,30 +43,34 @@ class ServiceWorkerMessageHandler {
       }
       const service = getNestedProperty(worker, request.service);
       if (!service) {
-        return Promise.reject(new Error(`Invalid action ${JSON.stringify(request)}`));
+        return Promise.reject(new Error(`Invalid service ${JSON.stringify(request)}`));
       }
       if (typeof service[request.action] !== 'function') {
         return Promise.reject(new Error(`Invalid action ${JSON.stringify(request)}`));
       }
-      console.log(`ServiceWorkerMessageHandler.handle(${JSON.stringify(request)}) called`);
+      this.worker.developmentMode
+        .asConsole()
+        .then((console) => console.log(`ServiceWorkerMessageHandler.handle(${JSON.stringify(request)}) called`));
       return Promise
         .resolve(service[request.action](...request.params))
         .then((result) => {
-          console.log(`${JSON.stringify(result)} <- ServiceWorkerMessageHandler.handle(${JSON.stringify(request)})`);
+          this.worker.developmentMode
+            .asConsole()
+            .then((console) => console.log(`${JSON.stringify(result)} <- ServiceWorkerMessageHandler.handle(${JSON.stringify(request)})`));
           return result;
-        });
+        })
+        .catch((error) => this.worker.developmentMode
+          .asConsole()
+          .then((console) => {
+            console.error(error);
+            console.warn(`Caught error (see previous error) <- ServiceWorkerMessageHandler.handle(${JSON.stringify(request)})`);
+            return Promise.resolve({ error: { message: error.message, name: error.name, stack: error.stack } });
+          }));
     };
 
     withConnectedWorker(this.worker)
       .then(handleRequest)
-      .then(sendResponse)
-      .catch((error) => {
-        sendResponse({
-          error: error.toString(),
-          errorCode: error.code,
-          stack: error.stack
-        });
-      });
+      .then(sendResponse);
 
     return true; // This is necessary to indicate that you will send a response asynchronously
   }
@@ -79,6 +86,7 @@ class ServiceWorker {
     this.developmentMode = new RuntimeBuildComponent.DevelopmentMode(developmentMode);
     this.browserStore = new BrowserStore(this);
     this.connectLocator = new ConnectLocator(this);
+    this.declarativeNetEngine = new DeclarativeNetEngine(this);
     this.designerLivePreview = new DesignerLivePreview(this);
     this.desktopNotifier = new DesktopNotifier(this);
     this.jsonHighlighter = new JSONHighlighter(this);

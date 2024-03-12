@@ -1,4 +1,5 @@
 /* eslint-disable max-classes-per-file */
+
 class RuntimeBuildInfo {
   constructor(buildTime, buildVersion, browserVendor) {
     this._developer = 'NOS Team <nuxeo>';
@@ -33,6 +34,24 @@ class RuntimeBuildInfo {
 class DevelopmentMode {
   constructor(isEnabled) {
     this._isEnabled = isEnabled;
+
+    // bind this methods
+    this.asConsole = this.asConsole.bind(this);
+    this.asPromise = this.asPromise.bind(this);
+    this.isEnabled = this.isEnabled.bind(this);
+    this.toggle = this.toggle.bind(this);
+  }
+
+  isEnabled() {
+    return this.asPromise()
+      .then(() => true);
+  }
+
+  toggle() {
+    return new Promise((resolve) => {
+      this._isEnabled = !this._isEnabled;
+      resolve(this._isEnabled);
+    });
   }
 
   asPromise() {
@@ -43,6 +62,17 @@ class DevelopmentMode {
         reject(new Error('DevelopmentMode is not available in production mode'));
       }
     });
+  }
+
+  asConsole() {
+    return this.asPromise();
+      .then(() => console)
+      .catch(() => {
+        const noop = () => {};
+        return {
+          log: noop, error: noop, warn: noop, info: noop,
+        };
+      });
   }
 }
 

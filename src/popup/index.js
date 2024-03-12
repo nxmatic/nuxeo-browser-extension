@@ -124,15 +124,11 @@ function loadPage(serviceWorker) {
     });
     $('#designer-live-preview-button').click(() => {
       serviceWorker.designerLivePreview
-        .isEnabled()
+        .toggle(packageName)
         .then((enabled) => (enabled
-          ? { beforeClass: 'enabled', afterClass: 'disabled', action: serviceWorker.designerLivePreview.disable }
-          : { beforeClass: 'disabled', afterClass: 'enabled', action: serviceWorker.designerLivePreview.enable }
+          ? { beforeClass: 'enabled', afterClass: 'disabled' }
+          : { beforeClass: 'disabled', afterClass: 'enabled' }
         ))
-        .then((transition) => {
-          transition.action.call(serviceWorker.designerLivePreview, packageName);
-          return transition;
-        })
         .then(({ beforeClass, afterClass }) => {
           $('#designer-live-preview-button').removeClass(beforeClass);
           $('#designer-live-preview-button').addClass(afterClass);
@@ -839,11 +835,9 @@ serviceWorker
     worker.developmentMode
       .asPromise().then(() => {
         window.reloadPopup = () => serviceWorker.asPromise().then(loadPage);
+        window.serviceWorker = worker;
       })
-      .catch(() => {
-      // eslint-disable-next-line no-extra-semi
-        ;
-      });
+      .catch((error) => console.error(error));
     return worker;
   })
   .then(loadPage)
