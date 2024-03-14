@@ -9,17 +9,11 @@ class ServerConnector {
     this.nuxeo = undefined;
 
     // Bind methods
-    this.onNewServer = this.onNewServer.bind(this);
-    this.connect = this.connect.bind(this);
-    this.disconnect = this.disconnect.bind(this);
-    this.executeOperation = this.executeOperation.bind(this);
-    this.executeScript = this.executeScript.bind(this);
-    this.isConnected = this.isConnected.bind(this);
-    this.handleErrors = this.handleErrors.bind(this);
-    this.query = this.query.bind(this);
-    this.restart = this.restart.bind(this);
-    this.runtimeInfo = this.runtimeInfo.bind(this);
-    this.withNuxeo = this.withNuxeo.bind(this);
+    Object.getOwnPropertyNames(Object.getPrototypeOf(this))
+      .filter((prop) => typeof this[prop] === 'function' && prop !== 'constructor')
+      .forEach((method) => {
+        this[method] = this[method].bind(this);
+      });
 
     // listeners
     this.onInputChanged = null;
@@ -47,12 +41,6 @@ class ServerConnector {
     this.rootUrl = rootUrl;
     this.nuxeo = new Nuxeo({ baseURL: this.rootUrl });
     this.nuxeo.login()
-      // .then(() => this.worker.browserStore
-      //   .set({ serverInfo: { rootUrl, nuxeo: this.nuxeo } })
-      //   .then((store) => {
-      //     console.log(`stored ${JSON.stringify(store)}`);
-      //     resolve();
-      //   }))
       .then(() => {
         chrome.omnibox.onInputChanged.addListener(this.onInputChanged = this.suggestDocument);
       })

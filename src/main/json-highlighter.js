@@ -4,7 +4,11 @@ class JsonHighlighter {
     this._input = '';
 
     // Bind methods
-    this.input = this.input.bind(this);
+    Object.getOwnPropertyNames(Object.getPrototypeOf(this))
+      .filter((prop) => typeof this[prop] === 'function' && prop !== 'constructor')
+      .forEach((method) => {
+        this[method] = this[method].bind(this);
+      });
   }
 
   input(input) {

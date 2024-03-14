@@ -2,6 +2,15 @@
 class ServerLocator {
   constructor(worker) {
     this.worker = worker;
+
+    // Bind methods
+    Object.getOwnPropertyNames(Object.getPrototypeOf(this))
+      .filter((prop) => typeof this[prop] === 'function' && prop !== 'constructor')
+      .forEach((method) => {
+        this[method] = this[method].bind(this);
+      });
+
+    // ...
     this.nuxeoUrlOf = (tabInfo) => {
       // eslint-disable-next-line operator-linebreak
       // Regular expression pattern

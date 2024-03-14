@@ -11,12 +11,11 @@ class DocumentBrowser {
     this.worker = worker;
 
     // Bind methods
-    this.jsonOf = this.jsonOf.bind(this);
-    this.openDocument = this.openDocument.bind(this);
-    this.openDocFromId = this.openDocFromId.bind(this);
-    this.openDocFromPath = this.openDocFromPath.bind(this);
-    this.doOpenDoc = this.doOpenDoc.bind(this);
-    this.suggestDocument = this.suggestDocument.bind(this);
+    Object.getOwnPropertyNames(Object.getPrototypeOf(this))
+      .filter((prop) => typeof this[prop] === 'function' && prop !== 'constructor')
+      .forEach((method) => {
+        this[method] = this[method].bind(this);
+      });
   }
 
   listenToChromeEvents() {

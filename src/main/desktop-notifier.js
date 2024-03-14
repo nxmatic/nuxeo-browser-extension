@@ -22,7 +22,11 @@ class DesktopNotifier {
     this.worker = worker;
 
     // Bind methods
-    this.notify = this.notify.bind(this);
+    Object.getOwnPropertyNames(Object.getPrototypeOf(this))
+      .filter((prop) => typeof this[prop] === 'function' && prop !== 'constructor')
+      .forEach((method) => {
+        this[method] = this[method].bind(this);
+      });
   }
 
   notify(id, options) {

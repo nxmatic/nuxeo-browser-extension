@@ -19,10 +19,11 @@ class RepositoryIndexer {
     this.worker = worker;
 
     // Bind methods
-    this.withNuxeo = this.withNuxeo.bind(this);
-    this.reindex = this.reindex.bind(this);
-    this.reindexNXQL = this.reindexNXQL.bind(this);
-    this.reindexDocId = this.reindexDocId.bind(this);
+    Object.getOwnPropertyNames(Object.getPrototypeOf(this))
+      .filter((prop) => typeof this[prop] === 'function' && prop !== 'constructor')
+      .forEach((method) => {
+        this[method] = this[method].bind(this);
+      });
   }
 
   withNuxeo() {

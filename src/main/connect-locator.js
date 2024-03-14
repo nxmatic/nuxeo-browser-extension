@@ -3,7 +3,11 @@ class ConnectLocator {
     this.worker = worker;
 
     // Bind methods
-    this.url = this.url.bind(this);
+    Object.getOwnPropertyNames(Object.getPrototypeOf(this))
+      .filter((prop) => typeof this[prop] === 'function' && prop !== 'constructor')
+      .forEach((method) => {
+        this[method] = this[method].bind(this);
+      });
   }
 
   url(value) {

@@ -85,6 +85,11 @@ class DeclarativeNetEngine {
     this.flushed = this.flushed.bind(this);
     this.pending = this.pending.bind(this);
     this.reset = this.reset.bind(this);
+    Object.getOwnPropertyNames(Object.getPrototypeOf(this))
+      .filter((prop) => typeof this[prop] === 'function' && prop !== 'constructor')
+      .forEach((method) => {
+        this[method] = this[method].bind(this);
+      });
 
     // Initialize the engine
     this.reset();

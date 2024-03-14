@@ -44,7 +44,11 @@ class StudioHotReloader {
     this.worker = worker;
 
     // Bind methods
-    this.reload = this.reload.bind(this);
+    Object.getOwnPropertyNames(Object.getPrototypeOf(this))
+      .filter((prop) => typeof this[prop] === 'function' && prop !== 'constructor')
+      .forEach((method) => {
+        this[method] = this[method].bind(this);
+      });
   }
 
   dependenciesMismatch(info = []) {

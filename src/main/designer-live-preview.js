@@ -31,11 +31,11 @@ class DesignerLivePreview {
     this.cleanupFunctions = [];
 
     // Bind methods
-    this.addNewRedirectionsOf = this.addNewRedirectionsOf.bind(this);
-    this.disable = this.disable.bind(this);
-    this.enable = this.enable.bind(this);
-    this.toggle = this.toggle.bind(this);
-    this.isEnabled = this.isEnabled.bind(this);
+    Object.getOwnPropertyNames(Object.getPrototypeOf(this))
+      .filter((prop) => typeof this[prop] === 'function' && prop !== 'constructor')
+      .forEach((method) => {
+        this[method] = this[method].bind(this);
+      });
   }
 
   pushRedirectionsOf(rootUrl, json) {

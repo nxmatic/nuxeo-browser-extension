@@ -32,8 +32,11 @@ class BrowserStore {
     };
 
     // Bind methods
-    this.get = this.get.bind(this);
-    this.set = this.set.bind(this);
+    Object.getOwnPropertyNames(Object.getPrototypeOf(this))
+      .filter((prop) => typeof this[prop] === 'function' && prop !== 'constructor')
+      .forEach((method) => {
+        this[method] = this[method].bind(this);
+      });
   }
 
   get(input) {

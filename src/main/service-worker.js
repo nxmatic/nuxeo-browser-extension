@@ -19,8 +19,12 @@ class ServiceWorkerMessageHandler {
   constructor(worker) {
     this.worker = worker;
 
-    // binds methods to this
-    this.handle = this.handle.bind(this);
+    // Bind methods
+    Object.getOwnPropertyNames(Object.getPrototypeOf(this))
+      .filter((prop) => typeof this[prop] === 'function' && prop !== 'constructor')
+      .forEach((method) => {
+        this[method] = this[method].bind(this);
+      });
   }
 
   handle(request, sender, sendResponse) {
