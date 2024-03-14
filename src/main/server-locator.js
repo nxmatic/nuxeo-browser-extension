@@ -2,6 +2,7 @@
 class ServerLocator {
   constructor(worker) {
     this.worker = worker;
+    this.tabInfo = null;
 
     // Bind methods
     Object.getOwnPropertyNames(Object.getPrototypeOf(this))
@@ -36,24 +37,19 @@ class ServerLocator {
       ].join(''));
       const matchGroups = nxPattern.exec(tabInfo.url);
       if (!matchGroups) {
-        console.log(`ServerLocator.nuxeoUrlOf(${tabInfo.url}) -> null`);
+        this.worker.developmentMode
+          .asConsole()
+          .then((console) => console
+            .log(`ServerLocator.nuxeoUrlOf(${tabInfo.url}) -> null`));
         return null;
       }
-      const [, extractedUrl] = matchGroups;
-      console.log(`ServerLocator.nuxeoUrlOf(${tabInfo.url}) -> ${extractedUrl}`);
-      return extractedUrl;
+      const [, extractedLocation] = matchGroups;
+      this.worker.developmentMode
+        .asConsole()
+        .then((console) => console
+          .log(`ServerLocator.nuxeoUrlOf(${tabInfo.url}) -> ${extractedLocation}`));
+      return new URL(extractedLocation);
     };
-
-    this.tabInfo = null;
-
-    // Bind  methods
-    this.disableExtension = this.disableExtension.bind(this);
-    this.enableExtensionIfNuxeoServerTab = this.enableExtensionIfNuxeoServerTab.bind(this);
-    this.getCurrentTabUrl = this.getCurrentTabUrl.bind(this);
-    this.isNuxeoServerTab = this.isNuxeoServerTab.bind(this);
-    this.listenToChromeEvents = this.listenToChromeEvents.bind(this);
-    this.loadNewExtensionTab = this.loadNewExtensionTab.bind(this);
-    this.reloadServerTab = this.reloadServerTab.bind(this);
   }
 
   listenToChromeEvents() {
@@ -96,38 +92,38 @@ class ServerLocator {
     };
   }
 
-  enableExtensionIfNuxeoServerTab(tabInfo) {
-    return this.isNuxeoServerTab(tabInfo)
+  enableExtensionIfNuxeoServerTab(info) {
+    return this.isNuxeoServerTab(info)
       .then((rootUrl) => {
         if (rootUrl) return rootUrl;
         return new Promise((resolve) => {
-          chrome.action.disable(tabInfo.id);
+          chrome.action.disable(info.id);
           resolve(null);
         });
       })
       .then((rootUrl) => {
         if (!rootUrl) return null;
         return this.worker.serverConnector
-          .onNewServer(rootUrl, tabInfo)
-          .then(() => this.worker.browserStore
-            .set({ tabInfo })
-            .then((store) => {
-              console.log(`Enabled extension for ${JSON.stringify(store.tabInfo)}...`);
-              chrome.action.enable(store.tabInfo.id);
-            }))
+          .onNewServer(rootUrl, info)
+          .then(() => {
+            this.tabInfo = info;
+            chrome.action.enable(this.tabInfo.id);
+            this.worker.developmentMode.asConsole()
+              .then((console) => console
+                .log(`Enabled extension for ${JSON.stringify(info)}...`));
+          })
           .then(() => rootUrl);
       })
       .catch((error) => Promise.reject(error));
   }
 
-  isNuxeoServerTab(tabInfo) {
+  isNuxeoServerTab(info) {
     return new Promise((resolve, reject) => {
-      const rootUrl = this.nuxeoUrlOf(tabInfo);
+      const rootUrl = this.nuxeoUrlOf(info);
       if (!rootUrl) {
-        chrome.action.disable(tabInfo.id);
+        chrome.action.disable(info.id);
         return resolve(null); // Not a Nuxeo server tab
       }
-      this.tabInfo = tabInfo;
       const automationReportUrl = `${rootUrl}/site/automation`;
       return fetch(automationReportUrl, {
         method: 'GET',
@@ -136,23 +132,23 @@ class ServerLocator {
         if (!response.ok) {
           if (response.status === 401) {
             this.worker.desktopNotifier.notify('unauthenticated', {
-              title: `Not logged in page: ${tabInfo.url}...`,
+              title: `Not logged in page: ${info.url}...`,
               message: 'You are not authenticated. Please log in and try again.',
               iconUrl: '../images/access_denied.png',
             });
-            chrome.action.disable(tabInfo.id);
+            chrome.action.disable(info.id);
             return this.reloadServerTab(0)
               .then(() => resolve(null));
           }
           response.text().then((errorText) => {
             this.worker.desktopNotifier.notify('error', {
-              title: `Not a Nuxeo server tab : ${tabInfo.url}...`,
+              title: `Not a Nuxeo server tab : ${info.url}...`,
               message: `Got errors while accessing automation status page at ${automationReportUrl}. Error: ${errorText}`,
               iconUrl: '../images/access_denied.png',
             });
           });
-          chrome.action.disable(tabInfo.id);
-          return reject(new Error(`Not a Nuxeo server tab : ${tabInfo.url}...`));
+          chrome.action.disable(info.id);
+          return reject(new Error(`Not a Nuxeo server tab : ${info.url}...`));
         }
         this.worker.desktopNotifier.cancel('unauthenticated');
         return resolve(rootUrl);

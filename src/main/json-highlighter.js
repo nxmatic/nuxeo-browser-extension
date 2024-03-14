@@ -22,6 +22,14 @@ class JsonHighlighter {
       resolve(this._input);
     });
   }
+
+  withEnabled(value) {
+    const method = this.worker.browserStore[value ? 'set' : 'get'];
+    const data = value ? { 'json-highlighter-enabled': value } : { 'json-highlighter-enabled': true };
+
+    return method.apply(this.worker.browserStore, [data])
+      .then((store) => store['json-highlighter-enabled']);
+  }
 }
 
 export default JsonHighlighter;

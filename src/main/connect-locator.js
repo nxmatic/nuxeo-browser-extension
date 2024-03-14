@@ -10,7 +10,7 @@ class ConnectLocator {
       });
   }
 
-  url(value) {
+  withUrl(value) {
     const method = this.worker.browserStore[value ? 'set' : 'get'];
     const data = value ? { 'connect-url': value.toString() } : { 'connect-url': 'https://connect.nuxeo.com' };
 

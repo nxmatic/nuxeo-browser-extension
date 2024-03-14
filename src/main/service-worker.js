@@ -54,13 +54,15 @@ class ServiceWorkerMessageHandler {
       }
       this.worker.developmentMode
         .asConsole()
-        .then((console) => console.log(`ServiceWorkerMessageHandler.handle(${JSON.stringify(request)}) called`));
+        .then((console) => console
+          .log(`ServiceWorkerMessageHandler.handle(${JSON.stringify(request)}) called`));
       return Promise
         .resolve(service[request.action](...request.params))
         .then((result) => {
           this.worker.developmentMode
             .asConsole()
-            .then((console) => console.log(`${JSON.stringify(result)} <- ServiceWorkerMessageHandler.handle(${JSON.stringify(request)})`));
+            .then((console) => console
+              .log(`${JSON.stringify(result)} <- ServiceWorkerMessageHandler.handle(${JSON.stringify(request)})`));
           return result;
         })
         .catch((error) => this.worker.developmentMode

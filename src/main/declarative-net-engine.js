@@ -1,5 +1,18 @@
 /* eslint-disable max-classes-per-file */
 
+function hashCode(s) {
+  let hash = 0;
+  if (s.length === 0) return hash;
+  for (let i = 0; i < s.length; i++) {
+    const char = s.charCodeAt(i);
+    // eslint-disable-next-line no-bitwise
+    hash = ((hash << 5) - hash) + char;
+    // eslint-disable-next-line no-bitwise
+    hash |= 0; // Convert to 32-bit integer
+  }
+  return Math.abs(hash); // Ensure the hash is always positive
+}
+
 class BaseRule {
   constructor() {
     this.id = -1;
@@ -16,15 +29,13 @@ class CookieHeaderRule extends BaseRule {
 
   // eslint-disable-next-line class-methods-use-this
   keyOf() {
-    return 'cookieHeader';
+    return `cookieHeader-${this.rootUrl}`;
   }
 
-  toJson(id = 1, priority = 1) {
-    this.id = id;
-    this.priority = priority;
+  toJson(priority = 1) {
     return {
-      id: this.id,
-      priority: this.priority,
+      id: hashCode(this.rootUrl),
+      priority,
       condition: {
         urls: [`${this.rootUrl}/*`],
       },
@@ -53,17 +64,16 @@ class RedirectRule extends BaseRule {
     return this.from;
   }
 
-  toJson(id = 1, priority = 1) {
+  toJson(priority = 1) {
     return {
-      id,
+      id: hashCode(this.from.toString()),
       priority,
       condition: {
-        urlFilter: this.from,
-        resourceTypes: ['main_frame', 'sub_frame'],
+        urlFilter: this.from.toString(),
       },
       action: {
         type: 'redirect',
-        redirect: { url: this.to },
+        redirect: { url: this.to.toString() },
       },
     };
   }
@@ -78,13 +88,6 @@ class DeclarativeNetEngine {
     this.nextId = 1;
 
     // Bind methods
-    this.clear = this.clear.bind(this);
-    this.push = this.push.bind(this);
-    this.pop = this.pop.bind(this);
-    this.flush = this.flush.bind(this);
-    this.flushed = this.flushed.bind(this);
-    this.pending = this.pending.bind(this);
-    this.reset = this.reset.bind(this);
     Object.getOwnPropertyNames(Object.getPrototypeOf(this))
       .filter((prop) => typeof this[prop] === 'function' && prop !== 'constructor')
       .forEach((method) => {
@@ -100,14 +103,20 @@ class DeclarativeNetEngine {
     this.rules[rule.keyOf()] = rule;
     this.rulesToAdd.push(rule);
     this.nextId += 1;
-    this.worker.developmentMode.asConsole().then((console) => console.log(`Pushed rule: ${JSON.stringify(rule.toJson())}`));
+    this.worker.developmentMode
+      .asConsole()
+      .then((console) => console
+        .log(`Pushed rule: ${JSON.stringify(rule.toJson())}`));
   }
 
   pop(key) {
     const rule = this.rules[key];
     delete this.rules[key];
     this.rulesToRemove.push(rule);
-    this.worker.developmentMode.asConsole().then((console) => console.log(`Popped rule: ${JSON.stringify(rule.toJson())}`));
+    this.worker.developmentMode
+      .asConsole()
+      .then((console) => console
+        .log(`Popped rule: ${JSON.stringify(rule.toJson())}`));
     return rule;
   }
 
@@ -128,8 +137,10 @@ class DeclarativeNetEngine {
     return Promise.resolve()
       .then(() => chrome.declarativeNetRequest.getDynamicRules())
       .then((rules) => {
-        this.worker.developmentMode.asConsole()
-          .then((console) => console.log(`Flushed rules: ${JSON.stringify(rules)}`));
+        this.worker.developmentMode
+          .asConsole()
+          .then((console) => console
+            .log(`Flushed rules: ${JSON.stringify(rules)}`));
         return rules;
       });
   }
@@ -138,12 +149,13 @@ class DeclarativeNetEngine {
     return Promise.resolve({
       addRules: this.rulesToAdd.map((rule) => rule.toJson()),
       removeRuleIds: this.rulesToRemove.map((rule) => rule.id),
-    })
-      .then((pending) => {
-        this.worker.developmentMode.asConsole()
-          .then((console) => console.log(`Pending rules: ${JSON.stringify(pending)}`));
-        return pending;
-      });
+    }).then((pending) => {
+      this.worker.developmentMode
+        .asConsole()
+        .then((console) => console
+          .log(`Pending rules: ${JSON.stringify(pending)}`));
+      return pending;
+    });
   }
 
   clear() {
@@ -157,12 +169,17 @@ class DeclarativeNetEngine {
     this.rulesToAdd = [];
     this.rulesToRemove = [];
     this.nextId = 1;
-    return chrome.declarativeNetRequest.getDynamicRules().then((rules) => {
-      const ruleIds = rules.map((rule) => rule.id);
-      return chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: ruleIds });
-    }).catch((error) => {
-      console.error('Failed to remove dynamic rules:', error);
-    });
+    return chrome.declarativeNetRequest
+      .getDynamicRules()
+      .then((rules) => {
+        const ruleIds = rules.map((rule) => rule.id);
+        return chrome.declarativeNetRequest.updateDynamicRules({
+          removeRuleIds: ruleIds,
+        });
+      })
+      .catch((error) => {
+        console.error('Failed to remove dynamic rules:', error);
+      });
   }
 }
 
