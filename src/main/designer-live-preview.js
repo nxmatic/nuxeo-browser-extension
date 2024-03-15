@@ -129,11 +129,14 @@ class DesignerLivePreview {
 
   enable(projectName) {
     const rulesPusher = (connectUrl, nuxeoUrl) => Promise
-      .resolve(new URL(
-        `/nuxeo/site/studio/v2/project/${projectName}/workspace/ws.resources`,
-        connectUrl
-      ))
-      .then((workspaceUrl) =>
+      .resolve({
+        studioUrl: new URL(`/nuxeo/site/studio/ide?project=${projectName}`, connectUrl),
+        workspaceUrl: new URL(
+          `/nuxeo/site/studio/v2/project/${projectName}/workspace/ws.resources`,
+          connectUrl
+        )
+      })
+      .then(({ studioUrl, workspaceUrl }) =>
         fetch(
           // fetch connect workspace to get redirected URLs
           workspaceUrl,
@@ -146,21 +149,22 @@ class DesignerLivePreview {
             if (!response.ok) {
               // If the status code is 401, the user is not authenticated
               if (response.status === 401) {
-                throw new Error('Not authenticated.');
+                this.worker.tabActivator.loadNewExtensionTab(studioUrl.toString());
+                return Promise.reject(new Error('Not authenticated.'));
               }
 
               // If the status code is anything else, there was another type of error
-              throw new Error(`Request failed with status ${response.status}`);
+              return Promise.reject(new Error(`Request failed with status ${response.status}`));
             }
 
             // Check if a redirect occurred
             if (response.url.toString() !== workspaceUrl.toString()) {
-              throw new Error(`Redirected from ${workspaceUrl} to ${response.url}, possibly due to not being authenticated.`);
+              return Promise.reject( new Error(`Redirected from ${workspaceUrl} to ${response.url}, possibly due to not being authenticated.`));
             }
 
             const contentType = response.headers.get('content-type');
             if (!contentType || !contentType.includes('application/json')) {
-              throw new Error('Unexpected content type');
+              return Promise.reject(new Error('Unexpected content type'));
             }
             return response.json();
           })
