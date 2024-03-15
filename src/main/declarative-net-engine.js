@@ -3,6 +3,7 @@
 function hashCode(s) {
   let hash = 0;
   if (s.length === 0) return hash;
+  // eslint-disable-next-line no-plusplus
   for (let i = 0; i < s.length; i++) {
     const char = s.charCodeAt(i);
     // eslint-disable-next-line no-bitwise

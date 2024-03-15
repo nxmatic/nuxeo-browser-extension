@@ -10,7 +10,7 @@ import JSONHighlighter from './json-highlighter';
 import RepositoryIndexer from './repository-indexer';
 import RuntimeBuildComponent from './runtime-build-info';
 import ServerConnector from './server-connector';
-import ServerLocator from './server-locator';
+import TabActivator from './tab-activator';
 import StudioHotReloader from './studio-hot-reloader';
 
 const DeclarativeNetEngine = DeclararactiveNetCompoments.DeclarativeNetEngine;
@@ -76,7 +76,8 @@ class ServiceWorkerMessageHandler {
 
     withConnectedWorker(this.worker)
       .then(handleRequest)
-      .then(sendResponse);
+      .then(sendResponse)
+      .catch((error) => console.error(`Caught error while handling ${JSON.stringify(request)}: ${error}`));
 
     return true; // This is necessary to indicate that you will send a response asynchronously
   }
@@ -97,7 +98,7 @@ class ServiceWorker {
     this.desktopNotifier = new DesktopNotifier(this);
     this.jsonHighlighter = new JSONHighlighter(this);
     this.repositoryIndexer = new RepositoryIndexer(this);
-    this.serverLocator = new ServerLocator(this);
+    this.tabActivator = new TabActivator(this);
     this.serverConnector = new ServerConnector(this);
     this.studioHotReloader = new StudioHotReloader(this);
     this.documentBrowser = new DocumentBrowser(this);
@@ -115,7 +116,7 @@ class ServiceWorker {
     chrome.runtime.onMessage.addListener(messageHandle);
     cleanupFunctions.push(() => chrome.runtime.onMessage.removeListener(messageHandle));
 
-    cleanupFunctions.push(this.serverLocator.listenToChromeEvents());
+    cleanupFunctions.push(this.tabActivator.listenToChromeEvents());
     cleanupFunctions.push(this.documentBrowser.listenToChromeEvents());
     cleanupFunctions.push(() => this.designerLivePreview.disable());
 

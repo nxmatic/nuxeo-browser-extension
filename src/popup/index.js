@@ -176,7 +176,7 @@ function loadPage(serviceWorker) {
 
   const registerLink = (element, url) => {
     $(element).click(() => {
-      serviceWorker.serverLocator.loadNewExtensionTab(url);
+      serviceWorker.tabActivator.loadNewExtensionTab(url);
     });
   };
 
@@ -329,7 +329,7 @@ function loadPage(serviceWorker) {
                 .then(openJsonWindow);
             } else {
               const jsonPath = `api/v1/repo/${repository}/${path}?enrichers.document=acls,permissions&properties=*`;
-              serviceWorker.serverLocator.loadNewExtensionTab(jsonPath, true);
+              serviceWorker.tabActivator.loadNewExtensionTab(jsonPath, true);
             }
           });
         }
@@ -596,7 +596,7 @@ function loadPage(serviceWorker) {
                 });
                 $('.doc-title').click((event) => {
                   const docPath = onUI ? `ui/#!/doc/${event.target.id}` : `nxdoc/default/${event.target.id}/view_documents`;
-                  serviceWorker.serverLocator.loadNewExtensionTab(docPath, true);
+                  serviceWorker.tabActivator.loadNewExtensionTab(docPath, true);
                 });
                 $('.json-icon').click((event) => {
                   event.preventDefault();
@@ -628,7 +628,7 @@ function loadPage(serviceWorker) {
         let openJsonWindow = (jsonObject) => {
           const jsonString = JSON.stringify(jsonObject, undefined, 2);
           serviceWorker.jsonHighlighter.input(DOMPurify.sanitize(jsonString));
-          serviceWorker.serverLocator.loadNewExtensionTab('json/index.html');
+          serviceWorker.tabActivator.loadNewExtensionTab('json/index.html');
         };
 
         $('#restart-button').on('click', () => {

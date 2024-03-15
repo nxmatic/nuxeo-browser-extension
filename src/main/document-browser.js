@@ -73,7 +73,7 @@ class DocumentBrowser {
           }
           return `nxdoc/default/${uid}/view_documents`;
         }
-        this.serverLocator.loadNewExtensionTab(pathOf(doc.uid), true);
+        this.tabActivator.loadNewExtensionTab(pathOf(doc.uid), true);
       })
       .catch((error) => {
         console.log(error);

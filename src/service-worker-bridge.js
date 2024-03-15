@@ -12,7 +12,7 @@ class ServiceWorkerBridge {
       'developmentMode',
       'jsonHighlighter',
       'repositoryIndexer',
-      'serverLocator',
+      'tabActivator',
       'serverConnector',
       'studioHotReloader',
       'documentBrowser'
