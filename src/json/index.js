@@ -16,6 +16,7 @@ limitations under the License.
 import $ from 'jquery';
 import 'bootstrap';
 import hljs from 'highlight.js';
+import '../../public/styles/mono-blue.css';
 
 import ServiceWorkerBridge from '../service-worker-bridge';
 
