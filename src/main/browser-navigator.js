@@ -20,7 +20,7 @@ class Navigator {
         '(',
         '\\/(?:',
         '(?:nxdoc|nxpath|nxsearch|nxadmin|nxhome|nxdam|nxdamid|site\\/[A-Za-z_\\.0-9-]+)\\/[A-Za-z_\\.0-9-]+|',
-        'view_documents\\.faces|ui\\/#!\\/|view_domains\\.faces|home\\.html|view_home\\.faces',
+        'view_documents\\.faces|ui\\/|ui\\/#!\\/|view_domains\\.faces|home\\.html|view_home\\.faces',
         '))'
       ].join(''));
       // match and reject non matching URLs
