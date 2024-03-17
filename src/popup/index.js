@@ -358,13 +358,11 @@ function loadPage(serviceWorker) {
         const checkStudioPkg = `import groovy.json.JsonOutput;
     import org.nuxeo.connect.packages.PackageManager;
     import org.nuxeo.connect.client.we.StudioSnapshotHelper;
-    import org.nuxeo.ecm.admin.runtime.RuntimeInstrospection;
     import org.nuxeo.runtime.api.Framework;
 
     def pm = Framework.getService(PackageManager.class);
     def snapshotPkg = StudioSnapshotHelper.getSnapshot(pm.listRemoteAssociatedStudioPackages());
     def pkgName = snapshotPkg == null ? null : snapshotPkg.getName();
-    def bundles = RuntimeInstrospection.getInfo();
 
     println JsonOutput.toJson([studio: pkgName]);`;
 
