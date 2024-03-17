@@ -4,6 +4,7 @@ class ServiceWorkerBridge {
   constructor() {
     const services = [
       'buildInfo',
+      'browserNavigator',
       'browserStore',
       'chromeNotifier',
       'connectLocator',
@@ -12,36 +13,36 @@ class ServiceWorkerBridge {
       'developmentMode',
       'jsonHighlighter',
       'repositoryIndexer',
-      'tabActivator',
       'serverConnector',
       'studioHotReloader',
       'documentBrowser'
     ];
-    this.queue = Promise.resolve();
 
     services.forEach((service) => {
       this[service] = new Proxy({}, {
-        get: (target, action) => (...params) => {
-          this.queue = this.queue.then(() => new Promise((resolve, reject) => {
-            chrome.runtime.sendMessage(
-              {
-                extension: 'nuxeo-web-extension',
-                service: `${service}`,
-                action,
-                params,
-              },
-              (response) => {
-                if (chrome.runtime.lastError) {
-                  reject(chrome.runtime.lastError);
-                } else {
-                  resolve(response);
-                }
+        get: (target, action) => (...params) => new Promise((resolve, reject) => {
+          chrome.runtime.sendMessage(
+            {
+              extension: 'nuxeo-web-extension',
+              service: `${service}`,
+              action,
+              params,
+            },
+            (response) => {
+              if (chrome.runtime.lastError) {
+                reject(chrome.runtime.lastError);
+              } else if (response && response.error) {
+                const error = new Error(response.error.message);
+                error.name = response.error.name;
+                error.stack = response.error.stack;
+                error.originalError = response.error; // Include the original error
+                reject(error);
+              } else {
+                resolve(response);
               }
-            );
-          }));
-
-          return this.queue;
-        },
+            }
+          );
+        }),
       });
     });
   }

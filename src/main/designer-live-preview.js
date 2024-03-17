@@ -18,8 +18,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { resolve } from 'nuxeo/lib/deps/promise';
 import DeclarativeNetComponents from './declarative-net-engine';
 
+const AuthenticationHeaderRule = DeclarativeNetComponents.AuthenticationHeaderRule;
 const RedirectRule = DeclarativeNetComponents.RedirectRule;
 
 class DesignerLivePreview {
@@ -28,7 +30,7 @@ class DesignerLivePreview {
     this.worker = worker;
 
     // Set defaukt properties for the class
-    this.cleanupFunctions = [];
+    this.undoByProjectNames = new Map();
 
     // Bind methods
     Object.getOwnPropertyNames(Object.getPrototypeOf(this))
@@ -38,207 +40,176 @@ class DesignerLivePreview {
       });
   }
 
-  pushRedirectionsOf(rootUrl, json) {
+  pushAuthentication(url, credentials) {
+    if (!credentials) {
+      return Promise.resolve();
+    }
+    return this.worker.declarativeNetEngine.push(new AuthenticationHeaderRule(url, credentials));
+  }
+
+  pushRedirectionsOf(json, credentials = undefined, rootUrl = this.worker.serverConnector.rootUrl) {
     const nuxeoBase = rootUrl.href.endsWith('/') ? rootUrl.href : `${rootUrl.href}/`;
-    Object.keys(json).forEach((basePath) => {
+
+    const promises = Object.keys(json).flatMap((basePath) => {
       const nuxeoBasePath = basePath.replace(
         /^\/(nuxeo\.war\/?\/)?/,
         ''
       );
       if (!basePath || basePath.length === 0 || !json[basePath]) {
-        return;
+        return [];
       }
       const files = Object.keys(json[basePath]);
-      files.forEach((resourcePath) => {
+      return files.map((resourcePath) => {
         const connectUrl = new URL(json[basePath][resourcePath]);
         const nuxeoUrl = new URL(`${nuxeoBasePath}/${resourcePath}`, nuxeoBase);
-        this.pushRedirection(nuxeoUrl, connectUrl);
+        if (credentials) {
+          this.pushAuthentication(connectUrl, credentials);
+        }
+        return this.pushRedirection(nuxeoUrl, connectUrl);
       });
     });
+
+    return Promise.all(promises);
   }
 
   addRedirectionsOf(details) {
     // Detects when Studio users save changes to a new resource in Designer
     if (details.method !== 'POST') {
-      return;
+      return Promise.resolve();
     }
+
     const resourcePaths = details.requestBody.formData.path;
-    resourcePaths.forEach((resourcePath) => {
+    const promises = resourcePaths.map((resourcePath) => {
       resourcePath = resourcePath.replace(/\/\//, '/');
       const connectResource = `${details.url}${resourcePath}`;
       resourcePath = resourcePath.replace(/^\/(nuxeo\.war\/?\/)?/, '');
       const nuxeoResource = `${this.nuxeo.baseUrl}${resourcePath}`;
-      this.pushRedirection(nuxeoResource, connectResource);
+      return this.pushRedirection(nuxeoResource, connectResource);
     });
-    this.flushRedirections();
+
+    return Promise.all(promises).then(() => this.flush());
   }
 
   removeRedirectionsOf(details) {
     // Detects when Studio users revert their customizations to default
     if (details.method !== 'DELETE') {
-      return;
+      return Promise.resolve();
     }
-    this.popRedirection(details.url);
-    this.flushRedirections();
+    return this
+      .popRedirection(details.url)
+      .then(() => this.flush());
   }
 
-  flushRedirections() {
-    this.worker.declarativeNetEngine.flush().catch((error) => {
-      console.error('Failed to remove redirection rules:', error);
-    });
+  flush() {
+    return this.worker.declarativeNetEngine
+      .flush();
   }
 
   pushRedirection(from, to) {
-    this.worker.declarativeNetEngine.push(new RedirectRule(from, to));
-    const modifiedFrom = this.modifyUrlForUIPath(from);
-    if (modifiedFrom !== from) {
-      this.worker.declarativeNetEngine.push(new RedirectRule(modifiedFrom, to));
-    }
+    return this.worker.declarativeNetEngine
+      .push(new RedirectRule(from, to))
+      .then(() => this.modifyUrlForUIPath(from))
+      .then((modifiedFrom) => {
+        if (modifiedFrom === from) return;
+        this.worker.declarativeNetEngine.push(new RedirectRule(modifiedFrom, to));
+      });
   }
 
   popRedirection(from) {
-    this.worker.declarativeNetEngine.pop(from);
-    const modifiedFrom = this.modifyUrlForUIPath(from);
-    if (modifiedFrom !== from) {
-      this.worker.declarativeNetEngine.pop(modifiedFrom);
-    }
+    return this.worker.declarativeNetEngine
+      .pop(from)
+      .then(() => this.modifyUrlForUIPath(from))
+      .then((modifiedFrom) => {
+        if (modifiedFrom === from) return;
+        this.worker.declarativeNetEngine.pop(modifiedFrom);
+      });
   }
 
   // eslint-disable-next-line class-methods-use-this
   modifyUrlForUIPath(url) {
     const fragments = url.pathname.split('/');
-    if (fragments[2] === 'ui') {
-      fragments.splice(3, 0, ''); // Insert an empty string after 'ui'
-      const newUrl = new URL(url);
-      newUrl.pathname = fragments.join('/');
-      return newUrl;
+    if (fragments[2] !== 'ui') {
+      return resolve(url);
     }
-    return url;
+    fragments.splice(3, 0, ''); // Insert an empty string after 'ui'
+    const newUrl = new URL(url);
+    newUrl.pathname = fragments.join('/');
+    return resolve(newUrl);
   }
 
   toggle(projectName) {
-    return this.isEnabled()
+    return this.isEnabled(projectName)
       .then((enabled) => {
-        if (enabled) {
-          return this.disable(projectName);
-        } else {
-          return this.enable(projectName);
+        const action = enabled ? this.disable : this.enable;
+        return action.apply(this, [projectName]);
+      });
+  }
+
+  withWorkspace(projectName) {
+    return this.worker.connectLocator
+      .withUrl()
+      .then(({ location, credentials }) => {
+        const url = new URL(`/nuxeo/site/studio/v2/project/${projectName}/workspace/ws.resources`, location);
+        return { url, credentials };
+      })
+      .then(({ url: workspaceUrl, credentials }) => fetch(workspaceUrl, {
+        credentials: 'include',
+      })
+        .then((response) => ({ workspaceUrl, response, credentials })))
+      .then(({ workspaceUrl, response, credentials }) => {
+        const errorOf = (message) => {
+          const error = new Error(message);
+          error.response = response;
+          throw error;
+        };
+        // Check if the request was successful
+        if (!response.ok) {
+          // If the status code is 401, the user is not authenticated
+          if (response.status === 401) {
+            throw errorOf('Not authenticated.');
+          }
+          // If the status code is anything else, there was another type of error
+          throw errorOf(`Request failed with status ${response.status}`);
         }
+
+        // Check if a redirect occurred
+        if (response.url.toString() !== workspaceUrl.toString()) {
+          throw errorOf(`Redirected from ${workspaceUrl} to ${response.url}, possibly due to not being authenticated.`);
+        }
+
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw errorOf('Unexpected content type');
+        }
+        return response.json().then((json) => ({ json, credentials }));
       });
   }
 
   enable(projectName) {
-    const rulesPusher = (connectUrl, nuxeoUrl) => Promise
-      .resolve({
-        studioUrl: new URL(`/nuxeo/site/studio/ide?project=${projectName}`, connectUrl),
-        workspaceUrl: new URL(
-          `/nuxeo/site/studio/v2/project/${projectName}/workspace/ws.resources`,
-          connectUrl
-        )
-      })
-      .then(({ studioUrl, workspaceUrl }) =>
-        fetch(
-          // fetch connect workspace to get redirected URLs
-          workspaceUrl,
-          {
-            credentials: 'include',
-          }
-        )
-          .then((response) => {
-            // Check if the request was successful
-            if (!response.ok) {
-              // If the status code is 401, the user is not authenticated
-              if (response.status === 401) {
-                this.worker.tabActivator.loadNewExtensionTab(studioUrl.toString());
-                return Promise.reject(new Error('Not authenticated.'));
-              }
-
-              // If the status code is anything else, there was another type of error
-              return Promise.reject(new Error(`Request failed with status ${response.status}`));
-            }
-
-            // Check if a redirect occurred
-            if (response.url.toString() !== workspaceUrl.toString()) {
-              return Promise.reject( new Error(`Redirected from ${workspaceUrl} to ${response.url}, possibly due to not being authenticated.`));
-            }
-
-            const contentType = response.headers.get('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-              return Promise.reject(new Error('Unexpected content type'));
-            }
-            return response.json();
-          })
-          .then((jsonData) => this.pushRedirectionsOf(nuxeoUrl, jsonData))
-          .then(() => workspaceUrl)
-      )
-      .then((workspaceUrl) => this.worker.declarativeNetEngine.flush().then(() => [
-        connectUrl.toString(),
-        workspaceUrl.toString(),
-        nuxeoUrl,
-      ]));
-
-    return Promise
-      .all([
-        this.disable(), // Ensure we don't have multiple listeners
-        this.worker.connectLocator // Retrieve workspace location
-          .withUrl()
-          .then((connectUrl) =>
-            rulesPusher(connectUrl, this.worker.serverConnector.rootUrl)
-          ),
-      ])
-      // eslint-disable-next-line no-unused-vars
-      .then(([_, [connectLocation, workspaceLocation, nuxeoLocation]]) => [
-        connectLocation,
-        workspaceLocation,
-        nuxeoLocation,
-      ])
-      .then(([connectLocation, workspaceLocation, nuxeoLocation]) => {
-        chrome.webRequest.onBeforeRequest.addListener(
-          (details) => this.addRedirectionsOf(details),
-          {
-            urls: [workspaceLocation],
-          },
-          ['requestBody']
-        );
-        this.cleanupFunctions.push(() =>
-          chrome.webRequest.onBeforeRequest.removeListener(
-            this.addRedirectionsOf
-          )
-        );
-        return [connectLocation, workspaceLocation, nuxeoLocation];
-      })
-      .then(([connectLocation, workspaceLocation, nuxeoLocation]) => {
-        chrome.webRequest.onCompleted.addListener(
-          this.removeRedirectionsOf,
-          {
-            urls: [`${connectLocation}/*`],
-          },
-          ['responseHeaders']
-        );
-        this.cleanupFunctions.push(() => chrome
-          .webRequest
-          .onCompleted
-          .removeListener(this.removeRedirectionsOf));
-        return [connectLocation, workspaceLocation, nuxeoLocation];
-      })
-      .then(() => this.cleanupFunctions.push(() => this.worker.declarativeNetEngine.clear()))
+    return this.withWorkspace(projectName)
+      .then(({ credentials, json }) => this
+        .disable()
+        .then(() => this.pushRedirectionsOf(json, credentials))
+        .then(() => this.flush())
+        .then((undo) => this.undoByProjectNames.set(projectName, undo)))
       .then(() => true);
   }
 
   // eslint-disable-next-line no-unused-vars
   disable(projectName) {
     return Promise.resolve()
-      .then(() => {
-        while (this.cleanupFunctions.length > 0) {
-          const cleanupFunction = this.cleanupFunctions.pop();
-          cleanupFunction();
-        }
+      .then(() => this.undoByProjectNames.get(projectName))
+      .then((undo) => {
+        if (!undo) return;
+        undo.apply();
       })
+      .then(() => this.undoByProjectNames.delete(projectName))
       .then(() => false);
   }
 
-  isEnabled() {
-    return Promise.resolve(this.cleanupFunctions.length > 0);
+  isEnabled(projectName) {
+    return this.withWorkspace(projectName)
+      .then(() => this.undoByProjectNames.has(projectName));
   }
 }
 

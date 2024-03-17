@@ -92,16 +92,26 @@ function loadPage(serviceWorker) {
   });
 
   const studioPackageFound = (connectUrl, packageName) => {
+    const toogleDesignerLivePreviewButton = (isEnabled) => {
+      $('#designer-live-preview-button').toggleClass('enabled', isEnabled);
+      $('#designer-live-preview-button').toggleClass('disabled', !isEnabled);
+    };
+    const toogleDesignerLivePreviewMessage = () => {
+      $('#designer-livepreview-message').css('display', 'block');
+      // setTimeout(() => {
+      //   $('#designer-livepreview-message').css('display', 'none');
+      // }, 5000);
+    };
     $('#no-studio-buttons').css('display', 'none');
     $('#studio').css('display', 'flex');
     $('#studio-buttons').css('display', 'block');
-    if (serviceWorker.designerLivePreview.isEnabled()) {
-      $('#designer-live-preview-button').addClass('enabled');
-      $('#designer-live-preview-button').removeClass('disabled');
-    } else {
-      $('#designer-live-preview-button').addClass('disabled');
-      $('#designer-live-preview-button').removeClass('enabled');
-    }
+    serviceWorker.designerLivePreview
+      .isEnabled(packageName)
+      .then((isEnabled) => toogleDesignerLivePreviewButton(isEnabled))
+      .catch((error) => {
+        console.log('Error getting designer live preview status', error);
+        toogleDesignerLivePreviewMessage();
+      });
 
     const packageLocation = new URL(
       `/nuxeo/site/studio/ide?project=${packageName}`,
@@ -109,10 +119,10 @@ function loadPage(serviceWorker) {
     ).toString();
     $('#log-into-studio').attr(
       'href',
-      new URL('/nuxeo', connectUrl.href).toString()
+      new URL(packageLocation, connectUrl.href).toString()
     );
     $('#studio').click(() => {
-      serviceWorker.browser.loadNewExtensionTab(packageLocation);
+      serviceWorker.browserNavigator.loadNewExtensionTab(packageLocation);
     });
     $('#hot-reload-button').click(() => {
       startLoadingHR()
@@ -123,22 +133,8 @@ function loadPage(serviceWorker) {
     $('#designer-live-preview-button').click(() => {
       serviceWorker.designerLivePreview
         .toggle(packageName)
-        .then((enabled) => (enabled
-          ? { beforeClass: 'enabled', afterClass: 'disabled' }
-          : { beforeClass: 'disabled', afterClass: 'enabled' }
-        ))
-        .then(({ beforeClass, afterClass }) => {
-          $('#designer-live-preview-button').removeClass(beforeClass);
-          $('#designer-live-preview-button').addClass(afterClass);
-        })
-        // eslint-disable-next-line no-unused-vars
-        .catch((error) => {
-          console.error(error);
-          $('#designer-livepreview-message').css('display', 'block');
-          setTimeout(() => {
-            $('#designer-livepreview-message').css('display', 'none');
-          }, 5000);
-        });
+        .then((isEnabled) => toogleDesignerLivePreviewButton(isEnabled))
+        .catch(() => toogleDesignerLivePreviewMessage());
     });
     $('#force-hot-reload-button').click(() => {
       hideDependencyError()
@@ -176,7 +172,7 @@ function loadPage(serviceWorker) {
 
   const registerLink = (element, url) => {
     $(element).click(() => {
-      serviceWorker.tabActivator.loadNewExtensionTab(url);
+      serviceWorker.browserNavigator.loadNewExtensionTab(url);
     });
   };
 
@@ -201,8 +197,13 @@ function loadPage(serviceWorker) {
 
   serviceWorker.connectLocator
     .withUrl()
-    .then((connectLocation) => new URL(connectLocation))
-    .then((connectUrl) => {
+    .then(({ location, credentials }) => {
+      const connectUrl = new URL(location);
+      const connectCredentials = credentials;
+      return { connectUrl, connectCredentials };
+    })
+    // eslint-disable-next-line no-unused-vars
+    .then(({ connectUrl, connectCredentials }) => {
       $(document).ready(() => {
         const browserVendor = serviceWorker.buildInfo.browserVendor();
         if (browserVendor === 'Firefox') {
@@ -257,7 +258,7 @@ function loadPage(serviceWorker) {
           const highlight = $('#highlight-input').prop('checked');
 
           const inputPromise = input.length > 0
-            ? serviceWorker.connectLocator.withUrl(input).then(() => $('#connect-url').hide())
+            ? serviceWorker.connectLocator.withUrl(input).then(() => $('#connect-url  ').hide())
             : Promise.resolve();
 
           const highlightPromise = serviceWorker.browserStore.set({ highlight });
@@ -329,7 +330,7 @@ function loadPage(serviceWorker) {
                 .then(openJsonWindow);
             } else {
               const jsonPath = `api/v1/repo/${repository}/${path}?enrichers.document=acls,permissions&properties=*`;
-              serviceWorker.tabActivator.loadNewExtensionTab(jsonPath, true);
+              serviceWorker.browserNavigator.loadNewExtensionTab(jsonPath, true);
             }
           });
         }
@@ -596,7 +597,7 @@ function loadPage(serviceWorker) {
                 });
                 $('.doc-title').click((event) => {
                   const docPath = onUI ? `ui/#!/doc/${event.target.id}` : `nxdoc/default/${event.target.id}/view_documents`;
-                  serviceWorker.tabActivator.loadNewExtensionTab(docPath, true);
+                  serviceWorker.browserNavigator.loadNewExtensionTab(docPath, true);
                 });
                 $('.json-icon').click((event) => {
                   event.preventDefault();
@@ -628,7 +629,7 @@ function loadPage(serviceWorker) {
         let openJsonWindow = (jsonObject) => {
           const jsonString = JSON.stringify(jsonObject, undefined, 2);
           serviceWorker.jsonHighlighter.input(DOMPurify.sanitize(jsonString));
-          serviceWorker.tabActivator.loadNewExtensionTab('json/index.html');
+          serviceWorker.browserNavigator.loadNewExtensionTab('json/index.html');
         };
 
         $('#restart-button').on('click', () => {

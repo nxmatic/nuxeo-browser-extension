@@ -54,6 +54,39 @@ class CookieHeaderRule extends BaseRule {
   }
 }
 
+class AuthenticationHeaderRule extends BaseRule {
+  constructor(url, value) {
+    super();
+    this.value = value;
+    this.url = url;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  keyOf() {
+    return `authHeader-${this.url}`;
+  }
+
+  toJson(priority = 1) {
+    return {
+      id: hashCode(this.url),
+      priority,
+      condition: {
+        urls: [`${this.url}`],
+      },
+      action: {
+        type: 'modifyHeaders',
+        requestHeaders: [
+          {
+            header: 'Authorization',
+            operation: 'set',
+            value: this.value,
+          },
+        ],
+      },
+    };
+  }
+}
+
 class RedirectRule extends BaseRule {
   constructor(from, to) {
     super();
@@ -83,10 +116,9 @@ class RedirectRule extends BaseRule {
 class DeclarativeNetEngine {
   constructor(worker) {
     this.worker = worker;
-    this.rules = {};
+    this.rules = new Map();
     this.rulesToAdd = [];
     this.rulesToRemove = [];
-    this.nextId = 1;
 
     // Bind methods
     Object.getOwnPropertyNames(Object.getPrototypeOf(this))
@@ -94,44 +126,76 @@ class DeclarativeNetEngine {
       .forEach((method) => {
         this[method] = this[method].bind(this);
       });
-
-    // Initialize the engine
-    this.reset();
   }
 
   push(rule) {
-    rule.id = this.nextId;
-    this.rules[rule.keyOf()] = rule;
-    this.rulesToAdd.push(rule);
-    this.nextId += 1;
-    this.worker.developmentMode
-      .asConsole()
-      .then((console) => console
-        .log(`Pushed rule: ${JSON.stringify(rule.toJson())}`));
+    return Promise.resolve(rule)
+      .then((r) => {
+        this.rules.set(rule.keyOf, r);
+        this.rulesToAdd.push(r);
+        return r;
+      })
+      .then((r) => {
+        this.worker.developmentMode
+          .asConsole()
+          .then((console) => console
+            .log(`Pushed rule: ${JSON.stringify(r.toJson())}`));
+        return r;
+      });
   }
 
   pop(key) {
-    const rule = this.rules[key];
-    delete this.rules[key];
-    this.rulesToRemove.push(rule);
-    this.worker.developmentMode
-      .asConsole()
-      .then((console) => console
-        .log(`Popped rule: ${JSON.stringify(rule.toJson())}`));
-    return rule;
+    return Promise.resolve(key)
+      .then((k) => {
+        const rule = this.rules[k];
+        this.rules.delete(k);
+        this.rulesToRemove.push(rule);
+        return rule;
+      })
+      .then((rule) => {
+        this.worker.developmentMode
+          .asConsole()
+          .then((console) => console
+            .log(`Popped rule: ${JSON.stringify(rule.toJson())}`));
+        return rule;
+      });
   }
 
   flush() {
     return this.pending()
       .then((pending) => chrome.declarativeNetRequest
         .updateDynamicRules(pending))
-      .then(() => {
+      .then(() => ({
+        addRules: this.rulesToRemove.map((rule) => rule.toJson()),
+        removeRuleIds: this.rulesToAdd.map((rule) => rule.id),
+      }))
+      .then((rules) => {
         // Clear the lists after the changes have been submitted
         this.rulesToAdd = [];
         this.rulesToRemove = [];
+        return () => this.undo(rules);
       })
-      .then(() => this.flushed())
-      .catch((error) => console.error('Failed to flush rules:', error));
+      .catch((cause) => {
+        this.worker.developmentMode.asConsole()
+          .then((console) => console
+            .log(`Failed to flush rules: ${JSON.stringify(this)}`, cause));
+        throw cause;
+      });
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  undo(rules) {
+    return chrome.declarativeNetRequest
+      .updateDynamicRules(rules)
+      .then(() => this.worker.developmentMode.asConsole()
+        .then((console) => console
+          .log(`Successfully undid flush of rules: ${JSON.stringify(rules)}`)))
+      .catch((cause) => {
+        this.worker.developmentMode.asConsole()
+          .then((console) => console
+            .log(`Failed to undo flush of rules: ${JSON.stringify(rules)}`, cause));
+        throw cause;
+      });
   }
 
   flushed() {
@@ -159,17 +223,22 @@ class DeclarativeNetEngine {
     });
   }
 
+  redirectRulesFrom(from) {
+    return Array.from(this.rules.entries())
+      .filter(([key, rule]) => rule.type === 'redirect' && key.toString().startsWith(from.toString()))
+      .map(([, rule]) => rule);
+  }
+
   clear() {
-    this.rulesToRemove.push(...Object.values(this.rules));
-    this.rules = {};
+    this.rulesToRemove.push(...Array.from(this.rules.values()));
+    this.rules.clear();
     return this.flush();
   }
 
   reset() {
-    this.rules = {};
+    this.rules = new Map();
     this.rulesToAdd = [];
     this.rulesToRemove = [];
-    this.nextId = 1;
     return chrome.declarativeNetRequest
       .getDynamicRules()
       .then((rules) => {
@@ -184,4 +253,4 @@ class DeclarativeNetEngine {
   }
 }
 
-export default { CookieHeaderRule, RedirectRule, DeclarativeNetEngine };
+export default { AuthenticationHeaderRule, CookieHeaderRule, RedirectRule, DeclarativeNetEngine };

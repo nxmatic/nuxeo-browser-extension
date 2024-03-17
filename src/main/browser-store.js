@@ -1,5 +1,6 @@
 class BrowserStore {
-  constructor(namespace = 'nuxeo-browser-extension.') {
+  constructor(worker, namespace = 'nuxeo-browser-extension.') {
+    this.worker = worker;
     this.namespace = namespace;
 
     this.keysOf = (data) => {
@@ -44,21 +45,20 @@ class BrowserStore {
     const namespacedKeys = this.namespacedKeysOf(input);
 
     // Retrieve from storage
-    return chrome.storage.local.get(namespacedKeys).then((result) => {
+    return chrome.storage.local.get(namespacedKeys).then((store) => {
       const data = {};
       const undefinedData = {};
 
       Object.keys(input).forEach((key) => {
-        const strippedKey = key.substring(this.namespace.length);
-        if (Object.prototype.hasOwnProperty.call(result, this.namespace + key)) {
+        if (Object.prototype.hasOwnProperty.call(store, this.namespace + key)) {
           // If the key exists in the result, just strip the namespace and return
-          data[strippedKey] = result[this.namespace + key];
+          data[key] = store[this.namespace + key];
         } else if (typeof input === 'object') {
           // If the key doesn't exist in the result and input is an object, set it to the default value
-          data[strippedKey] = this.defaultsValueOf(input, strippedKey);
+          data[key] = this.defaultsValueOf(input, key);
 
           // Add the key-value pair to the undefinedKeys object
-          undefinedData[this.namespace + key] = data[strippedKey];
+          undefinedData[this.namespace + key] = data[key];
         }
       });
 
@@ -114,6 +114,24 @@ class BrowserStore {
               resolve(itemsWithoutNamespace);
             }
           });
+        }
+      });
+    });
+  }
+
+  list() {
+    return new Promise((resolve, reject) => {
+      chrome.storage.local.get(null, (items) => {
+        if (chrome.runtime.lastError) {
+          reject(chrome.runtime.lastError);
+        } else {
+          const data = {};
+          Object.keys(items).forEach((key) => {
+            if (key.startsWith(this.namespace)) {
+              data[key.replace(this.namespace, '')] = items[key];
+            }
+          });
+          resolve(data);
         }
       });
     });

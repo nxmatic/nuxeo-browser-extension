@@ -1,5 +1,5 @@
 /* eslint-disable comma-dangle */
-class TabActivator {
+class Navigator {
   constructor(worker) {
     this.worker = worker;
     this.tabInfo = null;
@@ -117,7 +117,7 @@ class TabActivator {
             .log(`Handled activation of ${JSON.stringify(info)} <- rootUrl=${rootUrl}, extension=${isEnabled ? 'enabled' : 'disabled'}`))))
       .catch((error) => this.worker.developmentMode.asConsole((console) => {
         console.warn(error);
-        console.warn(`Caught error (see previous error) <- TabActivator.enableExtensionIfNuxeoServerTab(${JSON.stringify(info)})`);
+        console.warn(`Caught error (see previous error) <- Navigator.enableExtensionIfNuxeoServerTab(${JSON.stringify(info)})`);
       }));
   }
 
@@ -199,4 +199,4 @@ class TabActivator {
   }
 }
 
-export default TabActivator;
+export default Navigator;

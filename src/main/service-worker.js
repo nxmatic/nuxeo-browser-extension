@@ -1,5 +1,6 @@
 /* eslint-disable max-classes-per-file */
 /* eslint-disable comma-dangle */
+import BrowserNavigator from './browser-navigator';
 import BrowserStore from './browser-store';
 import ConnectLocator from './connect-locator';
 import DeclararactiveNetCompoments from './declarative-net-engine';
@@ -10,7 +11,6 @@ import JSONHighlighter from './json-highlighter';
 import RepositoryIndexer from './repository-indexer';
 import RuntimeBuildComponent from './runtime-build-info';
 import ServerConnector from './server-connector';
-import TabActivator from './tab-activator';
 import StudioHotReloader from './studio-hot-reloader';
 
 const DeclarativeNetEngine = DeclararactiveNetCompoments.DeclarativeNetEngine;
@@ -58,20 +58,22 @@ class ServiceWorkerMessageHandler {
           .log(`ServiceWorkerMessageHandler.handle(${JSON.stringify(request)}) called`));
       return Promise
         .resolve(service[request.action](...request.params))
-        .then((result) => {
+        .then((response) => {
           this.worker.developmentMode
             .asConsole()
             .then((console) => console
-              .log(`${JSON.stringify(result)} <- ServiceWorkerMessageHandler.handle(${JSON.stringify(request)})`));
-          return result;
+              .log(`${JSON.stringify(response)} <- ServiceWorkerMessageHandler.handle(${JSON.stringify(request)})`));
+          return response;
         })
-        .catch((error) => this.worker.developmentMode
-          .asConsole()
-          .then((console) => {
-            console.error(error);
-            console.warn(`Caught error (see previous error) <- ServiceWorkerMessageHandler.handle(${JSON.stringify(request)})`);
-            return Promise.resolve({ error: { message: error.message, name: error.name, stack: error.stack } });
-          }));
+        .catch((cause) => {
+          const response = { error: { message: cause.message, stack: cause.stack, response: cause.response } };
+          this.worker.developmentMode
+            .asConsole()
+            .then((console) => console
+              .log(`${JSON.stringify(response)} <- ServiceWorkerMessageHandler.handle(${JSON.stringify(request)})`, cause.stack));
+          return Promise
+            .resolve(response);
+        });
     };
 
     withConnectedWorker(this.worker)
@@ -90,24 +92,28 @@ class ServiceWorker {
     // services may be invoked while constructing.
     this.buildInfo = new RuntimeBuildComponent
       .RuntimeBuildInfo(buildTime, buildVersion, browserVendor);
-    this.developmentMode = new RuntimeBuildComponent.DevelopmentMode(developmentMode);
+    this.browserNavigator = new BrowserNavigator(this);
     this.browserStore = new BrowserStore(this);
     this.connectLocator = new ConnectLocator(this);
     this.declarativeNetEngine = new DeclarativeNetEngine(this);
     this.designerLivePreview = new DesignerLivePreview(this);
     this.desktopNotifier = new DesktopNotifier(this);
+    this.developmentMode = new RuntimeBuildComponent.DevelopmentMode(developmentMode);
+    this.documentBrowser = new DocumentBrowser(this);
     this.jsonHighlighter = new JSONHighlighter(this);
     this.repositoryIndexer = new RepositoryIndexer(this);
-    this.tabActivator = new TabActivator(this);
     this.serverConnector = new ServerConnector(this);
     this.studioHotReloader = new StudioHotReloader(this);
-    this.documentBrowser = new DocumentBrowser(this);
 
-    // binds methods to this
-    this.listenToChromeEvents = this.listenToChromeEvents.bind(this);
+    // Bind methods
+    Object.getOwnPropertyNames(Object.getPrototypeOf(this))
+      .filter((prop) => typeof this[prop] === 'function' && prop !== 'constructor')
+      .forEach((method) => {
+        this[method] = this[method].bind(this);
+      });
   }
 
-  listenToChromeEvents() {
+  install() {
     const cleanupFunctions = []; // Initialize the stack
     if (typeof cleanupFunctions.push !== 'function') {
       throw new Error('cleanupFunctions must have a push method');
@@ -116,11 +122,11 @@ class ServiceWorker {
     chrome.runtime.onMessage.addListener(messageHandle);
     cleanupFunctions.push(() => chrome.runtime.onMessage.removeListener(messageHandle));
 
-    cleanupFunctions.push(this.tabActivator.listenToChromeEvents());
+    cleanupFunctions.push(this.browserNavigator.listenToChromeEvents());
     cleanupFunctions.push(this.documentBrowser.listenToChromeEvents());
     cleanupFunctions.push(() => this.designerLivePreview.disable());
 
-    return () => {
+    this.uninstall = () => {
       while (cleanupFunctions.length > 0) {
         const cleanupFunction = cleanupFunctions.pop();
         cleanupFunction();

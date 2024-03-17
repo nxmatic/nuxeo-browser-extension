@@ -200,7 +200,7 @@ class ServerConnector {
         iconUrl: '../images/nuxeo-128.png',
         requireInteraction: false,
       })
-        .then(() => this.worker.tabActivator.reloadServerTab())
+        .then(() => this.worker.browserNavigator.reloadServerTab())
         .then(() => this.worker.desktopNotifier.cancel('reload'))
         .then(() => resolve());
     });
@@ -217,7 +217,7 @@ class ServerConnector {
     });
 
     const restartUrl = `${this.rootUrl}/site/connectClient/uninstall/restart`;
-    return this.worker.tabActivator.disableExtension()
+    return this.worker.browserNavigator.disableExtension()
       .then(this.withNuxeo)
       .then((nuxeo) => nuxeo
         ._http({
@@ -238,7 +238,7 @@ class ServerConnector {
       })
       .then(() => {
         setTimeout(() => {
-          this.worker.tabActivator.reloadTab();
+          this.worker.browserNavigator.reloadTab();
         }, 5000);
       })
       .catch((e) => {

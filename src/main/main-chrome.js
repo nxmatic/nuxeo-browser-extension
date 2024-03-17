@@ -16,16 +16,15 @@ limitations under the License.
 
 import ServiceWorker from './service-worker';
 
-/* eslint-disable no-undef */
+/* eslint-disable no-undef, no-restricted-globals */
 const buildTime = import.meta.env.VITE_BUILD_TIMESTAMP;
 const buildVersion = import.meta.env.VITE_BUILD_VERSION;
 const browserVendor = import.meta.env.VITE_BROWSER_VENDOR;
 const developmentMode = import.meta.env.VITE_DEVELOPMENT_MODE;
-/* eslint-enable no-undef */
 
 console.log(`Service Worker: ${buildTime} - ${buildVersion} - ${browserVendor} - ${developmentMode}`);
 
 const serviceWorker = new ServiceWorker(developmentMode, buildTime, buildVersion, browserVendor);
 
-// eslint-disable-next-line no-unused-vars
-const undoListeningHandler = serviceWorker.listenToChromeEvents();
+self.addEventListener('install', serviceWorker.install);
+/* eslint-enable no-undef */

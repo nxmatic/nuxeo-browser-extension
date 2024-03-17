@@ -1,7 +1,15 @@
+import CryptoJS from 'crypto-js';
+
 class ConnectLocator {
   constructor(worker) {
     this.worker = worker;
-
+    // Declare private methods
+    this.credentialsKeyOf = (location) => {
+      const hash = CryptoJS
+        .SHA512(location.toString())
+        .toString();
+      return `connect-locator.${hash}`;
+    };
     // Bind methods
     Object.getOwnPropertyNames(Object.getPrototypeOf(this))
       .filter((prop) => typeof this[prop] === 'function' && prop !== 'constructor')
@@ -10,13 +18,64 @@ class ConnectLocator {
       });
   }
 
-  withUrl(value) {
-    const method = this.worker.browserStore[value ? 'set' : 'get'];
-    const data = value ? { 'connect-url': value.toString() } : { 'connect-url': 'https://connect.nuxeo.com' };
+  withUrl(input) {
+    if (input) {
+      const { location, credentials } = this.extractCredentialsAndCleanUrl(input);
+      return this.worker.browserStore
+        .set({ 'connect-locator.url': location, [this.credentialsKeyOf(location)]: credentials })
+        .then((store) => {
+          this.worker.developmentMode
+            .asConsole()
+            .then((console) => console
+              .log(`ConnectLocator.withUrl(${input})`, store));
+          return store;
+        })
+        .then(() => this.withUrl());
+    }
+    return this.worker.browserStore
+      .get({ 'connect-locator.url': 'https://connect.nuxeo.com/' })
+      .then((store) => {
+        const location = new URL(store['connect-locator.url']);
+        location.pathname = location.pathname.replace(/\/?$/, '/');
+        return location;
+      })
+      .then((location) => ({ location, key: this.credentialsKeyOf(location) }))
+      .then(({ location, key }) => {
+        this.worker.developmentMode.asConsole()
+          .then((console) => console.log('ConnectLocator.withUrl()', location, key));
+        return { location, key };
+      })
+      .then(({ location, key }) => this.worker.browserStore.get({ [key]: undefined })
+        .then((credentialsStore) => {
+          if (!(credentialsStore && credentialsStore[key])) {
+            return { location, credentials: null };
+          }
+          return { location, credentials: credentialsStore[key] };
+        }));
+  }
 
-    return method.apply(this.worker.browserStore, [data])
-      .then((store) => store['connect-url'])
-      .then((location) => new URL(location));
+  // eslint-disable-next-line class-methods-use-this
+  extractCredentialsAndCleanUrl(input) {
+    const location = typeof input === 'string' ? new URL(input) : input;
+    let credentials = null;
+    if (location.username || location.password) {
+      credentials = btoa(`${location.username}:${location.password}`);
+      location.username = '';
+      location.password = '';
+    }
+    location.pathname = location.pathname.replace(/\/$/, '').toLowerCase();
+    return { location: location.toString(), credentials };
+  }
+
+  list() {
+    return this.worker.browserStore
+      .list()
+      .then((store) => Object.keys(store)
+        .filter((key) => key.startsWith('connect-locator.'))
+        .reduce((obj, key) => {
+          obj[key] = store[key];
+          return obj;
+        }, {}));
   }
 }
 
