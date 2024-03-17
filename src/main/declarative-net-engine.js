@@ -192,7 +192,7 @@ class DeclarativeNetEngine {
   flush() {
     return this.pending()
       .then((pending) => chrome.declarativeNetRequest
-        .updateDynamicRules(pending))
+        .updateSessionRules(pending))
       .then(() => ({
         addRules: this.rulesToRemove.map((rule) => rule.toJson()),
         removeRuleIds: this.rulesToAdd.map((rule) => rule.id),
@@ -206,7 +206,7 @@ class DeclarativeNetEngine {
       .catch((cause) => {
         this.worker.developmentMode.asConsole()
           .then((console) => console
-            .log(`Failed to flush rules: ${JSON.stringify(this)}`, cause));
+            .log(`Failed to flush rules: ${JSON.stringify(this.pending())}`, cause));
         throw cause;
       });
   }
@@ -214,7 +214,7 @@ class DeclarativeNetEngine {
   // eslint-disable-next-line class-methods-use-this
   undo(rules) {
     return chrome.declarativeNetRequest
-      .updateDynamicRules(rules)
+      .updateSessionRules(rules)
       .then(() => this.worker.developmentMode.asConsole()
         .then((console) => console
           .log(`Successfully undid flush of rules: ${JSON.stringify(rules)}`)))
@@ -228,7 +228,7 @@ class DeclarativeNetEngine {
 
   flushed() {
     return Promise.resolve()
-      .then(() => chrome.declarativeNetRequest.getDynamicRules())
+      .then(() => chrome.declarativeNetRequest.getSessionRules())
       .then((rules) => {
         this.worker.developmentMode
           .asConsole()
@@ -268,10 +268,10 @@ class DeclarativeNetEngine {
     this.rulesToAdd = [];
     this.rulesToRemove = [];
     return chrome.declarativeNetRequest
-      .getDynamicRules()
+      .getSessionRules()
       .then((rules) => {
         const ruleIds = rules.map((rule) => rule.id);
-        return chrome.declarativeNetRequest.updateDynamicRules({
+        return chrome.declarativeNetRequest.updateSessionRules({
           removeRuleIds: ruleIds,
         });
       })
