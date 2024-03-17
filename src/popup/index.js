@@ -647,24 +647,35 @@ function loadPage(serviceWorker) {
           });
         });
 
-        $('#reindex-repo').click(() => {
-          $('#reindex-form').css('display', 'none');
-          $('#reindex-repo').button('toggle');
+        // Handle click events for the radio buttons
+        $('#reindex-repo, #reindex-nxql').click(function () {
+          // Toggle 'active' class for the clicked button
+          $(this).toggleClass('active');
+
+          // If the other button is active, remove its 'active' class
+          if ($(this).is('#reindex-repo') && $('#reindex-nxql').hasClass('active')) {
+            $('#reindex-nxql').removeClass('active');
+          } else if ($(this).is('#reindex-nxql') && $('#reindex-repo').hasClass('active')) {
+            $('#reindex-repo').removeClass('active');
+          }
+
+          // Show or hide the form based on which button is active
+          if ($('#reindex-repo').hasClass('active')) {
+            $('#reindex-form').css('display', 'none');
+          } else {
+            $('#reindex-form').css('display', 'block');
+          }
         });
-        $('#reindex-nxql').click(() => {
-          $('#reindex-form').css('display', 'block');
-          $('#reindex-repo').button('toggle');
-        });
+
+        // Handle click event for the 'reindex' button
         $('#reindex').click(() => {
           if ($('#reindex-repo').hasClass('active')) {
-            serviceWorker.repositoryIndexer
-              .reindex();
+            serviceWorker.repositoryIndexer.reindex();
           } else {
             $('#reindex-form').show();
             const input = $('#reindex-input').val();
             $('#reindex-input').val('');
-            serviceWorker.repositoryIndexer
-              .reindex(input);
+            serviceWorker.repositoryIndexer.reindex(input);
           }
         });
 
