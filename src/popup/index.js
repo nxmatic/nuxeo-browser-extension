@@ -249,9 +249,9 @@ function loadPage(serviceWorker) {
           );
         }
 
-        serviceWorker.browserStore.get({ highlight: true }, (res) => {
-          $('#highlight-input').prop('checked', res.highlight);
-        });
+        serviceWorker.browserStore
+          .get({ highlight: true })
+          .then(({ highlight: isChecked }) => $('#highlight-input').prop('checked', isChecked));
 
         $('#save').click(() => {
           const input = $('#connect-url-input').val();
@@ -401,9 +401,9 @@ function loadPage(serviceWorker) {
             const nuxeoServerVersion = NuxeoServerVersion.create(info.nuxeo.serverVersion.version);
             const lts2019 = NuxeoServerVersion.create('10.10');
             if (nuxeoServerVersion.lt(lts2019)) {
-              serviceWorker.browserStore.set({ highlight: true }, () => {
-                adjustStorageButtons();
-              });
+              serviceWorker.browserStore
+                .set({ highlight: true })
+                .then(() => adjustStorageButtons());
             }
             return info;
           })
@@ -594,12 +594,12 @@ function loadPage(serviceWorker) {
                   showSearchResults(icon, title, path, uid, vMajor, vMinor);
                 });
                 $('.doc-title').click((event) => {
-                  const docPath = onUI ? `ui/#!/doc/${event.target.id}` : `nxdoc/default/${event.target.id}/view_documents`;
+                  const docPath = onUI ? `ui/#!/doc/${event.currentTarget.id}` : `nxdoc/default/${event.currentTarget.id}/view_documents`;
                   serviceWorker.browserNavigator.loadNewExtensionTab(docPath, true);
                 });
                 $('.json-icon').click((event) => {
                   event.preventDefault();
-                  getJsonFromGuid(event.target.id);
+                  getJsonFromGuid(event.currentTarget.id);
                 });
               } else {
                 const searchTerm = DOMPurify.sanitize(input);
@@ -663,14 +663,8 @@ function loadPage(serviceWorker) {
             $('#reindex-form').show();
             const input = $('#reindex-input').val();
             $('#reindex-input').val('');
-            const matchGroupId = regexes.uuid.exec(input);
-            if (matchGroupId) {
-              serviceWorker.repositoryIndexer
-                .reindexDocId(input);
-            } else {
-              serviceWorker.repositoryIndexer
-                .reindexNXQL(input);
-            }
+            serviceWorker.repositoryIndexer
+              .reindex(input);
           }
         });
 

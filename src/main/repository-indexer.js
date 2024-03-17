@@ -26,81 +26,30 @@ class RepositoryIndexer {
       });
   }
 
-  withNuxeo() {
-    return this.worker.browserStore.get('server').then((server) => server.nuxeo);
-  }
-
-  reindex() {
-    this.withNuxeo((nuxeo) => {
-      nuxeo
-        .operation('Elasticsearch.Index')
-        .execute()
-        .then(() => {
-          this.worker.desktopNotifier.notify('success', {
-            title: 'Success!',
-            message: 'Your repository index is rebuilding.',
-            iconUrl: '../images/nuxeo-128.png',
-          });
-        })
-        .catch((e) => {
-          console.error(e);
-          this.worker.desktopNotifier.notify('error', {
-            title: 'Something went wrong...',
-            message: 'Please try again later.',
-            iconUrl: '../images/access_denied.png',
-          });
-        });
-    });
-  }
-
-  reindexNXQL(input) {
-    this.nuxeo
-      .operation('Elasticsearch.Index')
-      .input(input)
-      .execute()
+  reindex(input) {
+    return this.worker.serverConnector
+      .withNuxeo()
+      .then((nuxeo) => {
+        const operation = nuxeo.operation('Elasticsearch.Index');
+        if (input) {
+          operation.input(input);
+        }
+        return operation.execute();
+      })
       .then(() => {
         this.worker.desktopNotifier.notify('success', {
           title: 'Success!',
-          message: 'Your repository index is rebuilding.',
+          message: `Your repository index is rebuilding for ${input ? JSON.stringify(input) : 'all documents'}.`,
           iconUrl: '../images/nuxeo-128.png',
         });
       })
-      .catch((e) => {
-        console.error(e);
+      .catch((cause) => {
         this.worker.desktopNotifier.notify('error', {
           title: 'Something went wrong...',
-          message: 'Please try again later.',
+          message: `${cause.message}\nPlease try again later.`,
           iconUrl: '../images/access_denied.png',
         });
       });
-  }
-
-  reindexDocId(input) {
-    this.worker.browserStore.get(['server']).then((entries) => {
-      const url = entries.server.url;
-      const nuxeo = this.newNuxeo({
-        baseURL: url,
-      });
-      nuxeo
-        .operation('Elasticsearch.Index')
-        .input(input)
-        .execute()
-        .then(() => {
-          this.worker.desktopNotifier.notify('success', {
-            title: 'Success!',
-            message: 'Your repository index is rebuilding.',
-            iconUrl: '../images/nuxeo-128.png',
-          });
-        })
-        .catch((e) => {
-          console.error(e);
-          this.worker.desktopNotifier.notify('error', {
-            title: 'Something went wrong...',
-            message: 'Please try again later.',
-            iconUrl: '../images/access_denied.png',
-          });
-        });
-    });
   }
 }
 
