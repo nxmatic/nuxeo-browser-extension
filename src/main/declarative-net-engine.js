@@ -1,44 +1,54 @@
 /* eslint-disable max-classes-per-file */
 
-function hashCode(s) {
-  let hash = 0;
-  if (s.length === 0) return hash;
-  // eslint-disable-next-line no-plusplus
-  for (let i = 0; i < s.length; i++) {
-    const char = s.charCodeAt(i);
-    // eslint-disable-next-line no-bitwise
-    hash = ((hash << 5) - hash) + char;
-    // eslint-disable-next-line no-bitwise
-    hash |= 0; // Convert to 32-bit integer
-  }
-  return Math.abs(hash); // Ensure the hash is always positive
-}
-
 class BaseRule {
   constructor() {
     this.id = -1;
     this.priority = 1;
+  }
+
+  hashCode() {
+    const key = this.key();
+    let hash = 0;
+    if (key.length === 0) return hash;
+    // eslint-disable-next-line no-plusplus
+    for (let i = 0; i < key.length; i++) {
+      const char = key.charCodeAt(i);
+      // eslint-disable-next-line no-bitwise
+      hash = ((hash << 5) - hash) + char;
+      // eslint-disable-next-line no-bitwise
+      hash |= 0; // Convert to 32-bit integer
+    }
+    return Math.abs(hash); // Ensure the hash is always positive
   }
 }
 
 class CookieHeaderRule extends BaseRule {
   constructor(rootUrl = 'https://connect.nuxeo.com', cookieHeader) {
     super();
+
+    // Set properties
     this.cookieHeader = cookieHeader;
-    this.rootUrl = rootUrl;
+    this.url = rootUrl;
+
+    // Bind methods
+    Object.getOwnPropertyNames(Object.getPrototypeOf(this))
+      .filter((prop) => typeof this[prop] === 'function' && prop !== 'constructor')
+      .forEach((method) => {
+        this[method] = this[method].bind(this);
+      });
   }
 
   // eslint-disable-next-line class-methods-use-this
-  keyOf() {
+  key() {
     return `cookieHeader-${this.rootUrl}`;
   }
 
   toJson(priority = 1) {
     return {
-      id: hashCode(this.rootUrl),
+      id: this.hashCode(),
       priority,
       condition: {
-        urls: [`${this.rootUrl}/*`],
+        urls: `${this.rootUrl}/*`,
       },
       action: {
         type: 'modifyHeaders',
@@ -54,24 +64,33 @@ class CookieHeaderRule extends BaseRule {
   }
 }
 
-class AuthenticationHeaderRule extends BaseRule {
-  constructor(url, value) {
+class BasicAuthenticationHeaderRule extends BaseRule {
+  constructor(url, credentials) {
     super();
-    this.value = value;
+
+    // Set properties
+    this.credentials = credentials;
     this.url = url;
+
+    // Bind methods
+    Object.getOwnPropertyNames(Object.getPrototypeOf(this))
+      .filter((prop) => typeof this[prop] === 'function' && prop !== 'constructor')
+      .forEach((method) => {
+        this[method] = this[method].bind(this);
+      });
   }
 
   // eslint-disable-next-line class-methods-use-this
-  keyOf() {
+  key() {
     return `authHeader-${this.url}`;
   }
 
   toJson(priority = 1) {
     return {
-      id: hashCode(this.url),
+      id: this.hashCode(this.url),
       priority,
       condition: {
-        urls: [`${this.url}`],
+        urlFilter: `${this.url}`,
       },
       action: {
         type: 'modifyHeaders',
@@ -79,7 +98,7 @@ class AuthenticationHeaderRule extends BaseRule {
           {
             header: 'Authorization',
             operation: 'set',
-            value: this.value,
+            value: `Basic ${this.credentials}`,
           },
         ],
       },
@@ -90,17 +109,26 @@ class AuthenticationHeaderRule extends BaseRule {
 class RedirectRule extends BaseRule {
   constructor(from, to) {
     super();
+
+    // Set properties
     this.from = from;
     this.to = to;
+
+    // Bind methods
+    Object.getOwnPropertyNames(Object.getPrototypeOf(this))
+      .filter((prop) => typeof this[prop] === 'function' && prop !== 'constructor')
+      .forEach((method) => {
+        this[method] = this[method].bind(this);
+      });
   }
 
-  keyOf() {
-    return this.from;
+  key() {
+    return `redirection-${this.from}`;
   }
 
   toJson(priority = 1) {
     return {
-      id: hashCode(this.from.toString()),
+      id: this.hashCode(),
       priority,
       condition: {
         urlFilter: this.from.toString(),
@@ -253,4 +281,6 @@ class DeclarativeNetEngine {
   }
 }
 
-export default { AuthenticationHeaderRule, CookieHeaderRule, RedirectRule, DeclarativeNetEngine };
+export default {
+  BasicAuthenticationHeaderRule, CookieHeaderRule, RedirectRule, DeclarativeNetEngine,
+};

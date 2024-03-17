@@ -21,7 +21,7 @@ limitations under the License.
 import { resolve } from 'nuxeo/lib/deps/promise';
 import DeclarativeNetComponents from './declarative-net-engine';
 
-const AuthenticationHeaderRule = DeclarativeNetComponents.AuthenticationHeaderRule;
+const BasicAuthenticationHeaderRule = DeclarativeNetComponents.BasicAuthenticationHeaderRule;
 const RedirectRule = DeclarativeNetComponents.RedirectRule;
 
 class DesignerLivePreview {
@@ -44,7 +44,7 @@ class DesignerLivePreview {
     if (!credentials) {
       return Promise.resolve();
     }
-    return this.worker.declarativeNetEngine.push(new AuthenticationHeaderRule(url, credentials));
+    return this.worker.declarativeNetEngine.push(new BasicAuthenticationHeaderRule(url, credentials));
   }
 
   pushRedirectionsOf(json, credentials = undefined, rootUrl = this.worker.serverConnector.rootUrl) {
