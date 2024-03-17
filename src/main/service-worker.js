@@ -113,25 +113,42 @@ class ServiceWorker {
       });
   }
 
-  install() {
-    const cleanupFunctions = []; // Initialize the stack
-    if (typeof cleanupFunctions.push !== 'function') {
-      throw new Error('cleanupFunctions must have a push method');
-    }
-    const messageHandle = new ServiceWorkerMessageHandler(this).handle;
-    chrome.runtime.onMessage.addListener(messageHandle);
-    cleanupFunctions.push(() => chrome.runtime.onMessage.removeListener(messageHandle));
+  asPromise() {
+    return Promise.resolve(this);
+  }
 
-    cleanupFunctions.push(this.browserNavigator.listenToChromeEvents());
-    cleanupFunctions.push(this.documentBrowser.listenToChromeEvents());
-    cleanupFunctions.push(() => this.designerLivePreview.disable());
+  activate(self) {
+    return this.asPromise()
+      .then((worker) => {
+        // Initialize the cleanup stack
+        const cleanupFunctions = []; 
+        if (typeof cleanupFunctions.push !== 'function') {
+          throw new Error('cleanupFunctions must have a push method');
+        }
 
-    this.uninstall = () => {
-      while (cleanupFunctions.length > 0) {
-        const cleanupFunction = cleanupFunctions.pop();
-        cleanupFunction();
-      }
-    };
+        worker.self = self;
+
+        // reset declative net rules previously installed
+        worker.declarativeNetEngine.reset();
+
+        // install the service worker message handler
+        const messageHandle = new ServiceWorkerMessageHandler(worker).handle;
+        chrome.runtime.onMessage.addListener(messageHandle);
+        cleanupFunctions.push(() => chrome.runtime.onMessage.removeListener(messageHandle));
+
+        cleanupFunctions.push(worker.browserNavigator.listenToChromeEvents());
+        cleanupFunctions.push(worker.documentBrowser.listenToChromeEvents());
+        cleanupFunctions.push(() => worker.designerLivePreview.disable());
+
+        // can be used in development mode from the console for now
+        worker.deactivate = () => {
+          while (cleanupFunctions.length > 0) {
+            const cleanupFunction = cleanupFunctions.pop();
+            cleanupFunction();
+          }
+        };
+        return worker;
+      });
   }
 }
 

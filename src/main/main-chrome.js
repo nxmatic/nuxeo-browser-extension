@@ -22,9 +22,10 @@ const buildVersion = import.meta.env.VITE_BUILD_VERSION;
 const browserVendor = import.meta.env.VITE_BROWSER_VENDOR;
 const developmentMode = import.meta.env.VITE_DEVELOPMENT_MODE;
 
-console.log(`Service Worker: ${buildTime} - ${buildVersion} - ${browserVendor} - ${developmentMode}`);
-
-const serviceWorker = new ServiceWorker(developmentMode, buildTime, buildVersion, browserVendor);
-
-self.addEventListener('install', serviceWorker.install);
-/* eslint-enable no-undef */
+self.addEventListener('activate', new ServiceWorker(developmentMode, buildTime, buildVersion, browserVendor)
+  .asPromise()
+  .then((worker) => {
+    console.log(`Service Worker: ${buildTime} - ${buildVersion} - ${browserVendor} - ${developmentMode}`);
+    return worker;
+  })
+  .then((worker) => worker.activate(self)));
