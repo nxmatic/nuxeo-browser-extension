@@ -62,76 +62,71 @@ class StudioHotReloader {
   }
 
   reload(validate = true) {
-    return this.worker.serverConnector.withNuxeo()
-      .then((nuxeo) => nuxeo
-        .operation('Service.HotReloadStudioSnapshot')
-        .params({
-          validate,
-        })
-        .execute()
-        .then((response) => ({ response: response[0], notification: null }))
-        .then(({ response, notification }) => {
-          if (response.status !== 'success') return { response, notification };
-          return {
-            response,
-            notification: {
-              title: 'Success!',
-              message: response.message,
-              iconUrl: '../images/nuxeo-128.png',
-            }
-          };
-        })
-        .then(({ response, notification }) => {
-          if (response.status !== 204) return { response, notification };
-          return {
-            response,
-            notification: {
-              title: 'Success!',
-              message: 'A Hot Reload has successfully been completed.',
-              iconUrl: '../images/nuxeo-128.png',
-            }
-          };
-        })
-        .then(({ response, notification }) => {
-          if (response.status !== 'error') return { response, notification };
-          return {
-            response,
-            notification: {
-              title: 'Error',
-              message: response.message,
-              iconUrl: '../images/access_denied.png',
-            }
-          };
-        })
-        .then(({ response, notification }) => {
-          if (response.status !== 'updateInProgress') return { response, notification };
-          return {
-            response,
-            notification: {
-              title: 'Error',
-              message: response.message,
-              iconUrl: '../images/access_denied.png',
-            }
-          };
-        })
-        .then(({ response, notification }) => {
-          if (response.status !== 'DEPENDENCY_MISMATCH') return { response, notification, dependenciesMismatch: [] };
-          return {
-            response,
-            notification: {
-              title: 'Dependency Mismatch',
-              message: response.message,
-              iconUrl: '../images/access_denied.png',
-            },
-            dependenciesMismatch: response.deps
-          };
-        })
-        .then(({ response, notification, dependenciesMismatch }) => this.worker.browserStore
-          .set({ studioDependenciesMismatch: dependenciesMismatch })
-          .then((store) => this.worker.desktopNotifier
-            .notify('hot_reload', notification)
-            .then(() => ({ response, dependenciesMismatch: store.studioDependenciesMismatch }))))
-        .catch((error) => this.handleLegacyError(error)));
+    return this.worker.serverConnector
+      .executeOperation('Service.HotReloadStudioSnapshot', { validate })
+      .then((response) => ({ response: response[0], notification: null }))
+      .then(({ response, notification }) => {
+        if (response.status !== 'success') return { response, notification };
+        return {
+          response,
+          notification: {
+            title: 'Success!',
+            message: response.message,
+            iconUrl: '../images/nuxeo-128.png',
+          }
+        };
+      })
+      .then(({ response, notification }) => {
+        if (response.status !== 204) return { response, notification };
+        return {
+          response,
+          notification: {
+            title: 'Success!',
+            message: 'A Hot Reload has successfully been completed.',
+            iconUrl: '../images/nuxeo-128.png',
+          }
+        };
+      })
+      .then(({ response, notification }) => {
+        if (response.status !== 'error') return { response, notification };
+        return {
+          response,
+          notification: {
+            title: 'Error',
+            message: response.message,
+            iconUrl: '../images/access_denied.png',
+          }
+        };
+      })
+      .then(({ response, notification }) => {
+        if (response.status !== 'updateInProgress') return { response, notification };
+        return {
+          response,
+          notification: {
+            title: 'Error',
+            message: response.message,
+            iconUrl: '../images/access_denied.png',
+          }
+        };
+      })
+      .then(({ response, notification }) => {
+        if (response.status !== 'DEPENDENCY_MISMATCH') return { response, notification, dependenciesMismatch: [] };
+        return {
+          response,
+          notification: {
+            title: 'Dependency Mismatch',
+            message: response.message,
+            iconUrl: '../images/access_denied.png',
+          },
+          dependenciesMismatch: response.deps
+        };
+      })
+      .then(({ response, notification, dependenciesMismatch }) => this.worker.browserStore
+        .set({ studioDependenciesMismatch: dependenciesMismatch })
+        .then((store) => this.worker.desktopNotifier
+          .notify('hot_reload', notification)
+          .then(() => ({ response, dependenciesMismatch: store.studioDependenciesMismatch }))))
+      .catch((error) => this.handleLegacyError(error));
   }
 
   handleLegacyError(error) {
@@ -169,7 +164,7 @@ class StudioHotReloader {
             });
             this.worker.desktopNotifier
               .notify(
-                'dependency_check',
+                'dependency-check',
                 {
                   type: 'list',
                   title: 'Check Dependencies',
@@ -181,11 +176,10 @@ class StudioHotReloader {
               ).catch((e) => console.error(e));
           }
         } else {
-          this.nuxeo
-            .operation('Service.HotReloadStudioSnapshot')
-            .execute()
+          this.worker.serverConnector
+            .executeOperation('Service.HotReloadStudioSnapshot')
             .then(() => {
-              this.worker.desktopNotifier.notify('success', {
+              this.worker.desktopNotifier.notify('hot-reload', {
                 title: 'Success!',
                 message: 'A Hot Reload has successfully been completed.',
                 iconUrl: '../images/nuxeo-128.png',
