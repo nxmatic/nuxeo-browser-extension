@@ -17,6 +17,7 @@ limitations under the License.
 class RepositoryIndexer {
   constructor(worker) {
     this.worker = worker;
+    this.waiting = undefined;
 
     // Bind methods
     Object.getOwnPropertyNames(Object.getPrototypeOf(this))
@@ -26,30 +27,47 @@ class RepositoryIndexer {
       });
   }
 
-  reindex(input) {
+  reindex(input = undefined) {
     return this.worker.serverConnector
-      .withNuxeo()
-      .then((nuxeo) => {
-        const operation = nuxeo.operation('Elasticsearch.Index');
-        if (input) {
-          operation.input(input);
-        }
-        return operation.execute();
-      })
+      .executeOperation('Elasticsearch.Index', {}, input)
       .then(() => {
-        this.worker.desktopNotifier.notify('success', {
-          title: 'Success!',
-          message: `Your repository index is rebuilding for ${input ? JSON.stringify(input) : 'all documents'}.`,
+        this.worker.desktopNotifier.notify('repository-reindexing', {
+          title: 'Indexing!',
+          message: `Your repository index is rebuilding (${input ? JSON.stringify(input) : 'all documents'}).`,
           iconUrl: '../images/nuxeo-128.png',
         });
       })
+      .then(() => {
+        this.waiting = this.waitForIndexing();
+        return true;
+      })
       .catch((cause) => {
-        this.worker.desktopNotifier.notify('error', {
+        this.worker.desktopNotifier.notify('repository-reindexing', {
+          title: 'Something went wrong...',
+          message: `${cause.message}\nPlease try again later.`,
+          iconUrl: '../images/access_denied.png',
+        });
+        return false;
+      });
+  }
+
+  waitForIndexing() {
+    if (this.waiting) return this.waiting;
+    this.waiting = this.worker.serverConnector
+      .executeOperation('Elasticsearch.WaitForIndexing')
+      // eslint-disable-next-line arrow-body-style, no-unused-vars
+      .then((response) => {
+        return this.worker.desktopNotifier.cancel('repository-reindexing');
+      })
+      .then(() => { this.waiting = undefined; })
+      .catch((cause) => {
+        this.worker.desktopNotifier.notify('repository-reindexing', {
           title: 'Something went wrong...',
           message: `${cause.message}\nPlease try again later.`,
           iconUrl: '../images/access_denied.png',
         });
       });
+    return this.waiting;
   }
 }
 

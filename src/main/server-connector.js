@@ -134,6 +134,7 @@ class ServerConnector {
           requireInteraction: false
         });
       }
+      return error.response;
     });
   }
 
@@ -155,17 +156,17 @@ class ServerConnector {
       .then((res) => res.text()));
   }
 
-  executeOperation(operationId, params) {
+  executeOperation(operationId, params = {}, input = undefined) {
     return this.withNuxeo().then((nuxeo) => nuxeo
       .operation(operationId)
       .params(params)
+      .input(input)
       .execute()
-      .catch((e) => {
-        if (e.response) {
-          this.handleErrors(e, this.defaultServerError);
-        } else {
-          throw e;
+      .catch((cause) => {
+        if (!cause.response) {
+          throw cause;
         }
+        return this.handleErrors(cause, this.defaultServerError);
       }));
   }
 

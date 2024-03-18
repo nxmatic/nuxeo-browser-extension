@@ -686,36 +686,20 @@ function loadPage(serviceWorker) {
           }
         });
 
-        $('#traces-button').click(() => {
-          serviceWorker.serverConnector
-            .executeOperation('Traces.ToggleRecording', { readOnly: false })
-            .then((response) => {
-              if (response.value) {
-                $('#traces-button').addClass('enabled');
-                if ($('#traces-button').hasClass('disabled')) {
-                  $('#traces-button').removeClass('disabled');
-                }
-              } else {
-                $('#traces-button').addClass('disabled');
-                if ($('#traces-button').hasClass('enabled')) {
-                  $('#traces-button').removeClass('enabled');
-                }
-              }
-            })
-            .catch(() => {
-              serviceWorker.serverConnector
-                .executeOperation('Traces.ToggleRecording', { readOnly: true })
-                .then((response) => {
-                  if (response.value) {
-                    $('#traces-button').addClass('enabled');
-                    $('#traces-button').removeClass('disabled');
-                  } else {
-                    $('#traces-button').addClass('disabled');
-                    $('#traces-button').removeClass('enabled');
-                  }
-                });
-            });
-        });
+        $('#traces-button').click(() => serviceWorker.serverConnector
+          .executeOperation('Traces.ToggleRecording', { readOnly: false })
+          .then((response) => Boolean(response.value))
+          .then((isEnabled) => {
+            $('#traces-button').toggleClass('enabled', isEnabled);
+            $('#traces-button').toggleClass('disabled', !isEnabled);
+          })
+          .catch((cause) => {
+            console.error("Can't toggle automation traces", cause);
+            return serviceWorker.serverConnector
+              .executeOperation('Traces.ToggleRecording', { readOnly: true })
+              .then((response) => Boolean(response.value))
+              .catch(() => false);
+          }));
 
         $('#search').keydown(() => {
           $('#loading-gif').css({ display: 'inline' });
