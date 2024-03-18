@@ -20,6 +20,7 @@
     "background",
     "declarativeNetRequest",
     "declarativeNetRequestFeedback",
+    "declarativeNetRequestWithHostAccess",
     "webRequest"
   ],
   "host_permissions": [

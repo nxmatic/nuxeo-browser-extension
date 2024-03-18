@@ -135,7 +135,13 @@ class RedirectRule extends BaseRule {
       },
       action: {
         type: 'redirect',
-        redirect: { url: this.to.toString() },
+        redirect: {
+          transform: {
+            scheme: 'https',
+            host: this.to.host,
+            path: this.to.path,
+          },
+        },
       },
     };
   }
