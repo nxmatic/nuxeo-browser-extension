@@ -49,7 +49,7 @@ export default defineConfig(({ mode }) => {
         input: `src/${paths[buildEntry].input}`,
         output: {
           dir: `dist/${browserVendor}/${buildEntry}`,
-          format: 'iife',
+          format: 'es',
           inlineDynamicImports: false,
           entryFileNames: '[name]/index.js',
           chunkFileNames: 'chunks/[name].js',
@@ -133,7 +133,7 @@ export default defineConfig(({ mode }) => {
           // Move index.html to root and update script source
           const htmlFilePath = path.resolve(__dirname, `dist/${browserVendor}/${buildEntry}/src/${buildEntry}/index.html`);
           let htmlContent = fs.readFileSync(htmlFilePath, 'utf-8');
-          htmlContent = htmlContent.replace('/index.js', './index.js');
+          htmlContent = htmlContent.replace(/"\/(index[^"]*)"/g, '"./$1"');
           fs.writeFileSync(path.resolve(__dirname, `dist/${browserVendor}/${buildEntry}/index.html`), htmlContent);
           fs.unlinkSync(htmlFilePath);
 
