@@ -32,8 +32,44 @@ class Navigator {
     };
   }
 
+  isTabExtensionEnabled() {
+    return Promise.resolve(this.tabInfo !== null);
+  }
+
+  enableTabExtension(input) {
+    return Promise.resolve(input)
+      .then((tabInfo) => {
+        this.tabInfo = tabInfo;
+        chrome.action.enable(tabInfo.id);
+        return tabInfo;
+      })
+      .then((tabInfo) => {
+        this.worker.developmentMode.asConsole()
+          .then((console) => console.log(`Enabled TabExtension for ${JSON.stringify(tabInfo)}`));
+        return tabInfo;
+      });
+  }
+
+  disableTabExtension() {
+    if (!this.tabInfo) Promise.reject(new Error('No tab info found'));
+    return Promise.resolve(this.tabInfo)
+      .then((tabInfo) => {
+        chrome.action.disable(this.tabInfo.id);
+        this.tabInfo = null;
+        return tabInfo;
+      })
+      .then((tabInfo) => {
+        this.worker.developmentMode.asConsole()
+          .then((console) => console.log(`Disabled TabExtension for ${JSON.stringify(tabInfo)}`));
+        return tabInfo;
+      });
+  }
+
   listenToChromeEvents() {
     const cleanupFunctions = [];
+
+    // disable extension by default
+    chrome.action.disable();
 
     // onInstalled event
     const onInstalledHandle = () => chrome.action.disable();
@@ -106,7 +142,7 @@ class Navigator {
               .then(() => chrome.action.isEnabled(info.id))
               .then((isEnabled) => {
                 if (!isEnabled) return;
-                this.tabInfo = info;
+                this.enableTabExtension(info);
               });
           })
           .then(() => rootUrl);
@@ -121,56 +157,81 @@ class Navigator {
       }));
   }
 
-  isNuxeoServerTab(info) {
-    const rootUrl = this.nuxeoUrlOf(info);
+  isNuxeoServerTab(tabInfo) {
+    const rootUrl = this.nuxeoUrlOf(tabInfo);
     if (!rootUrl) return Promise.resolve(undefined);
     return Promise.resolve()
       .then(() => fetch(`${rootUrl}/site/automation`, {
         method: 'GET',
         credentials: 'include', // Include cookies in the request
-      }))
-      .then((response) => {
-        if (response.ok || response.status !== 401) return response;
-        this.worker.desktopNotifier.notify('unauthenticated', {
-          title: `Not logged in page: ${info.url}...`,
-          message: 'You are not authenticated. Please log in and try again.',
-          iconUrl: '../images/access_denied.png',
-        });
-        this.reloadServerTab(info, 0);
-        throw new Error(`Not logged in : ${info.url}...`);
       })
-      .then((response) => {
-        if (response.ok) return response;
-        response.text().then((errorText) => {
-          this.worker.desktopNotifier.notify('error', {
-            title: `Not a Nuxeo server tab : ${info.url}...`,
-            message: `Got errors while accessing automation status page at ${response.url}. Error: ${errorText}`,
+        .then((response) => {
+          if (response.ok || response.status !== 401) return response;
+          this.worker.desktopNotifier.notify('unauthenticated', {
+            title: `Not logged in page: ${tabInfo.url}...`,
+            message: 'You are not authenticated. Please log in and try again.',
             iconUrl: '../images/access_denied.png',
           });
+          this.reloadServerTab({ rootUrl, tabInfo }, 0);
+          throw new Error(`Not logged in : ${tabInfo.url}...`);
+        })
+        .then((response) => {
+          if (response.ok) return response;
+          response.text().then((errorText) => {
+            this.worker.desktopNotifier.notify('error', {
+              title: `Not a Nuxeo server tab : ${tabInfo.url}...`,
+              message: `Got errors while accessing automation status page at ${response.url}. Error: ${errorText}`,
+              iconUrl: '../images/access_denied.png',
+            });
+          });
+          throw new Error(`Not a nuxeo server tab : ${tabInfo.url}...`);
+        })
+        .then(() => {
+          this.worker.desktopNotifier.cancel('unauthenticated');
+          return rootUrl;
+        }));
+  }
+
+  reloadServerTab(context = {
+    rootUrl: this.worker.serverConnector.rootUrl,
+    tabInfo: this.tabInfo
+  }, waitingTime = 4000) {
+    return Promise.resolve(context)
+      .then(({ rootUrl, tabInfo }) => {
+        if (!tabInfo) {
+          throw new Error('No nuxeo server tab info selected');
+        }
+        return new Promise((resolve, reject) => {
+          const maxAttempts = 10;
+          let attempts = 0;
+
+          const checkStatus = () => {
+            attempts += 1;
+            if (attempts > maxAttempts) {
+              reject(new Error('Maximum number of attempts reached'));
+              return;
+            }
+
+            fetch(rootUrl)
+              .then((response) => {
+                if (response.ok) {
+                  chrome.tabs.reload(tabInfo.id);
+                  resolve(tabInfo);
+                } else {
+                  // If the status page is not available, check again after a delay
+                  setTimeout(checkStatus, waitingTime);
+                }
+              })
+              .catch(() => {
+                // If the request failed, check again after a delay
+                setTimeout(checkStatus, waitingTime);
+              });
+          };
+
+          // Start checking the status
+          checkStatus();
         });
-        throw new Error(`Not a nuxeo server tab : ${info.url}...`);
-      })
-      .then(() => {
-        this.worker.desktopNotifier.cancel('unauthenticated');
-        return rootUrl;
       });
-  }
-
-  disableExtension() {
-    return new Promise((resolve, reject) => {
-      if (!this.tabInfo) return reject(new Error('No tab info found'));
-      chrome.action.disable(this.tabInfo.id);
-      this.tabInfo = null;
-      return resolve();
-    });
-  }
-
-  reloadServerTab(tabInfo, waitingTime = 4000) {
-    return new Promise((resolve) => setTimeout(() => {
-      this.tabInfo = null;
-      chrome.tabs.reload(tabInfo.id);
-      resolve();
-    }), waitingTime);
   }
 
   loadNewExtensionTab(url, appendNuxeBasePath = false) {

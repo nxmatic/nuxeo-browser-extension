@@ -24,7 +24,7 @@ import Swal from 'sweetalert2';
 
 import ServiceWorkerBridge from '../service-worker-bridge';
 
-function loadPage(serviceWorker) {
+function loadPage(worker) {
   let position;
 
   const startLoadingHR = () => new Promise((resolve) => {
@@ -49,14 +49,13 @@ function loadPage(serviceWorker) {
     resolve();
   });
 
-  const stopLoading = (error) => {
+  const stopLoading = (cause) => {
     $('#loading').css('display', 'none');
-    if (error instanceof Error) {
-      console.error(error);
+    if (cause instanceof Error) {
       Swal.fire({
         icon: 'error',
         title: 'Oops...',
-        text: `Something went wrong! (${error})`,
+        text: `Something went wrong while loading! (${cause})`,
         footer: '<a href>Why do I have this issue?</a>'
       });
     }
@@ -105,7 +104,7 @@ function loadPage(serviceWorker) {
     $('#no-studio-buttons').css('display', 'none');
     $('#studio').css('display', 'flex');
     $('#studio-buttons').css('display', 'block');
-    serviceWorker.designerLivePreview
+    worker.designerLivePreview
       .isEnabled(packageName)
       .then((isEnabled) => toogleDesignerLivePreviewButton(isEnabled))
       .catch((error) => {
@@ -122,16 +121,16 @@ function loadPage(serviceWorker) {
       new URL(packageLocation, connectUrl.href).toString()
     );
     $('#studio').click(() => {
-      serviceWorker.browserNavigator.loadNewExtensionTab(packageLocation);
+      worker.browserNavigator.loadNewExtensionTab(packageLocation);
     });
     $('#hot-reload-button').click(() => {
       startLoadingHR()
-        .then(() => serviceWorker.studioHotReloader.reload())
+        .then(() => worker.studioHotReloader.reload())
         .then(stopLoading)
         .catch(stopLoading);
     });
     $('#designer-live-preview-button').click(() => {
-      serviceWorker.designerLivePreview
+      worker.designerLivePreview
         .toggle(packageName)
         .then((isEnabled) => toogleDesignerLivePreviewButton(isEnabled))
         .catch(() => toogleDesignerLivePreviewMessage());
@@ -139,7 +138,7 @@ function loadPage(serviceWorker) {
     $('#force-hot-reload-button').click(() => {
       hideDependencyError()
         .then(startLoadingHR)
-        .then(() => serviceWorker
+        .then(() => worker
           .studioHotReloader
           .reload(false))
         .then(stopLoading)
@@ -147,7 +146,7 @@ function loadPage(serviceWorker) {
     });
     $('#cancel-button').click(() => {
       hideDependencyError()
-        .then(() => serviceWorker.studioHotReloader.reset())
+        .then(() => worker.studioHotReloader.reset())
         .catch((error) => console.error(error));
     });
   };
@@ -158,7 +157,7 @@ function loadPage(serviceWorker) {
     $('#message').css('display', 'none');
     $('#nopkg').css('display', 'block');
     $('#studio, #hot-reload-button').click(() => {
-      serviceWorker.desktopNotifier.notify(
+      worker.desktopNotifier.notify(
         'no_studio_project',
         'No associated Studio project',
         "If you'd like to use this function, please associate your Nuxeo server with a studio project",
@@ -172,12 +171,12 @@ function loadPage(serviceWorker) {
 
   const registerLink = (element, url) => {
     $(element).click(() => {
-      serviceWorker.browserNavigator.loadNewExtensionTab(url);
+      worker.browserNavigator.loadNewExtensionTab(url);
     });
   };
 
   const checkDependencyMismatch = () => {
-    const dependenciesMismatch = serviceWorker.studioHotReloader.dependenciesMismatch();
+    const dependenciesMismatch = worker.studioHotReloader.dependenciesMismatch();
     if (
       dependenciesMismatch.length > 0
     ) {
@@ -195,7 +194,7 @@ function loadPage(serviceWorker) {
     $('#reset').css('top', 5);
   };
 
-  serviceWorker.connectLocator
+  worker.connectLocator
     .withUrl()
     .then(({ location, credentials }) => {
       const connectUrl = new URL(location);
@@ -205,7 +204,7 @@ function loadPage(serviceWorker) {
     // eslint-disable-next-line no-unused-vars
     .then(({ connectUrl, connectCredentials }) => {
       $(document).ready(() => {
-        const browserVendor = serviceWorker.buildInfo.browserVendor();
+        const browserVendor = worker.buildInfo.browserVendor();
         if (browserVendor === 'Firefox') {
           adjustStorageButtons();
         }
@@ -249,7 +248,7 @@ function loadPage(serviceWorker) {
           );
         }
 
-        serviceWorker.browserStore
+        worker.browserStore
           .get({ highlight: true })
           .then(({ highlight: isChecked }) => $('#highlight-input').prop('checked', isChecked));
 
@@ -258,10 +257,10 @@ function loadPage(serviceWorker) {
           const highlight = $('#highlight-input').prop('checked');
 
           const inputPromise = input.length > 0
-            ? serviceWorker.connectLocator.withUrl(input).then(() => $('#connect-url  ').hide())
+            ? worker.connectLocator.withUrl(input).then(() => $('#connect-url  ').hide())
             : Promise.resolve();
 
-          const highlightPromise = serviceWorker.browserStore.set({ highlight });
+          const highlightPromise = worker.browserStore.set({ highlight });
 
           Promise.all([inputPromise, highlightPromise]).then(() => {
             Swal.fire('Your changes have been saved.');
@@ -278,9 +277,9 @@ function loadPage(serviceWorker) {
           }).then((result) => {
             if (!result.isConfirmed) return;
             Promise.all([
-              serviceWorker.connectLocator
+              worker.connectLocator
                 .withUrl('https://connect.nuxeo.com'),
-              serviceWorker.jsonHighlighter
+              worker.jsonHighlighter
                 .withHighlight(true)
             ])
               .then(() => {
@@ -324,13 +323,13 @@ function loadPage(serviceWorker) {
         );
 
         function doGetJson(path) {
-          serviceWorker.browserStore.get({ highlight: true }).then((res) => {
+          worker.browserStore.get({ highlight: true }).then((res) => {
             if (res.highlight) {
-              serviceWorker.documentBrowser.jsonOf(repository, path)
+              worker.documentBrowser.jsonOf(repository, path)
                 .then(openJsonWindow);
             } else {
               const jsonPath = `api/v1/repo/${repository}/${path}?enrichers.document=acls,permissions&properties=*`;
-              serviceWorker.browserNavigator.loadNewExtensionTab(jsonPath, true);
+              worker.browserNavigator.loadNewExtensionTab(jsonPath, true);
             }
           });
         }
@@ -343,7 +342,7 @@ function loadPage(serviceWorker) {
           doGetJson(`id/${input}`);
         }
 
-        serviceWorker.serverConnector
+        worker.serverConnector
           .runtimeInfo()
           .then((res) => {
             if (!res.nuxeo.user.isAdministrator) {
@@ -366,7 +365,7 @@ function loadPage(serviceWorker) {
 
     println JsonOutput.toJson([studio: pkgName]);`;
 
-        serviceWorker.serverConnector
+        worker.serverConnector
           .executeScript(checkStudioPkg)
           .then((text) => {
             const pkgName = JSON.parse(text).studio;
@@ -381,7 +380,7 @@ function loadPage(serviceWorker) {
             noStudioPackageFound();
           });
 
-        serviceWorker.serverConnector.executeOperation('Traces.ToggleRecording', { readOnly: true })
+        worker.serverConnector.executeOperation('Traces.ToggleRecording', { readOnly: true })
           .then((response) => {
             if (response.value) {
               $('#traces-button').addClass('enabled');
@@ -392,7 +391,7 @@ function loadPage(serviceWorker) {
             }
           });
 
-        serviceWorker.serverConnector.runtimeInfo()
+        worker.serverConnector.runtimeInfo()
           .then((info) => {
             $('#platform-version').text(` ${info.nuxeo.serverVersion.version}`);
             return info;
@@ -401,7 +400,7 @@ function loadPage(serviceWorker) {
             const nuxeoServerVersion = NuxeoServerVersion.create(info.nuxeo.serverVersion.version);
             const lts2019 = NuxeoServerVersion.create('10.10');
             if (nuxeoServerVersion.lt(lts2019)) {
-              serviceWorker.browserStore
+              worker.browserStore
                 .set({ highlight: true })
                 .then(() => adjustStorageButtons());
             }
@@ -459,7 +458,7 @@ function loadPage(serviceWorker) {
 
   println JsonOutput.toJson([installed: addons]);`;
 
-            serviceWorker.serverConnector.executeScript(checkAddons)
+            worker.serverConnector.executeScript(checkAddons)
               .then((text) => {
                 let playgroundUrl = '';
                 if (JSON.parse(text).installed.includes('nuxeo-api-playground')) {
@@ -565,7 +564,7 @@ function loadPage(serviceWorker) {
         }
 
         function docSearch(nxqlQuery, input) {
-          serviceWorker.serverConnector
+          worker.serverConnector
             .query({ query: nxqlQuery, sortBy: 'dc:modified' })
             .then((res) => {
               if (res.entries.length > 0) {
@@ -595,7 +594,7 @@ function loadPage(serviceWorker) {
                 });
                 $('.doc-title').click((event) => {
                   const docPath = onUI ? `ui/#!/doc/${event.currentTarget.id}` : `nxdoc/default/${event.currentTarget.id}/view_documents`;
-                  serviceWorker.browserNavigator.loadNewExtensionTab(docPath, true);
+                  worker.browserNavigator.loadNewExtensionTab(docPath, true);
                 });
                 $('.json-icon').click((event) => {
                   event.preventDefault();
@@ -612,7 +611,7 @@ function loadPage(serviceWorker) {
             .catch((error) => {
               console.error(error);
               error.response.json().then((json) => {
-                serviceWorker.desktopNotifier.notify(
+                worker.desktopNotifier.notify(
                   'error',
                   json.code,
                   json.message,
@@ -626,8 +625,8 @@ function loadPage(serviceWorker) {
 
         let openJsonWindow = (jsonObject) => {
           const jsonString = JSON.stringify(jsonObject, undefined, 2);
-          serviceWorker.jsonHighlighter.input(DOMPurify.sanitize(jsonString));
-          serviceWorker.browserNavigator.loadNewExtensionTab('json/index.html');
+          worker.jsonHighlighter.input(DOMPurify.sanitize(jsonString));
+          worker.browserNavigator.loadNewExtensionTab('json/index.html');
         };
 
         $('#restart-button').on('click', () => {
@@ -640,7 +639,7 @@ function loadPage(serviceWorker) {
           }).then((result) => {
             if (result.isConfirmed) {
               startLoadingRS()
-                .then(() => serviceWorker.serverConnector.restart())
+                .then(() => worker.serverConnector.restart())
                 .then(stopLoading)
                 .catch(stopLoading);
             }
@@ -670,12 +669,12 @@ function loadPage(serviceWorker) {
         // Handle click event for the 'reindex' button
         $('#reindex').click(() => {
           if ($('#reindex-repo').hasClass('active')) {
-            serviceWorker.repositoryIndexer.reindex();
+            worker.repositoryIndexer.reindex();
           } else {
             $('#reindex-form').show();
             const input = $('#reindex-input').val();
             $('#reindex-input').val('');
-            serviceWorker.repositoryIndexer.reindex(input);
+            worker.repositoryIndexer.reindex(input);
           }
         });
 
@@ -686,7 +685,7 @@ function loadPage(serviceWorker) {
           }
         });
 
-        $('#traces-button').click(() => serviceWorker.serverConnector
+        $('#traces-button').click(() => worker.serverConnector
           .executeOperation('Traces.ToggleRecording', { readOnly: false })
           .then((response) => Boolean(response.value))
           .then((isEnabled) => {
@@ -695,7 +694,7 @@ function loadPage(serviceWorker) {
           })
           .catch((cause) => {
             console.error("Can't toggle automation traces", cause);
-            return serviceWorker.serverConnector
+            return worker.serverConnector
               .executeOperation('Traces.ToggleRecording', { readOnly: true })
               .then((response) => Boolean(response.value))
               .catch(() => false);
@@ -813,18 +812,17 @@ function loadPage(serviceWorker) {
           console.log('O Canada!');
         });
       });
-      return serviceWorker;
+      return worker;
     });
 }
 
-const serviceWorker = new ServiceWorkerBridge();
-serviceWorker
+new ServiceWorkerBridge()
   .asPromise()
   .then((worker) => {
     worker.developmentMode
       .asPromise().then(() => {
-        window.reloadPopup = () => serviceWorker.asPromise().then(loadPage);
-        window.serviceWorker = worker;
+        window.reloadPopup = () => worker.asPromise().then(loadPage);
+        window.worker = worker;
       })
       .catch((error) => console.error(error));
     return worker;

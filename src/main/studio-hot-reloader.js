@@ -184,7 +184,7 @@ class StudioHotReloader {
                 message: 'A Hot Reload has successfully been completed.',
                 iconUrl: '../images/nuxeo-128.png',
               });
-              this.worker.serverConnector.reloadTab();
+              this.worker.browserNavigator.reloadServerTab();
             })
             .catch((er) => {
               this.handleErrors(er, this.worker.serverConnector.defasultServerError);

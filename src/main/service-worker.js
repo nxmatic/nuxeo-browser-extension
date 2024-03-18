@@ -121,7 +121,7 @@ class ServiceWorker {
     return this.asPromise()
       .then((worker) => {
         // Initialize the cleanup stack
-        const cleanupFunctions = []; 
+        const cleanupFunctions = [];
         if (typeof cleanupFunctions.push !== 'function') {
           throw new Error('cleanupFunctions must have a push method');
         }

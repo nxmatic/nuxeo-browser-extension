@@ -194,20 +194,20 @@ class ServerConnector {
   }
 
   restart() {
-    const notifyRestart = () => new Promise((resolve) => {
+    const notifyRestart = (context) => new Promise((resolve) => {
       this.worker.desktopNotifier.notify('reload', {
         title: 'Restarting server...',
         message: 'Attempting to restart Nuxeo server.',
         iconUrl: '../images/nuxeo-128.png',
         requireInteraction: false,
       })
-        .then(() => this.worker.browserNavigator.reloadServerTab())
+        .then(() => this.worker.browserNavigator.reloadServerTab(context, 10000))
         .then(() => this.worker.desktopNotifier.cancel('reload'))
         .then(() => resolve());
     });
 
     const notifyError = (error) => new Promise((resolve) => {
-      console.error(`Error restarting server ${error}`);
+      console.error(`Error restarting server '${error.message}'`, error);
       this.worker.desktopNotifier.notify('error', {
         title: 'Something went wrong...',
         message: 'An error occurred.',
@@ -217,34 +217,31 @@ class ServerConnector {
       resolve();
     });
 
+    const rootUrl = this.rootUrl;
     const restartUrl = `${this.rootUrl}/site/connectClient/uninstall/restart`;
-    return this.worker.browserNavigator.disableExtension()
-      .then(this.withNuxeo)
-      .then((nuxeo) => nuxeo
-        ._http({
-          method: 'POST',
-          schemas: [],
-          enrichers: [],
-          fetchProperties: [],
-          url: restartUrl,
-        }))
-      .then((res) => {
-        // Handle restart success since 9.10
-        if (res.status && res.status >= 200 && res.status < 300) {
-          return notifyRestart();
-        } else {
+    return this.worker.browserNavigator.disableTabExtension()
+      .then((tabInfo) => this
+        .withNuxeo()
+        .then((nuxeo) => nuxeo
+          ._http({
+            method: 'POST',
+            schemas: [],
+            enrichers: [],
+            fetchProperties: [],
+            url: restartUrl,
+          }))
+        .then((res) => {
+          // Handle restart success since 9.10
+          if (res.status && res.status >= 200 && res.status < 300) {
+            return notifyRestart({ rootUrl, tabInfo });
+          } else {
           // Handle errors for 8.10 and FT up to 9.3
-          return notifyError(res);
-        }
-      })
-      .then(() => {
-        setTimeout(() => {
-          this.worker.browserNavigator.reloadTab();
-        }, 5000);
-      })
-      .catch((e) => {
-        notifyError(e);
-      });
+            return notifyError(res);
+          }
+        })
+        .catch((e) => {
+          notifyError(e);
+        }));
   }
 }
 
