@@ -821,7 +821,8 @@ new ServiceWorkerBridge()
   .then((worker) => {
     worker.developmentMode
       .asPromise().then(() => {
-        window.reloadPopup = () => worker.asPromise().then(loadPage);
+        window.nuxeoWebExensions = worker;
+        window.nuxeoWebExensions.reloadPopup = () => worker.asPromise().then(loadPage);
         window.worker = worker;
       })
       .catch((error) => console.error(error));
