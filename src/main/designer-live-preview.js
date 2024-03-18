@@ -100,11 +100,6 @@ class DesignerLivePreview {
       .then(() => this.flush());
   }
 
-  flush() {
-    return this.worker.declarativeNetEngine
-      .flush();
-  }
-
   pushRedirection(from, to) {
     return this.worker.declarativeNetEngine
       .push(new RedirectRule(from, to))
@@ -187,12 +182,12 @@ class DesignerLivePreview {
 
   enable(projectName) {
     return this.withWorkspace(projectName)
-      .then(({ credentials, json }) => this
-        .disable()
-        .then(() => this.pushRedirectionsOf(json, credentials))
-        .then(() => this.flush())
-        .then((undo) => this.undoByProjectNames.set(projectName, undo)))
-      .then(() => true);
+      .then(({ credentials, json }) =>
+        this.disable()
+          .then(() => this.pushRedirectionsOf(json, credentials))
+          .then(() => this.worker.declarativeNetEngine.flush())
+          .then((undo) => this.undoByProjectNames.set(projectName, undo))
+          .then(() => true));
   }
 
   // eslint-disable-next-line no-unused-vars

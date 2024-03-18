@@ -2,7 +2,6 @@
 
 class BaseRule {
   constructor() {
-    this.id = -1;
     this.priority = 1;
   }
 
@@ -160,6 +159,12 @@ class DeclarativeNetEngine {
       .forEach((method) => {
         this[method] = this[method].bind(this);
       });
+
+    // Private functions
+    this.requestOf = (rulesToAdd, rulesToRemove) => ({
+      addRules: rulesToAdd.map((rule) => rule.toJson()),
+      removeRuleIds: rulesToRemove.map((rule) => rule.hashCode()),
+    });
   }
 
   push(rule) {
@@ -196,25 +201,28 @@ class DeclarativeNetEngine {
   }
 
   flush() {
-    return this.pending()
-      .then((pending) => chrome.declarativeNetRequest
-        .updateSessionRules(pending))
-      .then(() => ({
-        addRules: this.rulesToRemove.map((rule) => rule.toJson()),
-        removeRuleIds: this.rulesToAdd.map((rule) => rule.id),
-      }))
-      .then((rules) => {
-        // Clear the lists after the changes have been submitted
-        this.rulesToAdd = [];
-        this.rulesToRemove = [];
-        return () => this.undo(rules);
+    return Promise
+      .resolve({
+        pendingRules: this.requestOf(this.rulesToAdd, this.rulesToRemove),
+        undoRules: this.requestOf(this.rulesToRemove, this.rulesToAdd),
       })
-      .catch((cause) => {
-        this.worker.developmentMode.asConsole()
-          .then((console) => console
-            .log(`Failed to flush rules: ${JSON.stringify(this.pending())}`, cause));
-        throw cause;
-      });
+      .then(({ pendingRules, undoRules }) => chrome.declarativeNetRequest
+        .updateSessionRules(pendingRules)
+        .then(() => () => chrome.declarativeNetRequest
+          .updateSessionRules(undoRules))
+        .then((undo) => this.worker.developmentMode.asConsole()
+          .then((console) => console.log(`Successfully flushed rules: ${JSON.stringify(pendingRules)}`))
+          .then(() => undo))
+        .catch((cause) => {
+          this.worker.developmentMode.asConsole()
+            .then((console) => console
+              .log(`Failed to flush rules: ${JSON.stringify(pendingRules)}`, cause));
+          throw cause;
+        }));
+  }
+
+  pending() {
+    return Promise.resolve(this.requestOf(this.rulesToAdd, this.rulesToRemove));
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -242,19 +250,6 @@ class DeclarativeNetEngine {
             .log(`Flushed rules: ${JSON.stringify(rules)}`));
         return rules;
       });
-  }
-
-  pending() {
-    return Promise.resolve({
-      addRules: this.rulesToAdd.map((rule) => rule.toJson()),
-      removeRuleIds: this.rulesToRemove.map((rule) => rule.id),
-    }).then((pending) => {
-      this.worker.developmentMode
-        .asConsole()
-        .then((console) => console
-          .log(`Pending rules: ${JSON.stringify(pending)}`));
-      return pending;
-    });
   }
 
   redirectRulesFrom(from) {
