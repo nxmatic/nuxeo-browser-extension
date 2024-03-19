@@ -19,11 +19,9 @@ limitations under the License.
 
 import ServiceWorkerBridge from '../service-worker-bridge';
 
-const serviceWorkerBridge = new ServiceWorkerBridge();
-
 class Content {
-  constructor() {
-    this.browserStore = serviceWorkerBridge.browserStore;
+  constructor(store) {
+    this.browserStore = store;
 
     // fetch back the server url from the browser store
     this.browserStore.get(['server']).then((data) => {
@@ -60,7 +58,10 @@ class ContentMessageHandler {
   }
 }
 
-const content = new Content();
-const handler = new ContentMessageHandler(content);
+new ServiceWorkerBridge().bootstrap().then((worker) => {
+  const content = new Content(worker.browserStore);
+  const handler = new ContentMessageHandler(content);
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => handler.handle(request, sender, sendResponse));
+  chrome.runtime.onMessage
+    .addListener((request, sender, sendResponse) => handler.handle(request, sender, sendResponse));
+});

@@ -16,32 +16,11 @@ limitations under the License.
 */
 
 import NuxeoServerVersion from 'nuxeo/lib/server-version';
+import ServiceWorkerComponent from './service-worker-component';
 
-const checkDependencies = `import groovy.json.JsonOutput;
-import org.nuxeo.connect.packages.PackageManager;
-import org.nuxeo.connect.packages.dependencies.TargetPlatformFilterHelper;
-import org.nuxeo.connect.client.we.StudioSnapshotHelper;
-import org.nuxeo.ecm.admin.runtime.PlatformVersionHelper;
-import org.nuxeo.ecm.admin.runtime.RuntimeInstrospection
-import org.nuxeo.runtime.api.Framework;
-
-def pm = Framework.getService(PackageManager.class);
-def snapshotPkg = StudioSnapshotHelper.getSnapshot(pm.listRemoteAssociatedStudioPackages());
-def nxInstance = PlatformVersionHelper.getPlatformFilter();
-
-def pkgName = snapshotPkg == null ? null : snapshotPkg.getName();
-def targetPlatform = snapshotPkg == null ? null : snapshotPkg.getTargetPlatforms();
-def match = true;
-if (!TargetPlatformFilterHelper.isCompatibleWithTargetPlatform(snapshotPkg, nxInstance)) {
-  match = false;
-}
-def dependencies = snapshotPkg == null ? null : snapshotPkg.getDependencies();
-
-println JsonOutput.toJson([studio: pkgName, nx: nxInstance, studioDistrib: targetPlatform, match: match, deps: dependencies]);`;
-
-class StudioHotReloader {
+class StudioHotReloader extends ServiceWorkerComponent {
   constructor(worker) {
-    this.worker = worker;
+    super(worker);
 
     // Bind methods
     Object.getOwnPropertyNames(Object.getPrototypeOf(this))
@@ -130,20 +109,17 @@ class StudioHotReloader {
   }
 
   handleLegacyError(error) {
-    const nuxeoServerVersion = NuxeoServerVersion.create(this.worker.serverConnector.runtimeInfo().nuxeo.version);
+    const nuxeoServerVersion = NuxeoServerVersion.create(this.worker.serverConnector.runtimeInfo().nuxeola.version);
     const nuxeoLegacyVersion = NuxeoServerVersion.create('9.2');
     if (!nuxeoServerVersion.lte(nuxeoLegacyVersion)) throw error;
     // Error handling for Nuxeo 9.2 and older
     this.worker.serverConnector
-      .executeScript(checkDependencies)
-      .then((text) => {
-        const checkDeps = JSON.parse(text).match;
+      .executeScript('get-registered-studio-project')
+      .then((json) => {
         let message = '';
         let dependencyError = {};
-        if (JSON.parse(text).nx !== JSON.parse(text).studioDistrib[0]) {
-          message += `${JSON.parse(text).studio} - ${
-            JSON.parse(text).studioDistrib[0]
-          } cannot be installed on Nuxeo ${JSON.parse(text).nx}.`;
+        if (json.nx !== json.studioDistrib[0]) {
+          message += `json.studio} - ${json.studioDistrib[0]} cannot be installed on Nuxeo ${json.nx}.`;
           dependencyError = {
             id: 'dependenciesMismatch',
             title: 'Dependency Mismatch',
@@ -154,9 +130,9 @@ class StudioHotReloader {
         } else {
           dependencyError = this.worker.serverConnector.defaultServerError;
         }
-        if (!checkDeps) {
+        if (!json.match) {
           this.handleErrors(error, dependencyError);
-          const deps = JSON.parse(text).deps;
+          const deps = json.deps;
           if (deps.length > 0) {
             const items = [];
             deps.forEach((dep) => {
@@ -184,7 +160,7 @@ class StudioHotReloader {
                 message: 'A Hot Reload has successfully been completed.',
                 iconUrl: '../images/nuxeo-128.png',
               });
-              this.worker.browserNavigator.reloadServerTab();
+              return this.worker.tabNavigationHandler.reloadServerTab();
             })
             .catch((er) => {
               this.handleErrors(er, this.worker.serverConnector.defasultServerError);

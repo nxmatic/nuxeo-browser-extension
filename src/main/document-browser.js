@@ -1,14 +1,15 @@
 /* eslint-disable comma-dangle */
 import DOMPurify from 'dompurify';
+import ServiceWorkerComponent from './service-worker-component';
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const pathPattern = /^\//;
 const selectFromPattern = /SELECT .* FROM /i;
 const webuiPattern = /nuxeo\/ui\/#!\//;
 
-class DocumentBrowser {
+class DocumentBrowser extends ServiceWorkerComponent {
   constructor(worker) {
-    this.worker = worker;
+    super(worker);
 
     // Bind methods
     Object.getOwnPropertyNames(Object.getPrototypeOf(this))
@@ -18,51 +19,67 @@ class DocumentBrowser {
       });
   }
 
-  listenToChromeEvents() {
-    const cleanupFunctions = [];
+  // eslint-disable-next-line no-unused-vars
+  activate(self) {
+    return Promise
+      .resolve([])
+      .then((undoStack) => {
+        chrome.omnibox.onInputEntered.addListener(this.openDocument);
+        undoStack.push(() => chrome.omnibox.onInputEntered.removeListener(this.openDocument));
 
-    chrome.omnibox.onInputEntered.addListener(this.openDocument);
-    cleanupFunctions.push(() => chrome.omnibox.onInputEntered.removeListener(this.openDocument));
+        chrome.omnibox.onInputChanged.addListener(this.suggestDocument);
+        undoStack.push(() => chrome.omnibox.onInputChanged.removeListener(this.suggestDocument));
 
-    chrome.omnibox.onInputChanged.addListener(this.suggestDocument);
-    cleanupFunctions.push(() => chrome.omnibox.onInputChanged.removeListener(this.suggestDocument));
-
-    return () => {
-      while (cleanupFunctions.length > 0) {
-        const cleanupFunction = cleanupFunctions.pop();
-        cleanupFunction();
-      }
-    };
+        return undoStack;
+      })
+      .then((undoStack) => () => undoStack.forEach((undo) => undo()));
   }
 
   onWebUI() {
-    return webuiPattern.exec(this.worker.serverConnector._nuxeo._baseURL);
+    return Promise.resolve(
+      webuiPattern.exec(this.worker.serverConnector._nuxeo._baseURL)
+    );
   }
 
   openDocument(input) {
-    if (uuidPattern.test(input)) {
-      this.openDocFromId(input);
-    } else if (pathPattern.test(input)) {
-      this.openDocFromPath(input);
-    } else {
-      console.error(`Invalid input ${input}`);
-    }
+    return Promise.resolve(input)
+      .then((text) => {
+        if (!uuidPattern.test(input)) {
+          return { text, promise: null };
+        }
+        return { text, promise: this.openDoc(text) };
+      })
+      .then(({ text, promise }) => {
+        if (promise !== null) {
+          return { text, promise };
+        }
+        if (!pathPattern.test(input)) {
+          return { text, promise: null };
+        }
+        return { text, promise: this.openDoc(text) };
+      })
+      .then(({ text, promise }) => {
+        if (promise == null) {
+          return Promise.reject(new Error(`Invalid input ${text}`));
+        }
+        return promise;
+      });
   }
 
   openDocFromId(id) {
-    this.worker.serverConnector.withNuxeo()
+    return this.worker.serverConnector.withNuxeo()
       .then((nuxeo) => nuxeo.request(`/id/${id}`))
       .then((request) => this.doOpenDoc(request));
   }
 
   openDocFromPath(path) {
-    this.worker.serverConnector.withNuxeo()
+    return this.worker.serverConnector.withNuxeo()
       .then((nuxeo) => nuxeo.request(`/path/${path}`))
       .then((request) => this.doOpenDoc(request));
   }
 
   doOpenDoc(request) {
-    request
+    return request
       .schemas('*')
       .enrichers({ document: ['acls', 'permissions'] })
       .get()
@@ -73,60 +90,73 @@ class DocumentBrowser {
           }
           return `nxdoc/default/${uid}/view_documents`;
         }
-        this.browserNavigator.loadNewExtensionTab(pathOf(doc.uid), true);
+        this.tabNavigationHandler.loadNewExtensionTab(pathOf(doc.uid), true);
       })
       .catch((error) => {
         console.log(error);
       });
   }
 
-  suggestDocument(text, suggest) {
-    if (uuidPattern.test(text)) {
-      this.openDocFromId(text);
-      return;
-    }
-    if (pathPattern.test(text)) {
-      this.openDocFromPath(text);
-      return;
-    }
-    const jsonQueryOf = (query) => {
-      if (selectFromPattern.test(query)) {
-        return text;
-      }
-      return `SELECT * FROM Document WHERE ecm:fulltext = "${text}"`;
-    };
-    const query = jsonQueryOf(text).replace(/'/g, '"');
-    const suggestions = [];
-    this.nuxeo
-      .repository()
-      .schemas(['dublincore', 'common', 'uid'])
-      .query({
-        query,
-        sortBy: 'dc:modified',
+  suggestDocument(input, suggest) {
+    return Promise.resolve({ text: input, pronise: null })
+      .then(({ text, promise }) => {
+        if (promise || !uuidPattern.test(text)) {
+          return { text, promise };
+        }
+        // document selection using UUID
+        return { text, promise: this.openDocFromId(text) };
       })
-      .then((res) => {
-        if (res.entries.length > 0) {
-          res.entries.forEach((doc) => {
-            const sanitizedDoc = DOMPurify.sanitize(
-              `<match>${doc.title}</match> <dim>${doc.path}</dim>`,
-              { ALLOWED_TAGS: ['match', 'dim'] }
-            );
-            suggestions.push({
-              content: doc.uid,
-              description: sanitizedDoc,
-            });
-          });
+      .then(({ text, promise }) => {
+        if (promise || !pathPattern.test(text)) {
+          return { text, promise };
         }
-        if (res.entries.length > 5) {
-          const sanitizedDoc = DOMPurify.sanitize(
-            '<dim>Want more results? Try the</dim> <match>fulltext searchbox</match> <dim>from the Nuxeo Dev Tools extension window.</dim>',
-            { ALLOWED_TAGS: ['match', 'dim'] }
-          );
-          chrome.omnibox.setDefaultSuggestion({
-            description: sanitizedDoc,
-          });
+        // document selection using path
+        return { text, promise: this.openDocFromPath(text) };
+      })
+      .then(({ text, promise }) => {
+        if (promise) {
+          return promise;
         }
-        suggest(suggestions);
+        // document selection using NXQL
+        const jsonQueryOf = (query) => {
+          if (selectFromPattern.test(query)) {
+            return text;
+          }
+          return `SELECT * FROM Document WHERE ecm:fulltext = "${text}"`;
+        };
+        const query = jsonQueryOf(text).replace(/'/g, '"');
+        const suggestions = [];
+        return this.nuxeo
+          .repository()
+          .schemas(['dublincore', 'common', 'uid'])
+          .query({
+            query,
+            sortBy: 'dc:modified',
+          })
+          .then((res) => {
+            if (res.entries.length > 0) {
+              res.entries.forEach((doc) => {
+                const sanitizedDoc = DOMPurify.sanitize(
+                  `<match>${doc.title}</match> <dim>${doc.path}</dim>`,
+                  { ALLOWED_TAGS: ['match', 'dim'] }
+                );
+                suggestions.push({
+                  content: doc.uid,
+                  description: sanitizedDoc,
+                });
+              });
+            }
+            if (res.entries.length > 5) {
+              const sanitizedDoc = DOMPurify.sanitize(
+                '<dim>Want more results? Try the</dim> <match>fulltext searchbox</match> <dim>from the Nuxeo Dev Tools extension window.</dim>',
+                { ALLOWED_TAGS: ['match', 'dim'] }
+              );
+              chrome.omnibox.setDefaultSuggestion({
+                description: sanitizedDoc,
+              });
+            }
+            suggest(suggestions);
+          });
       });
   }
 

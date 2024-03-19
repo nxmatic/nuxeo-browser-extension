@@ -1,30 +1,37 @@
 /* eslint-disable comma-dangle */
 
 class ServiceWorkerBridge {
-  constructor() {
-    const services = [
-      'buildInfo',
-      'browserNavigator',
-      'browserStore',
-      'chromeNotifier',
-      'connectLocator',
-      'declarativeNetEngine',
-      'designerLivePreview',
-      'developmentMode',
-      'jsonHighlighter',
-      'repositoryIndexer',
-      'serverConnector',
-      'studioHotReloader',
-      'documentBrowser'
-    ];
+  bootstrap() {
+    return new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage(
+        {
+          extension: 'nuxeo-web-extension',
+          component: 'componentInventory',
+          action: 'list',
+          params: [],
+        },
+        (response) => {
+          if (chrome.runtime.lastError) {
+            return reject(chrome.runtime.lastError);
+          }
+          if (response && response.error) {
+            return reject(response.error);
+          }
+          this.createProxies(response);
+          return resolve(this);
+        }
+      );
+    });
+  }
 
-    services.forEach((service) => {
-      this[service] = new Proxy({}, {
+  createProxies(components) {
+    components.forEach((component) => {
+      this[component] = new Proxy({}, {
         get: (target, action) => (...params) => new Promise((resolve, reject) => {
           chrome.runtime.sendMessage(
             {
               extension: 'nuxeo-web-extension',
-              service: `${service}`,
+              component: `${component}`,
               action,
               params,
             },
@@ -48,7 +55,7 @@ class ServiceWorkerBridge {
   }
 
   asPromise() {
-    return new Promise((resolve) => resolve(this));
+    return Promise.resolve(this);
   }
 }
 

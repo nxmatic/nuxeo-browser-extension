@@ -13,7 +13,7 @@
   },
   "permissions": [
     "storage",
-    "cookies",
+    "contextMenus",
     "tabs",
     "activeTab",
     "notifications",
@@ -38,5 +38,11 @@
     },
     "default_title": "Nuxeo Dev Tools",
     "default_popup": "popup/index.html"
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["groovy/get-developed-studio-projects.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }

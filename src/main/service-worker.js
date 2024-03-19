@@ -1,6 +1,6 @@
 /* eslint-disable max-classes-per-file */
 /* eslint-disable comma-dangle */
-import BrowserNavigator from './browser-navigator';
+import TabNavigationHandler from './tab-navigation-handler';
 import BrowserStore from './browser-store';
 import ConnectLocator from './connect-locator';
 import DeclararactiveNetCompoments from './declarative-net-engine';
@@ -11,13 +11,14 @@ import JSONHighlighter from './json-highlighter';
 import RepositoryIndexer from './repository-indexer';
 import RuntimeBuildComponent from './runtime-build-info';
 import ServerConnector from './server-connector';
+import ServiceWorkerComponent from './service-worker-component';
 import StudioHotReloader from './studio-hot-reloader';
 
 const DeclarativeNetEngine = DeclararactiveNetCompoments.DeclarativeNetEngine;
 
-class ServiceWorkerMessageHandler {
+class ServiceWorkerMessageHandler extends ServiceWorkerComponent {
   constructor(worker) {
-    this.worker = worker;
+    super(worker);
 
     // Bind methods
     Object.getOwnPropertyNames(Object.getPrototypeOf(this))
@@ -45,11 +46,11 @@ class ServiceWorkerMessageHandler {
       function getNestedProperty(obj, path) {
         return path.split('.').reduce((prev, curr) => (prev ? prev[curr] : null), obj);
       }
-      const service = getNestedProperty(worker, request.service);
-      if (!service) {
-        return Promise.reject(new Error(`Invalid service ${JSON.stringify(request)}`));
+      const component = getNestedProperty(worker, request.component);
+      if (!component) {
+        return Promise.reject(new Error(`Invalid component ${JSON.stringify(request)}`));
       }
-      if (typeof service[request.action] !== 'function') {
+      if (typeof component[request.action] !== 'function') {
         return Promise.reject(new Error(`Invalid action ${JSON.stringify(request)}`));
       }
       this.worker.developmentMode
@@ -57,14 +58,12 @@ class ServiceWorkerMessageHandler {
         .then((console) => console
           .log(`ServiceWorkerMessageHandler.handle(${JSON.stringify(request)}) called`));
       return Promise
-        .resolve(service[request.action](...request.params))
-        .then((response) => {
-          this.worker.developmentMode
-            .asConsole()
-            .then((console) => console
-              .log(`${JSON.stringify(response)} <- ServiceWorkerMessageHandler.handle(${JSON.stringify(request)})`));
-          return response;
-        })
+        .resolve(component[request.action](...request.params))
+        .then((response) => this.worker.developmentMode
+          .asConsole()
+          .then((console) => console
+            .log(`${JSON.stringify(response)} <- ServiceWorkerMessageHandler.handle(${JSON.stringify(request)})`))
+          .then(() => response))
         .catch((cause) => {
           const response = { error: { message: cause.message, stack: cause.stack, response: cause.response } };
           this.worker.developmentMode
@@ -85,25 +84,34 @@ class ServiceWorkerMessageHandler {
   }
 }
 
-class ServiceWorker {
+class ServiceWorkerComponentInventory extends ServiceWorkerComponent {
+  list(recursive = false) {
+    const componentNames = this.componentNamesOf(this.worker, recursive);
+    return Promise.resolve(componentNames);
+  }
+}
+
+class ServiceWorker extends ServiceWorkerComponent {
   constructor(developmentMode, buildTime, buildVersion, browserVendor) {
+    super();
     // sub-componments takes reference to the worker
     // in order to invoke other services. The order is important as
     // services may be invoked while constructing.
     this.buildInfo = new RuntimeBuildComponent
-      .RuntimeBuildInfo(buildTime, buildVersion, browserVendor);
-    this.browserNavigator = new BrowserNavigator(this);
+      .RuntimeBuildInfo(this, buildTime, buildVersion, browserVendor);
     this.browserStore = new BrowserStore(this);
+    this.componentInventory = new ServiceWorkerComponentInventory(this);
     this.connectLocator = new ConnectLocator(this);
     this.declarativeNetEngine = new DeclarativeNetEngine(this);
     this.designerLivePreview = new DesignerLivePreview(this);
     this.desktopNotifier = new DesktopNotifier(this);
-    this.developmentMode = new RuntimeBuildComponent.DevelopmentMode(developmentMode);
+    this.developmentMode = new RuntimeBuildComponent.DevelopmentMode(this, developmentMode);
     this.documentBrowser = new DocumentBrowser(this);
     this.jsonHighlighter = new JSONHighlighter(this);
     this.repositoryIndexer = new RepositoryIndexer(this);
     this.serverConnector = new ServerConnector(this);
     this.studioHotReloader = new StudioHotReloader(this);
+    this.tabNavigationHandler = new TabNavigationHandler(this);
 
     // Bind methods
     Object.getOwnPropertyNames(Object.getPrototypeOf(this))
@@ -121,8 +129,8 @@ class ServiceWorker {
     return this.asPromise()
       .then((worker) => {
         // Initialize the cleanup stack
-        const cleanupFunctions = [];
-        if (typeof cleanupFunctions.push !== 'function') {
+        const deactivateStack = [];
+        if (typeof deactivateStack.push !== 'function') {
           throw new Error('cleanupFunctions must have a push method');
         }
 
@@ -134,21 +142,42 @@ class ServiceWorker {
         // install the service worker message handler
         const messageHandle = new ServiceWorkerMessageHandler(worker).handle;
         chrome.runtime.onMessage.addListener(messageHandle);
-        cleanupFunctions.push(() => chrome.runtime.onMessage.removeListener(messageHandle));
+        deactivateStack.push(() => chrome.runtime.onMessage.removeListener(messageHandle));
 
-        cleanupFunctions.push(worker.browserNavigator.listenToChromeEvents());
-        cleanupFunctions.push(worker.documentBrowser.listenToChromeEvents());
-        cleanupFunctions.push(() => worker.designerLivePreview.disable());
+        // activate all sub-components
+        this.componentsOf(worker)
+          .map((component) => {
+            if (typeof component.activate !== 'function') return () => {};
+            return component
+              .activate(self)
+              .then((cleanup) => worker.developmentMode.asConsole()
+                .then((console) => console
+                  .log(`ServiceWorkerComponent.activate(${component.constructor.name}) called`))
+                .then(() => cleanup));
+          })
+          .filter((cleanup) => typeof cleanup === 'function')
+          .forEach((cleanup) => {
+            deactivateStack.push(cleanup);
+          });
 
         // can be used in development mode from the console for now
-        worker.deactivate = () => {
-          while (cleanupFunctions.length > 0) {
-            const cleanupFunction = cleanupFunctions.pop();
-            cleanupFunction();
+        self.nuxeoWebExtension = worker;
+
+        return {
+          worker,
+          undo: () => {
+            self['nuxeo-web-extension'] = undefined;
+            while (deactivateStack.length > 0) {
+              const deactivate = deactivateStack.pop();
+              deactivate(self);
+            }
           }
         };
-        return worker;
-      });
+      })
+      // eslint-disable-next-line no-return-assign
+      .then(({ worker, undo }) => (
+        worker.deactivate = undo.bind(worker)
+      ));
   }
 }
 

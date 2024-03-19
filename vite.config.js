@@ -7,6 +7,13 @@ import fse from 'fs-extra';
 import path from 'path';
 import * as rimraf from 'rimraf';
 import { defineConfig } from 'vite';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+
+const parser = require('@babel/parser');
+const traverse = require('@babel/traverse');
+const generate = require('@babel/generator');
 
 export default defineConfig(({ mode }) => {
   const isProduction = process.env.NODE_ENV === 'production';
@@ -33,7 +40,7 @@ export default defineConfig(({ mode }) => {
     throw new Error(`Invalid entry: ${buildEntry}`);
   }
 
-  return {
+  const viteConfig = {
     build: {
       assetsDir: '.', // relative to outDir
       outDir: `dist/${browserVendor}`,
@@ -110,12 +117,45 @@ export default defineConfig(({ mode }) => {
         }
       },
       {
+        name: 'replace-global-window-with-self',
+        apply: 'build',
+        renderChunk(code, chunk) {
+          if (buildEntry !== 'main') return null; // Only process the main entry
+
+          // Parse the code into an AST
+          const ast = parser.parse(code);
+
+          // Traverse the AST and replace global window with self
+          traverse.default(ast, {
+            // eslint-disable-next-line no-shadow
+            enter(path) {
+              if (
+                path.isIdentifier({ name: 'window' }) &&
+                path.scope.hasGlobal('window') &&
+                (path.parent.type === 'MemberExpression' || path.parent.type === 'ThisExpression')
+              ) {
+                path.node.name = 'self';
+              }
+            },
+          });
+
+          // Generate the modified code from the AST
+          const { code: newCode, map } = generate.default(ast, {
+            sourceMaps: true,
+            sourceFileName: chunk.fileName,
+          });
+
+          // Return the modified code and source map
+          return { code: newCode, map };
+        },
+      },
+      {
         name: 'rename-popup-bundles',
         apply: 'build',
         generateBundle(_, bundle) {
           if (!paths[buildEntry].input.endsWith('.html')) return; // Process only html entry points
 
-          console.log('Renaming popup bundles ...');
+          console.log('Reparenting popup bundles ...');
           Object.keys(bundle).forEach((name) => {
             const file = bundle[name];
 
@@ -123,7 +163,7 @@ export default defineConfig(({ mode }) => {
 
             file.fileName = file.fileName.replace('index/', '');
 
-            console.log(`Renamed to: ${file.fileName}...`);
+            console.log(`Reparented to: ${file.fileName}...`);
           });
         },
         writeBundle() {
@@ -150,4 +190,7 @@ export default defineConfig(({ mode }) => {
       },
     },
   }; // end of config return
+
+  console.log('Vite config:', JSON.stringify(viteConfig, null, 2));
+  return viteConfig;
 }); // end of export

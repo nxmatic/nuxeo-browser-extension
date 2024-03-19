@@ -14,9 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-class RepositoryIndexer {
+import ServiceWorkerComponent from './service-worker-component';
+
+class RepositoryIndexer extends ServiceWorkerComponent {
   constructor(worker) {
-    this.worker = worker;
+    super(worker);
+
     this.waiting = undefined;
 
     // Bind methods

@@ -1,4 +1,5 @@
 /* eslint-disable max-classes-per-file */
+import ServiceWorkerComponent from './service-worker-component';
 
 class BaseRule {
   constructor() {
@@ -146,9 +147,11 @@ class RedirectRule extends BaseRule {
   }
 }
 
-class DeclarativeNetEngine {
+class DeclarativeNetEngine extends ServiceWorkerComponent {
   constructor(worker) {
-    this.worker = worker;
+    super(worker);
+
+    // Define properties
     this.rules = new Map();
     this.rulesToAdd = [];
     this.rulesToRemove = [];
@@ -160,7 +163,7 @@ class DeclarativeNetEngine {
         this[method] = this[method].bind(this);
       });
 
-    // Private functions
+    // Define functors
     this.requestOf = (rulesToAdd, rulesToRemove) => ({
       addRules: rulesToAdd.map((rule) => rule.toJson()),
       removeRuleIds: rulesToRemove.map((rule) => rule.hashCode()),

@@ -95,11 +95,9 @@ function loadPage(worker) {
       $('#designer-live-preview-button').toggleClass('enabled', isEnabled);
       $('#designer-live-preview-button').toggleClass('disabled', !isEnabled);
     };
-    const toogleDesignerLivePreviewMessage = () => {
+    const toogleDesignerLivePreviewMessage = (cause) => {
       $('#designer-livepreview-message').css('display', 'block');
-      // setTimeout(() => {
-      //   $('#designer-livepreview-message').css('display', 'none');
-      // }, 5000);
+      $('#designer-livepreview-message a').text(cause.message);
     };
     $('#no-studio-buttons').css('display', 'none');
     $('#studio').css('display', 'flex');
@@ -107,9 +105,9 @@ function loadPage(worker) {
     worker.designerLivePreview
       .isEnabled(packageName)
       .then((isEnabled) => toogleDesignerLivePreviewButton(isEnabled))
-      .catch((error) => {
-        console.log('Error getting designer live preview status', error);
-        toogleDesignerLivePreviewMessage();
+      .catch((cause) => {
+        console.log('Error getting designer live preview status', cause);
+        toogleDesignerLivePreviewMessage(cause);
       });
 
     const packageLocation = new URL(
@@ -121,18 +119,20 @@ function loadPage(worker) {
       new URL(packageLocation, connectUrl.href).toString()
     );
     $('#studio').click(() => {
-      worker.browserNavigator.loadNewExtensionTab(packageLocation);
+      worker.tabNavigationHandler.loadNewExtensionTab(packageLocation);
     });
     $('#hot-reload-button').click(() => {
       startLoadingHR()
         .then(() => worker.studioHotReloader.reload())
         .then(stopLoading)
+        .then(() => worker.tabNavigationHandler.reloadServerTab())
         .catch(stopLoading);
     });
     $('#designer-live-preview-button').click(() => {
       worker.designerLivePreview
         .toggle(packageName)
         .then((isEnabled) => toogleDesignerLivePreviewButton(isEnabled))
+        .then(() => worker.tabNavigationHandler.reloadServerTab())
         .catch(() => toogleDesignerLivePreviewMessage());
     });
     $('#force-hot-reload-button').click(() => {
@@ -171,7 +171,7 @@ function loadPage(worker) {
 
   const registerLink = (element, url) => {
     $(element).click(() => {
-      worker.browserNavigator.loadNewExtensionTab(url);
+      worker.tabNavigationHandler.loadNewExtensionTab(url);
     });
   };
 
@@ -329,7 +329,7 @@ function loadPage(worker) {
                 .then(openJsonWindow);
             } else {
               const jsonPath = `api/v1/repo/${repository}/${path}?enrichers.document=acls,permissions&properties=*`;
-              worker.browserNavigator.loadNewExtensionTab(jsonPath, true);
+              worker.tabNavigationHandler.loadNewExtensionTab(jsonPath, true);
             }
           });
         }
@@ -354,21 +354,10 @@ function loadPage(worker) {
             console.log(e);
           });
 
-        const checkStudioPkg = `import groovy.json.JsonOutput;
-    import org.nuxeo.connect.packages.PackageManager;
-    import org.nuxeo.connect.client.we.StudioSnapshotHelper;
-    import org.nuxeo.runtime.api.Framework;
-
-    def pm = Framework.getService(PackageManager.class);
-    def snapshotPkg = StudioSnapshotHelper.getSnapshot(pm.listRemoteAssociatedStudioPackages());
-    def pkgName = snapshotPkg == null ? null : snapshotPkg.getName();
-
-    println JsonOutput.toJson([studio: pkgName]);`;
-
         worker.serverConnector
-          .executeScript(checkStudioPkg)
-          .then((text) => {
-            const pkgName = JSON.parse(text).studio;
+          .executeScript('get-registered-studio-project')
+          .then((json) => json.studio)
+          .then((pkgName) => {
             if (pkgName) {
               studioPackageFound(connectUrl, pkgName);
             } else {
@@ -381,14 +370,12 @@ function loadPage(worker) {
           });
 
         worker.serverConnector.executeOperation('Traces.ToggleRecording', { readOnly: true })
-          .then((response) => {
-            if (response.value) {
-              $('#traces-button').addClass('enabled');
-              $('#traces-button').removeClass('disabled');
-            } else {
-              $('#traces-button').addClass('disabled');
-              $('#traces-button').removeClass('enabled');
-            }
+          // eslint-disable-next-line no-sequences
+          .then((json) => json.value)
+          .then((value) => Boolean(value))
+          .then((isEnabled) => {
+            $('#traces-button').toggleClass('enabled', isEnabled);
+            $('#traces-button').toggleClass('disabled', !isEnabled);
           });
 
         worker.serverConnector.runtimeInfo()
@@ -447,32 +434,17 @@ function loadPage(worker) {
             }
             return serverUrl;
           })
-        // eslint-disable-next-line no-shadow
+          // eslint-disable-next-line no-shadow
           .then((serverUrl) => {
-            const checkAddons = `import groovy.json.JsonOutput;
-  import org.nuxeo.connect.packages.PackageManager;
-  import org.nuxeo.runtime.api.Framework;
-
-  def pm = Framework.getService(PackageManager.class);
-  def addons = pm.listInstalledPackagesNames();
-
-  println JsonOutput.toJson([installed: addons]);`;
-
-            worker.serverConnector.executeScript(checkAddons)
-              .then((text) => {
-                let playgroundUrl = '';
-                if (JSON.parse(text).installed.includes('nuxeo-api-playground')) {
-                  playgroundUrl = serverUrl
-                    .concat('/playground/#/')
-                    .concat(serverUrl);
-                } else {
-                  playgroundUrl = 'http://nuxeo.github.io/api-playground/#/'.concat(
-                    serverUrl
-                  );
-                }
-                if (!JSON.parse(text).installed.includes('nuxeo-web-ui')) {
+            worker.serverConnector
+              .executeScript('get-installed-addons')
+              .then((addons) => {
+                if (!addons.includes('nuxeo-web-ui')) {
                   $('#designer-livepreview').hide();
                 }
+                const playgroundUrl = addons.includes('nuxeo-api-playground')
+                  ? `${serverUrl}/playground/#/${serverUrl}`
+                  : `http://nuxeo.github.io/api-playground/#/${serverUrl}`;
                 return registerLink('#api-playground', playgroundUrl);
               });
           });
@@ -594,7 +566,7 @@ function loadPage(worker) {
                 });
                 $('.doc-title').click((event) => {
                   const docPath = onUI ? `ui/#!/doc/${event.currentTarget.id}` : `nxdoc/default/${event.currentTarget.id}/view_documents`;
-                  worker.browserNavigator.loadNewExtensionTab(docPath, true);
+                  worker.tabNavigationHandler.loadNewExtensionTab(docPath, true);
                 });
                 $('.json-icon').click((event) => {
                   event.preventDefault();
@@ -626,7 +598,7 @@ function loadPage(worker) {
         let openJsonWindow = (jsonObject) => {
           const jsonString = JSON.stringify(jsonObject, undefined, 2);
           worker.jsonHighlighter.input(DOMPurify.sanitize(jsonString));
-          worker.browserNavigator.loadNewExtensionTab('json/index.html');
+          worker.tabNavigationHandler.loadNewExtensionTab('json/index.html');
         };
 
         $('#restart-button').on('click', () => {
@@ -687,7 +659,8 @@ function loadPage(worker) {
 
         $('#traces-button').click(() => worker.serverConnector
           .executeOperation('Traces.ToggleRecording', { readOnly: false })
-          .then((response) => Boolean(response.value))
+          .then((response) => response.value)
+          .then((value) => Boolean(value))
           .then((isEnabled) => {
             $('#traces-button').toggleClass('enabled', isEnabled);
             $('#traces-button').toggleClass('disabled', !isEnabled);
@@ -696,7 +669,8 @@ function loadPage(worker) {
             console.error("Can't toggle automation traces", cause);
             return worker.serverConnector
               .executeOperation('Traces.ToggleRecording', { readOnly: true })
-              .then((response) => Boolean(response.value))
+              .then((response) => response.value)
+              .then((value) => Boolean(value))
               .catch(() => false);
           }));
 
@@ -817,13 +791,17 @@ function loadPage(worker) {
 }
 
 new ServiceWorkerBridge()
-  .asPromise()
+  .bootstrap()
   .then((worker) => {
     worker.developmentMode
-      .asPromise().then(() => {
-        window.nuxeoWebExensions = worker;
-        window.nuxeoWebExensions.reloadPopup = () => worker.asPromise().then(loadPage);
-        window.worker = worker;
+      .asPromise()
+      .then(() => {
+        // can be used in development mode from the console for now
+        worker.reloadPopup = () => worker.asPromise().then(loadPage);
+        // Check if 'window' is defined, otherwise use 'window'
+        // eslint-disable-next-line no-restricted-globals, no-undef
+        const globalScope = typeof self !== 'undefined' ? self : window;
+        globalScope.nuxeoWebExtension = worker;
       })
       .catch((error) => console.error(error));
     return worker;

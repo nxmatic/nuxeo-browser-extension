@@ -12,8 +12,11 @@
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.23.10",
+    "@babel/generator": "^7.24.1",
+    "@babel/parser": "^7.24.1",
     "@babel/plugin-proposal-decorators": "^7.24.0",
     "@babel/preset-env": "^7.24.0",
+    "@babel/traverse": "^7.24.1",
     "@rollup/plugin-inject": "^5.0.5",
     "chai": "^5.1.0",
     "concurrently": "^8.2.2",

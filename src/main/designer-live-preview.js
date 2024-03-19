@@ -18,16 +18,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { resolve } from 'nuxeo/lib/deps/promise';
 import DeclarativeNetComponents from './declarative-net-engine';
+import ServiceWorkerComponent from './service-worker-component';
 
 const BasicAuthenticationHeaderRule = DeclarativeNetComponents.BasicAuthenticationHeaderRule;
 const RedirectRule = DeclarativeNetComponents.RedirectRule;
 
-class DesignerLivePreview {
+class DesignerLivePreview extends ServiceWorkerComponent {
   // eslint-disable-next-line no-unused-vars
   constructor(worker) {
-    this.worker = worker;
+    super(worker);
 
     // Set defaukt properties for the class
     this.undoByProjectNames = new Map();
@@ -124,12 +124,12 @@ class DesignerLivePreview {
   modifyUrlForUIPath(url) {
     const fragments = url.pathname.split('/');
     if (fragments[2] !== 'ui') {
-      return resolve(url);
+      return Promise.resolve(url);
     }
     fragments.splice(3, 0, ''); // Insert an empty string after 'ui'
     const newUrl = new URL(url);
     newUrl.pathname = fragments.join('/');
-    return resolve(newUrl);
+    return Promise.resolve(newUrl);
   }
 
   toggle(projectName) {
@@ -138,6 +138,20 @@ class DesignerLivePreview {
         const action = enabled ? this.disable : this.enable;
         return action.apply(this, [projectName]);
       });
+  }
+
+  withProjects() {
+    const decodeBasicAuth = (basic) => atob(basic).split(':');
+    return this.worker.connectLocator
+      .withUrl()
+      .then(({ credentials: basicAuth }) => decodeBasicAuth(basicAuth))
+      .then((parms) => this.worker.serverConnector
+        .executeScript('get-developed-studio-projects', parms))
+      .then((projectNames) => Promise.all(projectNames
+        .map((projectName) => this.isEnabled(projectName)
+          .then((enabled) => ({ projectName, enabled }))
+        )
+      ));
   }
 
   withWorkspace(projectName) {

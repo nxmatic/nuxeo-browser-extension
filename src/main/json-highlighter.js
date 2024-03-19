@@ -1,6 +1,10 @@
-class JsonHighlighter {
+import ServiceWorkerComponent from './service-worker-component';
+
+class JsonHighlighter extends ServiceWorkerComponent {
   // eslint-disable-next-line no-unused-vars
   constructor(worker) {
+    super(worker);
+
     this._input = '';
 
     // Bind methods

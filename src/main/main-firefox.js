@@ -28,4 +28,4 @@ console.log(`Service Worker: ${buildTime} - ${buildVersion} - ${browserVendor} -
 const serviceWorker = new ServiceWorker(developmentMode, buildTime, buildVersion, browserVendor);
 
 // eslint-disable-next-line no-unused-vars
-const undoListeningHandler = serviceWorker.listenToChromeEvents();
+const undoListeningHandler = serviceWorker.activate();

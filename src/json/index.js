@@ -13,21 +13,24 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-import $ from 'jquery';
+import jQuery from 'jquery';
 import 'bootstrap';
 import hljs from 'highlight.js';
 import '../../public/styles/mono-blue.css';
 
 import ServiceWorkerBridge from '../service-worker-bridge';
 
-$(() => {
-  const jsonHighlighter = new ServiceWorkerBridge().jsonHighlighter;
-  jsonHighlighter.input().then((input) => {
-    document.getElementById('json-string').textContent = input;
-    try {
-      hljs.highlightAll();
-    } catch (e) {
-      console.log('Sorry! JSON highlighting only available in Chrome.');
-    }
-  });
-});
+new ServiceWorkerBridge()
+  .bootstrap()
+  .then((worker) => jQuery(() => {
+    worker.jsonHighlighter
+      .input()
+      .then((input) => {
+        document.getElementById('json-string').textContent = input;
+        try {
+          hljs.highlightAll();
+        } catch (e) {
+          console.log('Sorry! JSON highlighting only available in Chrome.');
+        }
+      });
+  }));

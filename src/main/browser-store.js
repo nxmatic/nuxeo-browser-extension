@@ -1,8 +1,20 @@
-class BrowserStore {
+import ServiceWorkerComponent from './service-worker-component';
+
+class BrowserStore extends ServiceWorkerComponent {
   constructor(worker, namespace = 'nuxeo-browser-extension.') {
-    this.worker = worker;
+    super(worker);
+
+    // Define propertie
     this.namespace = namespace;
 
+    // Bind methods
+    Object.getOwnPropertyNames(Object.getPrototypeOf(this))
+      .filter((prop) => typeof this[prop] === 'function' && prop !== 'constructor')
+      .forEach((method) => {
+        this[method] = this[method].bind(this);
+      });
+
+    // Define functors
     this.keysOf = (data) => {
       if (Array.isArray(data)) {
         return data;
@@ -31,13 +43,6 @@ class BrowserStore {
       // call the function to get the default value
       return data[key]();
     };
-
-    // Bind methods
-    Object.getOwnPropertyNames(Object.getPrototypeOf(this))
-      .filter((prop) => typeof this[prop] === 'function' && prop !== 'constructor')
-      .forEach((method) => {
-        this[method] = this[method].bind(this);
-      });
   }
 
   get(input) {

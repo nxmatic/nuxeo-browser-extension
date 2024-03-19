@@ -15,11 +15,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import ServiceWorkerComponent from './service-worker-component';
+
 const namespacedIdOf = (id) => `nuxeo-web-extension-${id}`;
 
-class DesktopNotifier {
+class DesktopNotifier extends ServiceWorkerComponent {
   constructor(worker) {
-    this.worker = worker;
+    super(worker);
 
     // Bind methods
     Object.getOwnPropertyNames(Object.getPrototypeOf(this))

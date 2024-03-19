@@ -1,21 +1,24 @@
 import CryptoJS from 'crypto-js';
+import ServiceWorkerComponent from './service-worker-component';
 
-class ConnectLocator {
+class ConnectLocator extends ServiceWorkerComponent {
   constructor(worker) {
-    this.worker = worker;
-    // Declare private methods
-    this.credentialsKeyOf = (location) => {
-      const hash = CryptoJS
-        .SHA512(location.toString())
-        .toString();
-      return `connect-locator.${hash}`;
-    };
+    super(worker);
+
     // Bind methods
     Object.getOwnPropertyNames(Object.getPrototypeOf(this))
       .filter((prop) => typeof this[prop] === 'function' && prop !== 'constructor')
       .forEach((method) => {
         this[method] = this[method].bind(this);
       });
+
+    // Declare functors
+    this.credentialsKeyOf = (location) => {
+      const hash = CryptoJS
+        .SHA512(location.toString())
+        .toString();
+      return `connect-locator.${hash}`;
+    };
   }
 
   withUrl(input) {

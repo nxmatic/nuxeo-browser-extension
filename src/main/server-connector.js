@@ -1,12 +1,13 @@
+/* eslint-disable no-sequences */
 /* eslint-disable comma-dangle */
 /* eslint-disable max-classes-per-file */
 import Nuxeo from 'nuxeo';
+import ServiceWorkerComponent from './service-worker-component';
+import scripts from './groovy';
 
-class ServerConnector {
-  constructor(worker) {
-    this.worker = worker;
-    this.rootUrl = undefined;
-    this.nuxeo = undefined;
+class GroovyScriptManager {
+  constructor() {
+    this.scripts = scripts
 
     // Bind methods
     Object.getOwnPropertyNames(Object.getPrototypeOf(this))
@@ -14,66 +15,93 @@ class ServerConnector {
       .forEach((method) => {
         this[method] = this[method].bind(this);
       });
-
-    // listeners
-    this.onInputChanged = null;
   }
 
-  onNewServer(rootUrl) {
-    return new Promise((resolve, reject) => {
-      try {
-        if (rootUrl) {
-          if (this.isConnected()) {
-            this.disconnect();
-          }
-          this.connect(rootUrl, resolve, reject);
-        } else {
-          this.disconnect();
-          resolve();
-        }
-      } catch (error) {
-        reject(error);
-      }
-    });
+  interpolate(name, ...args) {
+    if (!this.scripts[name]) {
+      throw new Error(`Script ${name} does not exist`);
+    }
+    const scriptBody = this.scripts[name].call(this.scripts, ...args);
+    return Promise.resolve(scriptBody);
   }
+}
 
-  connect(rootUrl, resolve, reject) {
-    this.rootUrl = rootUrl;
-    this.nuxeo = new Nuxeo({ baseURL: this.rootUrl });
-    this.nuxeo.login()
-      .then(() => {
-        chrome.omnibox.onInputChanged.addListener(this.onInputChanged = this.suggestDocument);
-      })
-      .then(() => resolve())
-      .catch((error) => {
-        if (error.response) {
-          this.handleErrors(error, this.defaultServerError);
-          return null;
-        }
-        return reject(error);
+class ServerConnector extends ServiceWorkerComponent {
+  constructor(worker) {
+    super(worker);
+
+    this.groovyScriptManager = new GroovyScriptManager();
+
+    // Define properties
+    this.disconnect = () => {};
+    this.nuxeo = undefined;
+    this.rootUrl = undefined;
+
+    // Bind methods
+    Object.getOwnPropertyNames(Object.getPrototypeOf(this))
+      .filter((prop) => typeof this[prop] === 'function' && prop !== 'constructor')
+      .forEach((method) => {
+        this[method] = this[method].bind(this);
       });
   }
 
-  disconnect() {
-    chrome.omnibox.onInputChanged.removeListener(this.onInputChanged);
+  cbeckAvailability() {
+    return Promise.resolve().then(() => {
+      if (!this.isConnected) {
+        throw new Error('Not connected to Nuxeo');
+      }
+      return this;
+    });
+  }
 
-    this.nuxeo = null;
-    this.rootUrl = null;
-    this.onInputChanged = null;
+  onNewServer(rootUrl) {
+    if (!rootUrl) {
+      return this.disconnect();
+    }
+    return this.isConnected()
+      .then((connected) => {
+        if (connected) return this.disconnect();
+        return true;
+      })
+      .then(() => this.connect(rootUrl));
+  }
+
+  connect(rootUrl) {
+    this.rootUrl = rootUrl;
+    this.nuxeo = new Nuxeo({ baseURL: this.rootUrl });
+    return this.nuxeo
+      .login()
+      .then(() => {
+        chrome.omnibox.onInputChanged.addListener(this.onInputChanged = this.suggestDocument);
+      })
+      .then(() => () => {
+        this.disconnect = undefined;
+        this.rootUrl = undefined;
+        this.nuxeo = undefined;
+        chrome.omnibox.onInputChanged.removeListener(this.suggestDocument);
+      })
+      .then((disconnect) => {
+        this.disconnect = disconnect.bind(this);
+        return this.disconnect;
+      })
+      .catch((cause) => {
+        if (cause.response) {
+          this.handleErrors(cause, this.defaultServerError);
+          return () => {};
+        }
+        throw cause;
+      });
   }
 
   isConnected() {
-    return this.rootUrl != null;
+    return Promise.resolve(this.rootUrl != null);
   }
 
   runtimeInfo() {
-    return { rootUrl: this.rootUrl, nuxeo: this.nuxeo };
-    // return this.worker.browserStore
-    //   .get('serverInfo')
-    //   // eslint-disable-next-line arrow-body-style
-    //   .then((store) => {
-    //     return store.serverInfo;
-    //   });
+    return Promise.resolve({
+      rootUrl: this.rootUrl,
+      nuxeo: this.nuxeo
+    });
   }
 
   withNuxeo() {
@@ -138,30 +166,39 @@ class ServerConnector {
     });
   }
 
-  executeScript(script) {
-    const blob = new Nuxeo.Blob({
-      content: new Blob([script], {
-        type: 'text/plain',
-      }),
-      name: 'readPackage.groovy',
-      mymeType: 'text/plain',
-    });
-    return this.withNuxeo().then((nuxeo) => nuxeo
-      .operation('RunInputScript')
-      .params({
-        type: 'groovy',
-      })
-      .input(blob)
-      .execute()
-      .then((res) => res.text()));
+  executeScript(name, parms = [], outputType = 'application/json') {
+    return this.groovyScriptManager
+      .interpolate(name, ...parms)
+      .then((scriptBody) => this.executeScriptBody(name, scriptBody, outputType));
   }
 
-  executeOperation(operationId, params = {}, input = undefined) {
+  executeScriptBody(name, body, outputType = 'application/json') {
+    const blob = new Nuxeo.Blob({
+      content: new Blob([body], {
+        type: 'text/plain',
+      }),
+      name,
+      mymeType: 'text/plain',
+    });
+    return this
+      .executeOperation('RunInputScript', { type: 'groovy' }, blob, outputType);
+  }
+
+  executeOperation(operationId, params = {}, input = undefined, outputType = 'application/json') {
     return this.withNuxeo().then((nuxeo) => nuxeo
       .operation(operationId)
       .params(params)
       .input(input)
       .execute()
+      .then((response) => {
+        if (!(response instanceof Response)) {
+          return response;
+        }
+        if (outputType !== 'application/json') {
+          return response;
+        }
+        return response.json();
+      })
       .catch((cause) => {
         if (!cause.response) {
           throw cause;
@@ -193,6 +230,18 @@ class ServerConnector {
       });
   }
 
+  listStudioProjects() {
+    return this.withNuxeo().then((nuxeo) => nuxeo
+      .operation('Studio.ListProjects')
+      .execute()
+      .catch((cause) => {
+        if (!cause.response) {
+          throw cause;
+        }
+        return this.handleErrors(cause, this.defaultServerError);
+      }));
+  }
+
   restart() {
     const notifyRestart = (context) => new Promise((resolve) => {
       this.worker.desktopNotifier.notify('reload', {
@@ -201,7 +250,7 @@ class ServerConnector {
         iconUrl: '../images/nuxeo-128.png',
         requireInteraction: false,
       })
-        .then(() => this.worker.browserNavigator.reloadServerTab(context, 10000))
+        .then(() => this.worker.tabNavigationHandler.reloadServerTab(context, 10000))
         .then(() => this.worker.desktopNotifier.cancel('reload'))
         .then(() => resolve());
     });
@@ -219,7 +268,7 @@ class ServerConnector {
 
     const rootUrl = this.rootUrl;
     const restartUrl = `${this.rootUrl}/site/connectClient/uninstall/restart`;
-    return this.worker.browserNavigator.disableTabExtension()
+    return this.worker.tabNavigationHandler.disableTabExtension()
       .then((tabInfo) => this
         .withNuxeo()
         .then((nuxeo) => nuxeo
