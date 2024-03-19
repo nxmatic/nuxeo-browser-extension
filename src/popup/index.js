@@ -91,6 +91,7 @@ function loadPage(worker) {
   });
 
   const studioPackageFound = (connectUrl, packageName) => {
+    $('#studio-package-name').text(packageName);
     const toogleDesignerLivePreviewButton = (isEnabled) => {
       $('#designer-live-preview-button').toggleClass('enabled', isEnabled);
       $('#designer-live-preview-button').toggleClass('disabled', !isEnabled);
@@ -152,6 +153,7 @@ function loadPage(worker) {
   };
 
   const noStudioPackageFound = () => {
+    $('#studio-package-name').text('not found');
     $('#studio, #studio-buttons').css('display', 'none');
     $('#no-studio-buttons').css('display', 'block');
     $('#message').css('display', 'none');

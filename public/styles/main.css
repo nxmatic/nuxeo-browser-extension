@@ -209,6 +209,13 @@ HEADINGS
   color: #fff;
 }
 
+.studio-package-name {
+  text-overflow: ellipsis;
+  font-size: 100%;
+  font-weight: bold;
+  color: #fff;
+}
+
 .reset {
     position: absolute;
     height: 15px;
