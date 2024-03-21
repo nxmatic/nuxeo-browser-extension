@@ -345,27 +345,24 @@ function loadPage(worker) {
         }
 
         worker.serverConnector
-          .runtimeInfo()
-          .then((res) => {
-            if (!res.nuxeo.user.isAdministrator) {
+          .withNuxeo()
+          .then((nuxeo) => {
+            if (!nuxeo.user.isAdministrator) {
               $('.buttons').css('display', 'none');
               $('.toggles').css('display', 'none');
             }
-          })
-          .catch((e) => {
-            console.log(e);
           });
 
         worker.serverConnector
-          .executeScript('get-registered-studio-project')
-          .then((json) => json.studio)
-          .then((pkgName) => {
-            if (pkgName) {
-              studioPackageFound(connectUrl, pkgName);
-            } else {
-              noStudioPackageFound();
+          .registeredStudioProject()
+          .then((project) => project.package.name)
+          .then((studioPackageName) => (
+            {
+              studioPackageName,
+              handle: (studioPackageName && studioPackageFound) || noStudioPackageFound
             }
-          })
+          ))
+          .then(({ studioPackageName, handle }) => handle(connectUrl, studioPackageName))
           .catch((error) => {
             console.error(error);
             noStudioPackageFound();
@@ -439,7 +436,7 @@ function loadPage(worker) {
           // eslint-disable-next-line no-shadow
           .then((serverUrl) => {
             worker.serverConnector
-              .executeScript('get-installed-addons')
+              .installedAddons()
               .then((addons) => {
                 if (!addons.includes('nuxeo-web-ui')) {
                   $('#designer-livepreview').hide();

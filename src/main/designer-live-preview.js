@@ -140,20 +140,6 @@ class DesignerLivePreview extends ServiceWorkerComponent {
       });
   }
 
-  withProjects() {
-    const decodeBasicAuth = (basic) => atob(basic).split(':');
-    return this.worker.connectLocator
-      .withUrl()
-      .then(({ credentials: basicAuth }) => decodeBasicAuth(basicAuth))
-      .then((parms) => this.worker.serverConnector
-        .executeScript('get-developed-studio-projects', parms))
-      .then((projectNames) => Promise.all(projectNames
-        .map((projectName) => this.isEnabled(projectName)
-          .then((enabled) => ({ projectName, enabled }))
-        )
-      ));
-  }
-
   withWorkspace(projectName) {
     return this.worker.connectLocator
       .withUrl()

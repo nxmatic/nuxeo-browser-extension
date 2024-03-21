@@ -109,17 +109,19 @@ class StudioHotReloader extends ServiceWorkerComponent {
   }
 
   handleLegacyError(error) {
-    const nuxeoServerVersion = NuxeoServerVersion.create(this.worker.serverConnector.runtimeInfo().nuxeola.version);
-    const nuxeoLegacyVersion = NuxeoServerVersion.create('9.2');
-    if (!nuxeoServerVersion.lte(nuxeoLegacyVersion)) throw error;
-    // Error handling for Nuxeo 9.2 and older
-    this.worker.serverConnector
-      .executeScript('get-registered-studio-project')
-      .then((json) => {
+    return this.worker.serverConnector
+      .runtimeInfo()
+      .then(({ nuxeo, registeredStudioProject }) => {
+        const { package: registeredStudioPackage } = registeredStudioProject;
+        const nuxeoServerVersion = NuxeoServerVersion.create(nuxeo.version);
+        const nuxeoLegacyVersion = NuxeoServerVersion.create('9.2');
+        if (!nuxeoServerVersion.lte(nuxeoLegacyVersion)) throw error;
+        // Error handling for Nuxeo 9.2 and older
+
         let message = '';
         let dependencyError = {};
-        if (json.nx !== json.studioDistrib[0]) {
-          message += `json.studio} - ${json.studioDistrib[0]} cannot be installed on Nuxeo ${json.nx}.`;
+        if (registeredStudioProject.nx !== registeredStudioPackage.studioDistrib[0]) {
+          message += `${registeredStudioPackage.name} - ${registeredStudioPackage.studioDistrib[0]} cannot be installed on Nuxeo ${nuxeo.version}.`;
           dependencyError = {
             id: 'dependenciesMismatch',
             title: 'Dependency Mismatch',
@@ -130,9 +132,9 @@ class StudioHotReloader extends ServiceWorkerComponent {
         } else {
           dependencyError = this.worker.serverConnector.defaultServerError;
         }
-        if (!json.match) {
+        if (!registeredStudioProject.match) {
           this.handleErrors(error, dependencyError);
-          const deps = json.deps;
+          const deps = registeredStudioPackage.deps;
           if (deps.length > 0) {
             const items = [];
             deps.forEach((dep) => {

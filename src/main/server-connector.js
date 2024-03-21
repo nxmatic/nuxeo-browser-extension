@@ -7,7 +7,7 @@ import scripts from './groovy';
 
 class GroovyScriptManager {
   constructor() {
-    this.scripts = scripts
+    this.scripts = scripts;
 
     // Bind methods
     Object.getOwnPropertyNames(Object.getPrototypeOf(this))
@@ -98,10 +98,27 @@ class ServerConnector extends ServiceWorkerComponent {
   }
 
   runtimeInfo() {
-    return Promise.resolve({
-      rootUrl: this.rootUrl,
-      nuxeo: this.nuxeo
-    });
+    return Promise.all([
+      this.installedAddons(),
+      this.developedStudioProjects()])
+      .then(([installedAddons, developedStudioProjects]) => ({
+        rootUrl: this.rootUrl,
+        nuxeo: this.nuxeo,
+        installedAddons,
+        developedStudioProjects,
+      }));
+  }
+
+  registeredStudioProject() {
+    return this.executeScript('get-registered-studio-project');
+  }
+
+  installedAddons() {
+    return this.executeScript('get-installed-addons');
+  }
+
+  developedStudioProjects() {
+    return this.executeScript('get-developed-studio-projects');
   }
 
   withNuxeo() {
@@ -208,9 +225,9 @@ class ServerConnector extends ServiceWorkerComponent {
   }
 
   query(input, schemas = ['dublincore', 'common', 'uid']) {
-    return Promise.all([this.runtimeInfo(), this.withNuxeo()])
-      .then(([runtimeInfo, nuxeo]) => {
-        const userid = runtimeInfo.nuxeo.user.id;
+    return this.withNuxeo()
+      .then((nuxeo) => {
+        const userid = nuxeo.user.id;
         const defaultSelectClause = '* FROM Document';
         const defaultWhereClause = `ecm:path STARTSWITH "/default-domain/UserWorkspaces/${userid}"`;
         const defaultQuery = `SELECT ${defaultSelectClause} WHERE ${defaultWhereClause}"`;

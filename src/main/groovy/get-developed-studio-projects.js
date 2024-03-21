@@ -1,6 +1,7 @@
 export default function getDevelopedStudioProjects(login, token) {
   return `
     import groovy.json.JsonOutput
+    import org.nuxeo.connect.client.we.StudioSnapshotHelper
     import org.nuxeo.connect.packages.PackageManager
     import org.nuxeo.connect.registration.RegistrationHelper
     import org.nuxeo.connect.update.PackageType
@@ -8,16 +9,23 @@ export default function getDevelopedStudioProjects(login, token) {
     import org.nuxeo.runtime.api.Framework
     import org.nuxeo.connect.data.ConnectProject
 
-    PackageManager pm = Framework.getService(PackageManager.class);
-    List<String> addons = pm.listInstalledPackagesNames(PackageType.STUDIO);
+    PackageManager packages = Framework.getService(PackageManager.class);
+    RegistrationHelper registrations = new RegistrationHelper();
 
-    RegistrationHelper rh = new RegistrationHelper();
-    List<ConnectProject> projects = rh.getAvailableProjectsForRegistration('${login}', '${token}');
+    List<String> installedPackages = packages.listInstalledPackagesNames(PackageType.STUDIO);
+    Package registeredPackage = StudioSnapshotHelper.getSnapshot(packages.listRemoteAssociatedStudioPackages())
+    List<ConnectProject> projects = registrations.getAvailableProjectsForRegistration('${login}', '${token}');
 
     List<String> projectNames = projects.collect { it.symbolicName };
+    projectNames.retainAll(installedPackages);
 
-    List<String> common = addons.intersect(projectNames);
+    List<Map> output = projectNames.collect { projectName ->
+      [
+        projectName: projectName,
+        isRegistered: (registeredPackage != null && projectName == registeredPackage.name) || false
+      ]
+    };
 
-    println JsonOutput.toJson( common );
+    println JsonOutput.toJson(output);
   `;
 }
