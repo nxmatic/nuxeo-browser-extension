@@ -77,26 +77,54 @@ class ServiceWorkerComponent {
 
   // bootstrapping asynch logic
   asPromise() {
-    if (!this._isProxy) return Promise.resolve(this);
+    if (this._isProxy) {
+      return Promise.resolve(this);
+    }
+    const checkAvailability = (target, origProperty) => Promise.resolve()
+      .then(() => {
+        if (origProperty && typeof origProperty === 'object') {
+          console.log(`Checking availability of ${origProperty.constructor.name}`);
+        }
+        if (!target.checkAvailability()) {
+          throw new Error(`${origProperty && origProperty.constructor ? origProperty.constructor.name : 'Property'} is not available`);
+        }
+      });
     const proxy = new Proxy(this, {
       // eslint-disable-next-line no-unused-vars
       get(target, propKey, receiver) {
         const origProperty = target[propKey];
+        const promise = checkAvailability(target, origProperty);
         if (typeof origProperty === 'function') {
           return function (...args) {
-            return Promise.resolve(origProperty.apply(this, args));
+            return promise
+              .then(() => origProperty.apply(target, args))
+              .then((result) => {
+                console.log(`${origProperty.constructor.name} with arguments: ${JSON.stringify(args)} <- ${JSON.stringify(result)}`);
+                return result;
+              });
           };
         }
         // Wrap property in a Promise
-        return Promise.resolve(origProperty);
+        return promise.then(() => origProperty);
       },
+      // eslint-disable-next-line no-unused-vars
       set(target, propKey, value, receiver) {
-        Promise.resolve({ previous: target[propKey], next: value })
-          .then(({ previous, next }) => (target[propKey] = value, { previous, next }))
-          .then(({ previous, next }) => (receiver.worker.developmentMode
-            .asConsole()
-            .then((console) => console
-              .log(`Setting value '${value}' to property '${propKey}'`)), { previous, next }));
+        checkAvailability(target, value)
+          .then(() => ({ previous: target[propKey], next: value }))
+          .then(({ previous, next }) => {
+            target[propKey] = value;
+            return { previous, next };
+          })
+          .then(({ previous, next }) => {
+            const consolePromise = target.worker.developmentMode
+              ? target.worker.developmentMode.asConsole()
+              : Promise.resolve(console);
+            consolePromise
+              .then((console) => {
+                console.log(`Setting value '${value}' to property '${propKey}'`);
+                return { previous, next };
+              });
+          });
         return true; // Indicates that the assignment succeeded
       },
     });

@@ -55,7 +55,7 @@ class ServerConnector extends ServiceWorkerComponent {
     };
   }
 
-  cbeckAvailability() {
+  checkAvailability() {
     return Promise.resolve().then(() => {
       if (!this.isConnected) {
         throw new Error('Not connected to Nuxeo');
