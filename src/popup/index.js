@@ -92,6 +92,7 @@ function loadPage(worker) {
   });
 
   const studioPackageFound = (connectUrl, packageName) => {
+    worker.desktopNotifier.cancel('no_studio_project');
     $('#studio-package-name').text(packageName);
     const toogleDesignerLivePreviewButton = (isEnabled) => {
       $('#designer-live-preview-button').toggleClass('enabled', isEnabled);
@@ -158,17 +159,14 @@ function loadPage(worker) {
 
   const noStudioPackageFound = () => {
     $('#studio-package-name').text('-- No Studio Package --');
-    $('#studio, #hot-reload-button').click(() => {
-      worker.desktopNotifier.notify(
-        'no_studio_project',
-        'No associated Studio project',
-        "If you'd like to use this function, please associate your Nuxeo server with a studio project",
-        '../images/access_denied.png'
-      );
-    });
-    setTimeout(() => {
-      $('#nopkg');
-    }, 5000);
+    worker.desktopNotifier.notify(
+      'no_studio_project',
+      {
+        title: 'No associated Studio project',
+        message: 'If you\'d like to use this function, please associate your Nuxeo server with a studio project',
+        iconUrl: '/images/access_denied.png'
+      }
+    );
   };
 
   const registerLink = (element, url) => {
