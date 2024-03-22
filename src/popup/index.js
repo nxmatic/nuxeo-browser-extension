@@ -1,3 +1,4 @@
+/* eslint-disable no-sequences */
 /* eslint-disable comma-dangle */
 /*
   Copyright 2016-2024 Nuxeo
@@ -197,7 +198,7 @@ function loadPage(worker) {
   };
 
   worker.connectLocator
-    .withUrl()
+    .withRegistration()
     .then(({ location, credentials }) => {
       const connectUrl = new URL(location);
       const connectCredentials = credentials;
@@ -255,18 +256,31 @@ function loadPage(worker) {
           .then(({ highlight: isChecked }) => $('#highlight-input').prop('checked', isChecked));
 
         $('#save').click(() => {
-          const input = $('#connect-url-input').val();
-          const highlight = $('#highlight-input').prop('checked');
+          const connectUrlInput = $('#connect-url-input').val();
+          const highlightInput = $('#highlight-input').prop('checked');
+          const studioPackageNameInput = $('#studio-package-name-input').val();
 
-          const inputPromise = input.length > 0
-            ? worker.connectLocator.withUrl(input).then(() => $('#connect-url  ').hide())
-            : Promise.resolve();
+          const connectUrlPromise = Promise.resolve(connectUrlInput)
+            .then((url) => ($('#connect-url').hide(), url))
+            .then((url) => (url.length !== 0
+              ? worker.connectLocator.withRegistration(url)
+              : worker.connectLocator.withRegistration()))
+            .then(({ location }) => $('#connect-url-input').val(location));
+          const highlightPromise = worker.browserStore
+            .set({ highlight: highlightInput })
+            .then((store) => store.highlight);
+          const studioPackagePromise = Promise.resolve(studioPackageNameInput)
+            .then((name) => ($('#studio-package-name-input').hide(), name))
+            .then((name) => (worker.serverConnector.registerDevelopedStudioProject(name), name));
 
-          const highlightPromise = worker.browserStore.set({ highlight });
-
-          Promise.all([inputPromise, highlightPromise]).then(() => {
-            Swal.fire('Your changes have been saved.');
-          });
+          Promise
+            .all([connectUrlPromise, studioPackagePromise, highlightPromise])
+            // eslint-disable-next-line no-shadow, no-unused-vars
+            .then(([{ connectUrl }, packageName, highlight]) => {
+              studioPackageFound(connectUrl, packageName);
+              checkDependencyMismatch();
+            })
+            .then(() => worker.tabNavigationHandler.reloadServerTab());
         });
 
         $('#reset').click(() => {
@@ -280,13 +294,14 @@ function loadPage(worker) {
             if (!result.isConfirmed) return;
             Promise.all([
               worker.connectLocator
-                .withUrl('https://connect.nuxeo.com'),
+                .withRegistration('https://connect.nuxeo.com'),
               worker.jsonHighlighter
                 .withHighlight(true)
             ])
               .then(() => {
                 $('#connect-url-input').val('');
                 $('#connect-url').hide();
+                $('#studio-package-name-input').hide();
                 $('#highlight-input').prop('checked', true);
               });
           });
@@ -353,19 +368,42 @@ function loadPage(worker) {
             }
           });
 
-        worker.serverConnector
-          .registeredStudioProject()
-          .then((project) => project.package.name)
-          .then((studioPackageName) => (
-            {
-              studioPackageName,
-              handle: (studioPackageName && studioPackageFound) || noStudioPackageFound
-            }
-          ))
-          .then(({ studioPackageName, handle }) => handle(connectUrl, studioPackageName))
+        Promise.resolve($('#studio-package-name-input'))
+          .then((selectBox) => worker.serverConnector
+            .developedStudioProjects()
+            .then((projects) => {
+              // Remove any existing options
+              while (selectBox[0].firstChild) {
+                selectBox[0].removeChild(selectBox[0].firstChild);
+              }
+              return projects;
+            })
+            .then((projects) => {
+              // Add an option for each studio package
+              let registeredPackageFound = null;
+              projects.forEach((project) => {
+                const option = document.createElement('option');
+                option.value = project.packageName;
+                option.text = project.packageName;
+                if (project.isRegistered) {
+                  option.selected = true;
+                  registeredPackageFound = project.packageName;
+                }
+                selectBox[0].appendChild(option);
+              });
+
+              // Return whether an enabled package was found
+              return registeredPackageFound;
+            }))
+          .then((registeredPackage) => ({
+            handle: (registeredPackage
+              ? studioPackageFound
+              : noStudioPackageFound),
+            parms: [connectUrl, registeredPackage]
+          }))
+          .then(({ handle, parms }) => handle(...parms))
           .catch((error) => {
             console.error(error);
-            noStudioPackageFound();
           });
 
         worker.serverConnector.executeOperation('Traces.ToggleRecording', { readOnly: true })

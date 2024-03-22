@@ -252,6 +252,10 @@ HEADINGS
   color: #006CFA;
 }
 
+label[for="studio-package-name-input"] {
+  display: none;
+}
+
 #connect-url {
   margin-top: 10px;
   display: none;

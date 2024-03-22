@@ -12,6 +12,7 @@
     "airbnb-base"
   ],
   "rules": {
+    "comma-dangle": "off",
     "func-names": 0,
     "indent": ["error", 2],
     "import/no-extraneous-dependencies": ["error", {"devDependencies": ["**/*"]}],

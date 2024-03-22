@@ -1,6 +1,7 @@
 /* eslint-disable no-sequences */
 /* eslint-disable comma-dangle */
 /* eslint-disable max-classes-per-file */
+import CryptoJS from 'crypto-js';
 import Nuxeo from 'nuxeo';
 import ServiceWorkerComponent from './service-worker-component';
 import scripts from './groovy';
@@ -35,6 +36,7 @@ class ServerConnector extends ServiceWorkerComponent {
     // Define properties
     this.disconnect = () => {};
     this.nuxeo = undefined;
+    this.project = undefined;
     this.rootUrl = undefined;
 
     // Bind methods
@@ -43,6 +45,14 @@ class ServerConnector extends ServiceWorkerComponent {
       .forEach((method) => {
         this[method] = this[method].bind(this);
       });
+
+    // Declare functors
+    this.registrationKeyOf = ({ connectUrl, rootUrl, projectName }) => {
+      const hash = CryptoJS
+        .SHA512(`${connectUrl}-${rootUrl}-${projectName}`)
+        .toString();
+      return `server-connector.${hash}`;
+    };
   }
 
   cbeckAvailability() {
@@ -71,6 +81,7 @@ class ServerConnector extends ServiceWorkerComponent {
     this.nuxeo = new Nuxeo({ baseURL: this.rootUrl });
     return this.nuxeo
       .login()
+      // eslint-disable-next-line no-return-assign
       .then(() => {
         chrome.omnibox.onInputChanged.addListener(this.onInputChanged = this.suggestDocument);
       })
@@ -110,15 +121,73 @@ class ServerConnector extends ServiceWorkerComponent {
   }
 
   registeredStudioProject() {
-    return this.executeScript('get-registered-studio-project');
+    return this.executeScript('registered-studio-project');
   }
 
   installedAddons() {
-    return this.executeScript('get-installed-addons');
+    return this.executeScript('installed-addons');
   }
 
   developedStudioProjects() {
-    return this.executeScript('get-developed-studio-projects');
+    return this.worker.connectLocator
+      .withRegistration()
+      .then(({ credentials }) => (credentials
+        ? this.worker.connectLocator.decodeBasicAuth(credentials)
+        : ['', '']))
+      .then(([login, token]) => this
+        .executeScript('developed-studio-projects', [login, token])
+        .then((projects) => Promise
+          .all(projects
+            .map(({ packageName, isRegistered }) => this.worker.designerLivePreview
+              .isEnabled(packageName)
+              .then((isDesignerLivePreviewEnabled) => ({
+                packageName,
+                isRegistered,
+                isDesignerLivePreviewEnabled
+              }))
+              .catch((error) => (
+                {
+                  packageName,
+                  isRegistered,
+                  isDesignerLivePreviewEnabled: false,
+                  inError: {
+                    message: error.message,
+                    stack: error.stack,
+                  }
+                }))))));
+  }
+
+  registerDevelopedStudioProject(projectName) {
+    // register or restore CLID for project
+    const clidPromise = this
+      .registeredStudioProject()
+      .then(({ clid: { CLID: clid }, package: { name: packageName } }) => {
+        const previousKey = this.registrationKeyOf({
+          connectUrl: this.rootUrl,
+          rootUrl: this.rootUrl,
+          projectName: packageName,
+        });
+        const nextKey = this.registrationKeyOf({
+          connectUrl: this.rootUrl,
+          rootUrl: this.rootUrl,
+          projectName
+        });
+        return this.worker.browserStore.get({ [previousKey]: clid, [nextKey]: undefined })
+          .then((store) => store[nextKey]);
+      });
+
+    // fetch credentials for connect
+    const credentialsPromise = this.worker.connectLocator
+      .withRegistration()
+      .then(({ credentials }) => this.worker.connectLocator.decodeBasicAuth(credentials))
+      .then(([login, token]) => ({ login, token }));
+
+    return Promise.all([clidPromise, credentialsPromise])
+      .then(([clid, { login, token }]) => {
+        console.log('registerDevelopedStudioProject', [login, token, projectName, clid]);
+        return this
+          .executeScript('register-developed-studio-project', [login, token, projectName, clid]);
+      });
   }
 
   withNuxeo() {

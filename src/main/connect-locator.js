@@ -8,7 +8,7 @@ class ConnectLocator extends ServiceWorkerComponent {
   constructor(worker) {
     super(worker);
 
-    this._decodeBasicAuth = (basic) => atob(basic).split(':');
+    this.decodeBasicAuth = (basic) => atob(basic).split(':');
 
     // Bind methods
     Object.getOwnPropertyNames(Object.getPrototypeOf(this))
@@ -26,19 +26,19 @@ class ConnectLocator extends ServiceWorkerComponent {
     };
   }
 
-  withUrl(input) {
-    if (input) {
-      const { location, credentials } = this.extractCredentialsAndCleanUrl(input);
+  withRegistration(url) {
+    if (url) {
+      const { location, credentials } = this.extractCredentialsAndCleanUrl(url);
       return this.worker.browserStore
         .set({ 'connect-locator.url': location, [this.credentialsKeyOf(location)]: credentials })
         .then((store) => {
           this.worker.developmentMode
             .asConsole()
             .then((console) => console
-              .log(`ConnectLocator.withUrl(${input})`, store));
+              .log(`ConnectLocator.withRegistration(${url})`, store));
           return store;
         })
-        .then(() => this.withUrl());
+        .then(() => this.withRegistration());
     }
     return this.worker.browserStore
       .get({ 'connect-locator.url': 'https://connect.nuxeo.com/' })
@@ -79,44 +79,6 @@ class ConnectLocator extends ServiceWorkerComponent {
           obj[key] = store[key];
           return obj;
         }, {}));
-  }
-
-  withDevelopedProjects() {
-    return this.withUrl()
-      .then(({ credentials: basicAuth }) => this._decodeBasicAuth(basicAuth))
-      .then((parms) => this.worker.serverConnector
-        .executeScript('get-developed-studio-projects', parms))
-      .then((projects) => Promise
-        .all(projects
-          .map(({ projectName, isRegistered }) => this.worker.designerLivePreview
-            .isEnabled(projectName)
-            .then((designerLivePreviewEnabled) => ({
-              projectName,
-              registered: isRegistered,
-              designerLivePreviewEnabled,
-            }))
-            .catch((error) => (
-              {
-                projectName,
-                registered: isRegistered,
-                designerLivePreviewEnabled: false,
-                inError: {
-                  message: error.message,
-                  stack: error.stack,
-                }
-              })
-            )
-          )
-        )
-      );
-  }
-
-  registerDevelopedProject(projectName) {
-    return this.withUrl()
-      .then(({ credentials: basicAuth }) => this._decodeBasicAuth(basicAuth))
-      .theb((parms) => (parms.push(projectName), parms))
-      .then((parms) => this.worker.serverConnector
-        .executeScript('register-developed-studio-project', parms));
   }
 }
 

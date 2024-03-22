@@ -1,4 +1,4 @@
-export default function getRegistedStudioProject() {
+export default function registedStudioProject() {
   return `
     import org.apache.commons.logging.Log
     import org.apache.commons.logging.LogFactory
