@@ -161,7 +161,7 @@ class DesignerLivePreview extends ServiceWorkerComponent {
         if (!response.ok) {
           // If the status code is 401, the user is not authenticated
           if (response.status === 401) {
-            throw errorOf('Not authenticated.');
+            throw errorOf('Not authenticated on studio.');
           }
           // If the status code is anything else, there was another type of error
           throw errorOf(`Request failed with status ${response.status}`);

@@ -95,11 +95,14 @@ function loadPage(worker) {
     $('#studio-package-name').text(packageName);
     const toogleDesignerLivePreviewButton = (isEnabled) => {
       $('#designer-live-preview-button').toggleClass('enabled', isEnabled);
-      $('#designer-live-preview-button').toggleClass('disabled', !isEnabled);
+      $('#designer-live-preview-button').css('filter', `invert(${isEnabled ? 0 : 1})`);
     };
     const toogleDesignerLivePreviewMessage = (cause) => {
-      $('#designer-livepreview-message').css('display', 'block');
-      $('#designer-livepreview-message a').text(cause.message);
+      toogleDesignerLivePreviewButton(false);
+      if (cause) {
+        $('#designer-livepreview-message').css('display', 'block');
+        $('#designer-livepreview-message a').text(cause);
+      }
     };
     $('#no-studio-buttons').css('display', 'none');
     $('#studio').css('display', 'flex');
@@ -154,11 +157,7 @@ function loadPage(worker) {
   };
 
   const noStudioPackageFound = () => {
-    $('#studio-package-name').text('not found');
-    $('#studio, #studio-buttons').css('display', 'none');
-    $('#no-studio-buttons').css('display', 'block');
-    $('#message').css('display', 'none');
-    $('#nopkg').css('display', 'block');
+    $('#studio-package-name').text('-- No Studio Package --');
     $('#studio, #hot-reload-button').click(() => {
       worker.desktopNotifier.notify(
         'no_studio_project',
@@ -379,6 +378,9 @@ function loadPage(worker) {
               return projects;
             })
             .then((projects) => {
+              // skip if no projects
+              if (!projects) return undefined;
+
               // Add an option for each studio package
               let registeredPackageFound = null;
               projects.forEach((project) => {
@@ -412,7 +414,6 @@ function loadPage(worker) {
           .then((value) => Boolean(value))
           .then((isEnabled) => {
             $('#traces-button').toggleClass('enabled', isEnabled);
-            $('#traces-button').toggleClass('disabled', !isEnabled);
           });
 
         worker.serverConnector.runtimeInfo()
@@ -700,7 +701,6 @@ function loadPage(worker) {
           .then((value) => Boolean(value))
           .then((isEnabled) => {
             $('#traces-button').toggleClass('enabled', isEnabled);
-            $('#traces-button').toggleClass('disabled', !isEnabled);
           })
           .catch((cause) => {
             console.error("Can't toggle automation traces", cause);

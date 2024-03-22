@@ -350,6 +350,7 @@ a.reindex-page {
 #designer-livepreview-message {
   display: none;
   text-align: center;
+  font-size: 0.75em;
 }
 
 #log-into-studio {
