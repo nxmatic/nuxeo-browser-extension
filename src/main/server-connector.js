@@ -100,6 +100,7 @@ class ServerConnector extends ServiceWorkerComponent {
           this.handleErrors(cause, this.defaultServerError);
           return () => {};
         }
+        console.warn('Error connecting to Nuxeo', cause);
         throw cause;
       });
   }
@@ -216,7 +217,7 @@ class ServerConnector extends ServiceWorkerComponent {
         this.worker.desktopNotifier.notify('no_hot_reload', {
           title: 'Hot Reload Operation not found.',
           message: 'Your current version of Nuxeo does not support the Hot Reload function.',
-          iconUrl: '../images/access_denied.png',
+          iconUrl: '/images/access_denied.png',
           requireInteraction: false
         });
       } else if (err === 401) {
@@ -237,14 +238,14 @@ class ServerConnector extends ServiceWorkerComponent {
         this.worker.desktopNotifier.notify('bad_login', {
           title: 'Bad Login',
           message: 'Your Login and/or Password are incorrect',
-          iconUrl: '../images/access_denied.png',
+          iconUrl: '/images/access_denied.png',
           requireInteraction: false
         });
       } else {
         this.worker.desktopNotifier.notify('unknown_error', {
           title: 'Unknown Error',
           message: 'An unknown error has occurred. Please try again later.',
-          iconUrl: '../images/access_denied.png',
+          iconUrl: '/images/access_denied.png',
           requireInteraction: false
         });
       }
@@ -314,18 +315,6 @@ class ServerConnector extends ServiceWorkerComponent {
           .schemas(schemas)
           .query(input);
       });
-  }
-
-  listStudioProjects() {
-    return this.withNuxeo().then((nuxeo) => nuxeo
-      .operation('Studio.ListProjects')
-      .execute()
-      .catch((cause) => {
-        if (!cause.response) {
-          throw cause;
-        }
-        return this.handleErrors(cause, this.defaultServerError);
-      }));
   }
 
   restart() {
