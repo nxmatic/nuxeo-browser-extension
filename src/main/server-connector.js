@@ -274,11 +274,18 @@ class ServerConnector extends ServiceWorkerComponent {
       .execute()
       .then((response) => {
         if (!(response instanceof Response)) {
+          // usual case, nuxeo has unmarshalled the JSON response
           return response;
         }
         if (outputType !== 'application/json') {
+          // don't know how to deal with
           return response;
         }
+        if (response.status === 204) {
+          // no content. return empty object
+          return '{}';
+        }
+        // parse the JSON response, should never occurs
         return response.json();
       })
       .catch((cause) => {
