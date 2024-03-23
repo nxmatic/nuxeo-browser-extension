@@ -96,13 +96,17 @@ function loadPage(worker) {
     $('#studio-package-name').text(packageName);
     const toogleDesignerLivePreviewButton = (isEnabled) => {
       $('#designer-live-preview-button').toggleClass('enabled', isEnabled);
-      $('#designer-live-preview-button').css('filter', `invert(${isEnabled ? 0 : 1})`);
     };
     const toogleDesignerLivePreviewMessage = (cause) => {
       toogleDesignerLivePreviewButton(false);
       if (cause) {
         $('#designer-livepreview-message').css('display', 'block');
         $('#designer-livepreview-message a').text(cause);
+        $('#designer-live-preview-button').css('filter', 'invert(1)');
+      } else {
+        $('#designer-livepreview-message').css('display', 'none');
+        $('#designer-livepreview-message a').text('');
+        $('#designer-live-preview-button').css('filter', 'invert(0)');
       }
     };
     $('#no-studio-buttons').css('display', 'none');
@@ -111,6 +115,15 @@ function loadPage(worker) {
     worker.designerLivePreview
       .isEnabled(packageName)
       .then((isEnabled) => toogleDesignerLivePreviewButton(isEnabled))
+      .then(() => {
+        $('#designer-live-preview-button').click(() => {
+          worker.designerLivePreview
+            .toggle(packageName)
+            .then((isEnabled) => toogleDesignerLivePreviewButton(isEnabled))
+            .then(() => worker.tabNavigationHandler.reloadServerTab())
+            .catch((cause) => toogleDesignerLivePreviewMessage(cause));
+        });
+      })
       .catch((cause) => {
         console.log('Error getting designer live preview status', cause);
         toogleDesignerLivePreviewMessage(cause);
@@ -134,13 +147,7 @@ function loadPage(worker) {
         .then(() => worker.tabNavigationHandler.reloadServerTab())
         .catch(stopLoading);
     });
-    $('#designer-live-preview-button').click(() => {
-      worker.designerLivePreview
-        .toggle(packageName)
-        .then((isEnabled) => toogleDesignerLivePreviewButton(isEnabled))
-        .then(() => worker.tabNavigationHandler.reloadServerTab())
-        .catch(() => toogleDesignerLivePreviewMessage());
-    });
+
     $('#force-hot-reload-button').click(() => {
       hideDependencyError()
         .then(startLoadingHR)
