@@ -211,17 +211,21 @@ class DeclarativeNetEngine extends ServiceWorkerComponent {
       })
       .then(({ pendingRules, undoRules }) => chrome.declarativeNetRequest
         .updateSessionRules(pendingRules)
-        .then(() => () => chrome.declarativeNetRequest
-          .updateSessionRules(undoRules))
-        .then((undo) => this.worker.developmentMode.asConsole()
-          .then((console) => console.log(`Successfully flushed rules: ${JSON.stringify(pendingRules)}`))
-          .then(() => undo))
         .catch((cause) => {
           this.worker.developmentMode.asConsole()
             .then((console) => console
               .log(`Failed to flush rules: ${JSON.stringify(pendingRules)}`, cause));
           throw cause;
-        }));
+        })
+        .then(() => {
+          this.rulesToAdd = [];
+          this.rulesToRemove = [];
+        })
+        .then(() => () => chrome.declarativeNetRequest
+          .updateSessionRules(undoRules))
+        .then((undo) => this.worker.developmentMode.asConsole()
+          .then((console) => console.log(`Successfully flushed rules: ${JSON.stringify(pendingRules)}`))
+          .then(() => undo)));
   }
 
   pending() {
