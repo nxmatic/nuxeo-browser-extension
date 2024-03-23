@@ -195,7 +195,7 @@ function loadPage(worker) {
   };
 
   worker.connectLocator
-    .withRegistration()
+    .asRegistration()
     .then(({ location, credentials }) => {
       const connectUrl = new URL(location);
       const connectCredentials = credentials;
@@ -260,8 +260,8 @@ function loadPage(worker) {
           const connectUrlPromise = Promise.resolve(connectUrlInput)
             .then((url) => ($('#connect-url').hide(), url))
             .then((url) => (url.length !== 0
-              ? worker.connectLocator.withRegistration(url)
-              : worker.connectLocator.withRegistration()))
+              ? worker.connectLocator.asRegistration(url)
+              : worker.connectLocator.asRegistration()))
             .then(({ location }) => $('#connect-url-input').val(location));
           const highlightPromise = worker.browserStore
             .set({ highlight: highlightInput })
@@ -291,7 +291,7 @@ function loadPage(worker) {
             if (!result.isConfirmed) return;
             Promise.all([
               worker.connectLocator
-                .withRegistration('https://connect.nuxeo.com'),
+                .asRegistration('https://connect.nuxeo.com'),
               worker.jsonHighlighter
                 .withHighlight(true)
             ])
@@ -357,7 +357,7 @@ function loadPage(worker) {
         }
 
         worker.serverConnector
-          .withNuxeo()
+          .asNuxeo()
           .then((nuxeo) => {
             if (!nuxeo.user.isAdministrator) {
               $('.buttons').css('display', 'none');

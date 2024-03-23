@@ -126,7 +126,7 @@ class ServerConnector extends ServiceWorkerComponent {
 
   developedStudioProjects() {
     return this.worker.connectLocator
-      .withRegistration()
+      .asRegistration()
       .then(({ credentials }) => (credentials
         ? this.worker.connectLocator.decodeBasicAuth(credentials)
         : ['', '']))
@@ -174,7 +174,7 @@ class ServerConnector extends ServiceWorkerComponent {
 
     // fetch credentials for connect
     const credentialsPromise = this.worker.connectLocator
-      .withRegistration()
+      .asRegistration()
       .then(({ credentials }) => this.worker.connectLocator.decodeBasicAuth(credentials))
       .then(([login, token]) => ({ login, token }));
 
@@ -186,7 +186,7 @@ class ServerConnector extends ServiceWorkerComponent {
       });
   }
 
-  withNuxeo() {
+  asNuxeo() {
     return new Promise((resolve, reject) => {
       if (this.nuxeo) {
         resolve(this.nuxeo);
@@ -267,7 +267,7 @@ class ServerConnector extends ServiceWorkerComponent {
   }
 
   executeOperation(operationId, params = {}, input = undefined, outputType = 'application/json') {
-    return this.withNuxeo().then((nuxeo) => nuxeo
+    return this.asNuxeo().then((nuxeo) => nuxeo
       .operation(operationId)
       .params(params)
       .input(input)
@@ -290,7 +290,7 @@ class ServerConnector extends ServiceWorkerComponent {
   }
 
   query(input, schemas = ['dublincore', 'common', 'uid']) {
-    return this.withNuxeo()
+    return this.asNuxeo()
       .then((nuxeo) => {
         const userid = nuxeo.user.id;
         const defaultSelectClause = '* FROM Document';
@@ -340,7 +340,7 @@ class ServerConnector extends ServiceWorkerComponent {
     const restartUrl = `${this.rootUrl}/site/connectClient/uninstall/restart`;
     return this.worker.tabNavigationHandler.disableTabExtension()
       .then((tabInfo) => this
-        .withNuxeo()
+        .asNuxeo()
         .then((nuxeo) => nuxeo
           ._http({
             method: 'POST',

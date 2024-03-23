@@ -67,13 +67,13 @@ class DocumentBrowser extends ServiceWorkerComponent {
   }
 
   openDocFromId(id) {
-    return this.worker.serverConnector.withNuxeo()
+    return this.worker.serverConnector.asNuxeo()
       .then((nuxeo) => nuxeo.request(`/id/${id}`))
       .then((request) => this.doOpenDoc(request));
   }
 
   openDocFromPath(path) {
-    return this.worker.serverConnector.withNuxeo()
+    return this.worker.serverConnector.asNuxeo()
       .then((nuxeo) => nuxeo.request(`/path/${path}`))
       .then((request) => this.doOpenDoc(request));
   }
@@ -161,7 +161,7 @@ class DocumentBrowser extends ServiceWorkerComponent {
   }
 
   jsonOf(repository, path) {
-    return this.worker.serverConnector.withNuxeo()
+    return this.worker.serverConnector.asNuxeo()
       .then((nuxeo) => nuxeo
         .request(`/repo/${repository}/${path}`)
         .schemas('*')

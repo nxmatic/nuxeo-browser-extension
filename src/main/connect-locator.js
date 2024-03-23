@@ -26,7 +26,7 @@ class ConnectLocator extends ServiceWorkerComponent {
     };
   }
 
-  withRegistration(url) {
+  asRegistration(url) {
     if (url) {
       const { location, credentials } = this.extractCredentialsAndCleanUrl(url);
       return this.worker.browserStore
@@ -35,10 +35,10 @@ class ConnectLocator extends ServiceWorkerComponent {
           this.worker.developmentMode
             .asConsole()
             .then((console) => console
-              .log(`ConnectLocator.withRegistration(${url})`, store));
+              .log(`ConnectLocator.asRegistration(${url})`, store));
           return store;
         })
-        .then(() => this.withRegistration());
+        .then(() => this.asRegistration());
     }
     return this.worker.browserStore
       .get({ 'connect-locator.url': 'https://connect.nuxeo.com/' })

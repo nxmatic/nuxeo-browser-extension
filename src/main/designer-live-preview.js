@@ -140,9 +140,9 @@ class DesignerLivePreview extends ServiceWorkerComponent {
       });
   }
 
-  withWorkspace(projectName) {
+  asWorkspace(projectName) {
     return this.worker.connectLocator
-      .withRegistration()
+      .asRegistration()
       .then(({ location, credentials }) => {
         const url = new URL(`/nuxeo/site/studio/v2/project/${projectName}/workspace/ws.resources`, location);
         return { url, credentials };
@@ -181,7 +181,7 @@ class DesignerLivePreview extends ServiceWorkerComponent {
   }
 
   enable(projectName) {
-    return this.withWorkspace(projectName)
+    return this.asWorkspace(projectName)
       .then(({ credentials, json }) =>
         this.disable()
           .then(() => this.pushRedirectionsOf(json, credentials))
@@ -203,7 +203,7 @@ class DesignerLivePreview extends ServiceWorkerComponent {
   }
 
   isEnabled(projectName) {
-    return this.withWorkspace(projectName)
+    return this.asWorkspace(projectName)
       .then(() => this.undoByProjectNames.has(projectName));
   }
 }
