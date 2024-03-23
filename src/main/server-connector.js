@@ -56,24 +56,19 @@ class ServerConnector extends ServiceWorkerComponent {
   }
 
   checkAvailability() {
-    return Promise.resolve().then(() => {
-      if (!this.isConnected) {
-        throw new Error('Not connected to Nuxeo');
-      }
-      return this;
-    });
+    return this.isConnected()
+      .then((isConnected) => {
+        if (isConnected) throw new Error('Not connected to Nuxeo');
+      });
   }
 
   onNewServer(rootUrl) {
-    if (!rootUrl) {
-      return this.disconnect();
-    }
     return this.isConnected()
-      .then((connected) => {
-        if (connected) return this.disconnect();
-        return true;
+      .then((isConnected) => {
+        if (isConnected) this.disconnect();
+        return false;
       })
-      .then(() => this.connect(rootUrl));
+      .then(() => (rootUrl ? this.connect(rootUrl) : Promise.resolve()));
   }
 
   connect(rootUrl) {
@@ -106,7 +101,7 @@ class ServerConnector extends ServiceWorkerComponent {
   }
 
   isConnected() {
-    return Promise.resolve(this.rootUrl != null);
+    return Promise.resolve(this.disconnect != null);
   }
 
   runtimeInfo() {

@@ -51,26 +51,17 @@ class TabNavigationHandler extends ServiceWorkerComponent {
       .then((tabInfo) => (this.tabInfo = tabInfo, tabInfo))
       .then((tabInfo) => Promise.resolve(tabInfo.id)
         .then((tabId) => (chrome.action.enable(tabId), tabId))
-        .then((tabId) => (chrome.action.setBadgeText({ tabId, text: 'C' }), tabId))
-        .then((tabId) => (chrome.action.setBadgeBackgroundColor({ tabId, color: '#4688F1' }), tabId))
-        .then(() => tabInfo))
-      .then((tabInfo) => this.worker.developmentMode
-        .asConsole()
-        .then((console) => console.log(`Enabled TabExtension for ${JSON.stringify(tabInfo)}`))
+        .then((tabId) => (chrome.action.setBadgeText({ tabId, text: '' }), tabId))
         .then(() => tabInfo));
   }
 
-  disableTabExtension() {
-    return Promise.resolve(this.tabInfo)
+  disableTabExtension(input) {
+    return Promise.resolve(input)
       .then((tabInfo) => (this.tabInfo = null, tabInfo))
       .then((tabInfo) => Promise.resolve(tabInfo.id)
         .then((tabId) => (chrome.action.disable(tabId), tabId))
         .then((tabId) => (chrome.action.setBadgeText({ tabId, text: 'D' }), tabId))
-        .then((tabId) => (chrome.actionsetBadgeBackgroundColor({ tabId, color: '#FF0000' }), tabId))
-        .then(() => tabInfo))
-      .then((tabInfo) => this.worker.developmentMode
-        .asConsole()
-        .then((console) => console.log(`Disabled TabExtension for ${JSON.stringify(tabInfo)}`), tabInfo)
+        .then((tabId) => (chrome.action.setBadgeBackgroundColor({ tabId, color: '#FF7F7F' }), tabId))
         .then(() => tabInfo));
   }
 
@@ -132,35 +123,19 @@ class TabNavigationHandler extends ServiceWorkerComponent {
   }
 
   enableExtensionIfNuxeoServerTab(info) {
-    return this.isNuxeoServerTab(info)
-      .then((rootUrl) => {
-        if (rootUrl) return rootUrl;
-        return chrome.action
-          .disable(info.tabId)
-          .then(() => undefined);
-      })
-      .then((rootUrl) => {
-        if (!rootUrl) return undefined;
-        return this.worker.serverConnector
-          .onNewServer(rootUrl, info)
-          .then(() => {
-            chrome.action.enable(info.id)
-              .then(() => chrome.action.isEnabled(info.id))
-              .then((isEnabled) => {
-                if (!isEnabled) return;
-                this.enableTabExtension(info);
-              });
-          })
-          .then(() => rootUrl);
-      })
-      .then((rootUrl) => chrome.action.isEnabled(info.id)
-        .then((isEnabled) => this.worker.developmentMode.asConsole()
-          .then((console) => console
-            .log(`Handled activation of ${JSON.stringify(info)} <- rootUrl=${rootUrl}, extension=${isEnabled ? 'enabled' : 'disabled'}`)))
-        .then(() => rootUrl))
-      .catch((cause) => this.worker.developmentMode.asConsole((console) => {
-        console.warn(`Caught error (see previous error) <- Navigator.enableExtensionIfNuxeoServerTab(${JSON.stringify(info)})`, cause);
-      }));
+    return this.worker.developmentMode.asConsole()
+      .then((console) => this
+        .isNuxeoServerTab(info)
+        .then((rootUrl) => {
+          console.log('Handling tab activation', info);
+          return this.worker.serverConnector.onNewServer(rootUrl)
+            .then(() => (rootUrl ? this.enableTabExtension(info) : this.disableTabExtension(info)))
+            .then(() => chrome.action.isEnabled(info.id)
+              .then((isEnabled) => console
+                .log(`Handled tab activation <- rootUrl=${rootUrl}, extension=${isEnabled ? 'enabled' : 'disabled'}`, info)))
+            .then(() => rootUrl);
+        })
+        .catch((cause) => console.error('Handled tab activation <- caught error', info, cause)));
   }
 
   isNuxeoServerTab(tabInfo) {
