@@ -223,7 +223,7 @@ class TabNavigationHandler extends ServiceWorkerComponent {
       }));
   }
 
-  asTabParams(inputUrl, appendNuxeBasePath = false) {
+  asTabParams(inputUrl = this.tabInfo.url, appendNuxeBasePath = false) {
     return this.asPromise()
       .then((self) => ({
         url: inputUrl,

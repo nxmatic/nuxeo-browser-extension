@@ -451,14 +451,34 @@ function loadPage(worker) {
             return serverUrl;
           })
         // eslint-disable-next-line no-shadow
-          .then((serverUrl) => registerLink(
-            '#automation-doc',
-            serverUrl.concat('/site/automation/doc/')
-          ))
-        // eslint-disable-next-line no-shadow
           .then((serverUrl) => {
-            const jsfMatchs = regexes.jsf.doc.exec(serverUrl);
-            const uiMatchs = regexes.ui.doc.exec(serverUrl);
+            registerLink(
+              '#automation-doc',
+              serverUrl.concat('/site/automation/doc/')
+            );
+            return serverUrl;
+          })
+          // eslint-disable-next-line no-shadow
+          .then((serverUrl) => {
+            worker.serverConnector
+              .asInstalledAddons()
+              .then((addons) => {
+                if (!addons.includes('nuxeo-web-ui')) {
+                  $('#designer-livepreview').hide();
+                }
+                const playgroundUrl = addons.includes('nuxeo-api-playground')
+                  ? `${serverUrl}/playground/#/${serverUrl}`
+                  : `http://nuxeo.github.io/api-playground/#/${serverUrl}`;
+                return registerLink('#api-playground', playgroundUrl);
+              });
+            return serverUrl;
+          });
+
+        worker.tabNavigationHandler
+          .asTabParams()
+          .then(({ url }) => {
+            const jsfMatchs = regexes.jsf.doc.exec(url);
+            const uiMatchs = regexes.ui.doc.exec(url);
 
             function exportCurrentLink(docPathOrId) {
               $('#export-current').css('display', 'block');
@@ -479,21 +499,7 @@ function loadPage(worker) {
                 exportCurrentLink(groups.path || groups.docid);
               }
             }
-            return serverUrl;
-          })
-          // eslint-disable-next-line no-shadow
-          .then((serverUrl) => {
-            worker.serverConnector
-              .asInstalledAddons()
-              .then((addons) => {
-                if (!addons.includes('nuxeo-web-ui')) {
-                  $('#designer-livepreview').hide();
-                }
-                const playgroundUrl = addons.includes('nuxeo-api-playground')
-                  ? `${serverUrl}/playground/#/${serverUrl}`
-                  : `http://nuxeo.github.io/api-playground/#/${serverUrl}`;
-                return registerLink('#api-playground', playgroundUrl);
-              });
+            return url;
           });
 
         registerLink('#nuxeo-status', 'https://status.nuxeo.com/');
