@@ -93,7 +93,6 @@ function loadPage(worker) {
 
   const studioPackageFound = (connectUrl, packageName) => {
     worker.desktopNotifier.cancel('no_studio_project');
-    $('#studio-package-name').text(packageName);
     const toogleDesignerLivePreviewButton = (isEnabled) => {
       $('#designer-live-preview-button').toggleClass('enabled', isEnabled);
     };
@@ -165,7 +164,6 @@ function loadPage(worker) {
   };
 
   const noStudioPackageFound = () => {
-    $('#studio-package-name').text('-- No Studio Package --');
     worker.desktopNotifier.notify(
       'no_studio_project',
       {
