@@ -85,6 +85,7 @@ class ServiceWorkerComponent {
         if (origProperty && typeof origProperty === 'object') {
           console.log(`Checking availability of ${origProperty.constructor.name}`);
         }
+        console.log(`Target constructor: ${target.constructor.name}`);
         if (!target.checkAvailability()) {
           throw new Error(`${origProperty && origProperty.constructor ? origProperty.constructor.name : 'Property'} is not available`);
         }

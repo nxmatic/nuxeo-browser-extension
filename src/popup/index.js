@@ -201,8 +201,9 @@ function loadPage(worker) {
     $('#reset').css('top', 5);
   };
 
-  worker.connectLocator
-    .asRegistration()
+  worker.serverConnector
+    .asRegisteredStudioProject()
+    .then(({ connectUrl }) => worker.connectLocator.asRegistration(connectUrl))
     .then(({ location, credentials }) => {
       const connectUrl = new URL(location);
       const connectCredentials = credentials;
@@ -373,44 +374,48 @@ function loadPage(worker) {
           });
 
         Promise.resolve($('#studio-package-name-input'))
-          .then((selectBox) => worker.serverConnector
-            .developedStudioProjects()
-            .then((projects) => {
+          .then((selectBox) => (selectBox.length === 0 ? undefined : selectBox))
+          .then((selectBox) => {
+            if (!selectBox) return undefined;
+            return worker.serverConnector
+              .asDevelopedStudioProjects()
+              .then((projects) => {
               // Remove any existing options
-              while (selectBox[0].firstChild) {
-                selectBox[0].removeChild(selectBox[0].firstChild);
-              }
-              return projects;
-            })
-            .then((projects) => {
-              // skip if no projects
-              if (!projects) return undefined;
-
-              // Add an option for each studio package
-              let registeredPackageFound = null;
-              projects.forEach((project) => {
-                const option = document.createElement('option');
-                option.value = project.packageName;
-                option.text = project.packageName;
-                if (project.isRegistered) {
-                  option.selected = true;
-                  registeredPackageFound = project.packageName;
+                while (selectBox[0].firstChild) {
+                  selectBox[0].removeChild(selectBox[0].firstChild);
                 }
-                selectBox[0].appendChild(option);
-              });
+                return projects;
+              })
+              .then((projects) => {
+              // skip if no projects
+                if (!projects) return undefined;
 
-              // Return whether an enabled package was found
-              return registeredPackageFound;
-            }))
-          .then((registeredPackage) => ({
-            handle: (registeredPackage
-              ? studioPackageFound
-              : noStudioPackageFound),
-            parms: [connectUrl, registeredPackage]
-          }))
-          .then(({ handle, parms }) => handle(...parms))
-          .catch((error) => {
-            console.error(error);
+                // Add an option for each studio package
+                let registeredPackageFound = null;
+                projects.forEach((project) => {
+                  const option = document.createElement('option');
+                  option.value = project.packageName;
+                  option.text = project.packageName;
+                  if (project.isRegistered) {
+                    option.selected = true;
+                    registeredPackageFound = project.packageName;
+                  }
+                  selectBox[0].appendChild(option);
+                });
+
+                // Return whether an enabled package was found
+                return registeredPackageFound;
+              })
+              .then((registeredPackage) => ({
+                handle: (registeredPackage
+                  ? studioPackageFound
+                  : noStudioPackageFound),
+                parms: [connectUrl, registeredPackage]
+              }))
+              .then(({ handle, parms }) => handle(...parms))
+              .catch((error) => {
+                console.error(error);
+              });
           });
 
         worker.serverConnector.executeOperation('Traces.ToggleRecording', { readOnly: true })
@@ -421,7 +426,8 @@ function loadPage(worker) {
             $('#traces-button').toggleClass('enabled', isEnabled);
           });
 
-        worker.serverConnector.runtimeInfo()
+        worker.serverConnector
+          .asRuntimeInfo()
           .then((info) => {
             $('#platform-version').text(` ${info.nuxeo.serverVersion.version}`);
             return info;
@@ -437,7 +443,7 @@ function loadPage(worker) {
             return info;
           })
           .then((info) => {
-            serverUrl = info.rootUrl.replace(/\/$/, '');
+            serverUrl = info.serverUrl.replace(/\/$/, '');
             return serverUrl;
           })
         // eslint-disable-next-line no-shadow
@@ -480,7 +486,7 @@ function loadPage(worker) {
           // eslint-disable-next-line no-shadow
           .then((serverUrl) => {
             worker.serverConnector
-              .installedAddons()
+              .asInstalledAddons()
               .then((addons) => {
                 if (!addons.includes('nuxeo-web-ui')) {
                   $('#designer-livepreview').hide();

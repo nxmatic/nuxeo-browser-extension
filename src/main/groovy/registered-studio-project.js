@@ -4,6 +4,7 @@ export default function registedStudioProject() {
     import org.apache.commons.logging.LogFactory
     import groovy.json.JsonOutput
     import org.nuxeo.connect.client.we.StudioSnapshotHelper
+    import org.nuxeo.connect.connector.http.ConnectUrlConfig
     import org.nuxeo.connect.identity.LogicalInstanceIdentifier
     import org.nuxeo.connect.packages.PackageManager
     import org.nuxeo.connect.packages.dependencies.TargetPlatformFilterHelper
@@ -28,6 +29,7 @@ export default function registedStudioProject() {
     }
 
     ConnectRegistrationService registrations = Framework.getService(ConnectRegistrationService.class)
+    String connectUrl = ConnectUrlConfig.getBaseUrl()
     LogicalInstanceIdentifier clid = registrations.getCLID()
     PackageManager packages = Framework.getService(PackageManager.class)
     Package snapshotPackage = StudioSnapshotHelper.getSnapshot(packages.listRemoteAssociatedStudioPackages())
@@ -36,9 +38,10 @@ export default function registedStudioProject() {
     def studioPackage = packageOf(snapshotPackage)
     def output = [
       nx: nxInstance.asString(),
-      package: studioPackage,
+      clid: clid,
+      connectUrl: connectUrl,
       match: TargetPlatformFilterHelper.isCompatibleWithTargetPlatform(snapshotPackage, nxInstance),
-      clid: clid
+      package: studioPackage,
     ]
 
     println JsonOutput.toJson(output)

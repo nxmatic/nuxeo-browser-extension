@@ -110,7 +110,7 @@ class StudioHotReloader extends ServiceWorkerComponent {
 
   handleLegacyError(error) {
     return this.worker.serverConnector
-      .runtimeInfo()
+      .asRuntimeInfo()
       .then(({ nuxeo, registeredStudioProject }) => {
         const { package: registeredStudioPackage } = registeredStudioProject;
         const nuxeoServerVersion = NuxeoServerVersion.create(nuxeo.version);

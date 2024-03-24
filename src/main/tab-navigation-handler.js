@@ -38,10 +38,6 @@ class TabNavigationHandler extends ServiceWorkerComponent {
     };
   }
 
-  checkAvailability() {
-    return this.isTabExtensionEnabled();
-  }
-
   isTabExtensionEnabled() {
     return this.tabInfo !== null;
   }
@@ -55,7 +51,7 @@ class TabNavigationHandler extends ServiceWorkerComponent {
         .then(() => tabInfo));
   }
 
-  disableTabExtension(input) {
+  disableTabExtension(input = this.tabInfo) {
     return Promise.resolve(input)
       .then((tabInfo) => (this.tabInfo = null, tabInfo))
       .then((tabInfo) => Promise.resolve(tabInfo.id)
@@ -125,57 +121,59 @@ class TabNavigationHandler extends ServiceWorkerComponent {
   enableExtensionIfNuxeoServerTab(info) {
     return this.worker.developmentMode.asConsole()
       .then((console) => this
-        .isNuxeoServerTab(info)
-        .then((rootUrl) => {
+        .asServerUrl(info)
+        .then((serverUrl) => {
           console.log('Handling tab activation', info);
-          return this.worker.serverConnector.onNewServer(rootUrl)
-            .then(() => (rootUrl ? this.enableTabExtension(info) : this.disableTabExtension(info)))
+          return this.worker.serverConnector.onNewLocation(serverUrl)
+            .then(() => (serverUrl ? this.enableTabExtension(info) : this.disableTabExtension(info)))
             .then(() => chrome.action.isEnabled(info.id)
               .then((isEnabled) => console
-                .log(`Handled tab activation <- rootUrl=${rootUrl}, extension=${isEnabled ? 'enabled' : 'disabled'}`, info)))
-            .then(() => rootUrl);
+                .log(`Handled tab activation <- serverUrl=${serverUrl}, extension=${isEnabled ? 'enabled' : 'disabled'}`, info)))
+            .then(() => serverUrl);
         })
         .catch((cause) => console.error('Handled tab activation <- caught error', info, cause)));
   }
 
-  isNuxeoServerTab(tabInfo) {
-    const rootUrl = this.nuxeoUrlOf(tabInfo);
-    if (!rootUrl) return Promise.resolve(undefined);
-    return Promise.resolve()
-      .then(() => fetch(`${rootUrl}/site/automation`, {
-        method: 'GET',
-        credentials: 'include', // Include cookies in the request
-      })
-        .then((response) => {
-          if (response.ok || response.status !== 401) return response;
-          this.worker.desktopNotifier.notify('unauthenticated', {
-            title: `Not logged in page: ${tabInfo.url}...`,
-            message: 'You are not authenticated. Please log in and try again.',
-            iconUrl: '../images/access_denied.png',
-          });
-          return this.reloadServerTab({ rootUrl, tabInfo }, 0);
+  asServerUrl(tabInfo) {
+    return this.asPromise()
+      .then((self) => self.nuxeoUrlOf(tabInfo))
+      .then((nuxeoUrl) => {
+        if (!nuxeoUrl) return undefined;
+        return fetch(`${nuxeoUrl}/site/automation`, {
+          method: 'GET',
+          credentials: 'include', // Include cookies in the request
         })
-        .then((response) => {
-          if (response.ok) return response;
-          response.text().then((errorText) => {
-            this.worker.desktopNotifier.notify('error', {
-              title: `Not a Nuxeo server tab : ${tabInfo.url}...`,
-              message: `Got errors while accessing automation status page at ${response.url}. Error: ${errorText}`,
+          .then((response) => {
+            if (response.ok || response.status !== 401) return response;
+            this.worker.desktopNotifier.notify('unauthenticated', {
+              title: `Not logged in page: ${tabInfo.url}...`,
+              message: 'You are not authenticated. Please log in and try again.',
               iconUrl: '../images/access_denied.png',
             });
+            return this.reloadServerTab({ rootUrl: nuxeoUrl, tabInfo }, 0);
+          })
+          .then((response) => {
+            if (response.ok) return response;
+            response.text().then((errorText) => {
+              this.worker.desktopNotifier.notify('error', {
+                title: `Not a Nuxeo server tab : ${tabInfo.url}...`,
+                message: `Got errors while accessing automation status page at ${response.url}. Error: ${errorText}`,
+                iconUrl: '../images/access_denied.png',
+              });
+            });
+            throw new Error(`Not a nuxeo server tab : ${tabInfo.url}...`);
+          })
+          .then(() => {
+            this.worker.desktopNotifier.cancel('unauthenticated');
+            return nuxeoUrl;
           });
-          throw new Error(`Not a nuxeo server tab : ${tabInfo.url}...`);
-        })
-        .then(() => {
-          this.worker.desktopNotifier.cancel('unauthenticated');
-          return rootUrl;
-        }));
+      });
   }
 
   reloadServerTab(context = {
-    rootUrl: this.worker.serverConnector.rootUrl,
+    rootUrl: this.worker.serverConnector.serverUrl,
     tabInfo: this.tabInfo
-  }, waitingTime = 4000) {
+  }, maxAttempts = 1, waitingTime = 4000) {
     return Promise.resolve(context)
       .then(({ rootUrl, tabInfo }) => {
         if (!tabInfo) {
@@ -184,7 +182,6 @@ class TabNavigationHandler extends ServiceWorkerComponent {
         return { rootUrl, tabInfo };
       }).then(({ rootUrl, tabInfo }) => {
         const runnningstatusUrl = `${rootUrl}/runningstatus`;
-        const maxAttempts = 10;
         let attempts = 0;
         const checkStatus = () => {
           attempts += 1;
@@ -209,25 +206,37 @@ class TabNavigationHandler extends ServiceWorkerComponent {
       });
   }
 
-  loadNewExtensionTab(input, appendNuxeBasePath = false) {
+  updateServerTab(inputUrl, appendNuxeBasePath = false) {
+    return this.asTabParams(inputUrl, appendNuxeBasePath)
+      .then((tabParams) => chrome.tabs.update(tabParams.openerTabId, {
+        url: tabParams.url,
+        selected: true
+      }));
+  }
+
+  loadNewExtensionTab(inputUrl, appendNuxeBasePath = false) {
+    return this.asTabParams(inputUrl, appendNuxeBasePath)
+      .then((tabParams) => chrome.tabs.create({
+        url: tabParams.url,
+        openerTabId: tabParams.openerTabId,
+        selected: false
+      }));
+  }
+
+  asTabParams(inputUrl, appendNuxeBasePath = false) {
     return this.asPromise()
       .then((self) => ({
-        url: input,
+        url: inputUrl,
         openerTabId: self.tabInfo.id
       }))
       .then(({ url, openerTabId }) => {
         if (!appendNuxeBasePath) return { url, openerTabId };
         return this.worker.serverConnector.asPromise()
           .then((serverConnector) => ({
-            url: `${serverConnector.rootUrl}/${url}`,
+            url: `${serverConnector.serverUrl}/${url}`,
             openerTabId
           }));
-      })
-      .then((tabParams) => chrome.tabs.create({
-        url: tabParams.url,
-        openerTabId: tabParams.openerTabId,
-        selected: false
-      }));
+      });
   }
 }
 

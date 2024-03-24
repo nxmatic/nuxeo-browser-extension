@@ -47,7 +47,7 @@ class DesignerLivePreview extends ServiceWorkerComponent {
     return this.worker.declarativeNetEngine.push(new BasicAuthenticationHeaderRule(url, credentials));
   }
 
-  pushRedirectionsOf(json, credentials = undefined, rootUrl = this.worker.serverConnector.rootUrl) {
+  pushRedirectionsOf(json, credentials = undefined, rootUrl = this.worker.serverConnector.serverUrl) {
     const nuxeoBase = rootUrl.href.endsWith('/') ? rootUrl.href : `${rootUrl.href}/`;
 
     const promises = Object.keys(json).flatMap((basePath) => {
@@ -83,7 +83,7 @@ class DesignerLivePreview extends ServiceWorkerComponent {
       resourcePath = resourcePath.replace(/\/\//, '/');
       const connectResource = `${details.url}${resourcePath}`;
       resourcePath = resourcePath.replace(/^\/(nuxeo\.war\/?\/)?/, '');
-      const nuxeoResource = `${this.nuxeo.baseUrl}${resourcePath}`;
+      const nuxeoResource = `${this.serverUrl}${resourcePath}`;
       return this.pushRedirection(nuxeoResource, connectResource);
     });
 

@@ -1,4 +1,4 @@
-export default function getDevelopedStudioProjects(login = '', token = '') {
+export default function developedStudioProjects(login = '', token = '') {
   return `
     import groovy.json.JsonOutput
     import org.apache.commons.logging.Log

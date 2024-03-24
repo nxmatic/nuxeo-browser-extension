@@ -28,7 +28,7 @@ class CookieHeaderRule extends BaseRule {
 
     // Set properties
     this.cookieHeader = cookieHeader;
-    this.url = rootUrl;
+    this.rootUrl = rootUrl;
 
     // Bind methods
     Object.getOwnPropertyNames(Object.getPrototypeOf(this))

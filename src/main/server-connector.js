@@ -36,8 +36,8 @@ class ServerConnector extends ServiceWorkerComponent {
     // Define properties
     this.disconnect = () => {};
     this.nuxeo = undefined;
+    this.serverUrl = undefined;
     this.project = undefined;
-    this.rootUrl = undefined;
 
     // Bind methods
     Object.getOwnPropertyNames(Object.getPrototypeOf(this))
@@ -47,9 +47,9 @@ class ServerConnector extends ServiceWorkerComponent {
       });
 
     // Declare functors
-    this.registrationKeyOf = ({ connectUrl, rootUrl, projectName }) => {
+    this.registrationKeyOf = ({ connectUrl, nuxeoUrl, projectName }) => {
       const hash = CryptoJS
-        .SHA512(`${connectUrl}-${rootUrl}-${projectName}`)
+        .SHA512(`${connectUrl}-${nuxeoUrl}-${projectName}`)
         .toString();
       return `server-connector.${hash}`;
     };
@@ -58,22 +58,22 @@ class ServerConnector extends ServiceWorkerComponent {
   checkAvailability() {
     return this.isConnected()
       .then((isConnected) => {
-        if (isConnected) throw new Error('Not connected to Nuxeo');
+        if (!isConnected) throw new Error('Not connected to Nuxeo');
       });
   }
 
-  onNewServer(rootUrl) {
+  onNewLocation(serverUrl) {
     return this.isConnected()
       .then((isConnected) => {
         if (isConnected) this.disconnect();
         return false;
       })
-      .then(() => (rootUrl ? this.connect(rootUrl) : Promise.resolve()));
+      .then(() => (serverUrl ? this.connect(serverUrl) : Promise.resolve()));
   }
 
-  connect(rootUrl) {
-    this.rootUrl = rootUrl;
-    this.nuxeo = new Nuxeo({ baseURL: this.rootUrl });
+  connect(serverUrl) {
+    this.nuxeo = new Nuxeo({ baseURL: serverUrl });
+    this.serverUrl = serverUrl;
     return this.nuxeo
       .login()
       // eslint-disable-next-line no-return-assign
@@ -82,8 +82,8 @@ class ServerConnector extends ServiceWorkerComponent {
       })
       .then(() => () => {
         this.disconnect = undefined;
-        this.rootUrl = undefined;
         this.nuxeo = undefined;
+        this.serverUrl = undefined;
         chrome.omnibox.onInputChanged.removeListener(this.suggestDocument);
       })
       .then((disconnect) => {
@@ -104,27 +104,27 @@ class ServerConnector extends ServiceWorkerComponent {
     return Promise.resolve(this.disconnect != null);
   }
 
-  runtimeInfo() {
+  asRuntimeInfo() {
     return Promise.all([
-      this.installedAddons(),
-      this.developedStudioProjects()])
+      this.asInstalledAddons(),
+      this.asDevelopedStudioProjects()])
       .then(([installedAddons, developedStudioProjects]) => ({
-        rootUrl: this.rootUrl,
         nuxeo: this.nuxeo,
+        serverUrl: this.serverUrl,
         installedAddons,
         developedStudioProjects,
       }));
   }
 
-  registeredStudioProject() {
+  asRegisteredStudioProject() {
     return this.executeScript('registered-studio-project');
   }
 
-  installedAddons() {
+  asInstalledAddons() {
     return this.executeScript('installed-addons');
   }
 
-  developedStudioProjects() {
+  asDevelopedStudioProjects() {
     return this.worker.connectLocator
       .asRegistration()
       .then(({ credentials }) => (credentials
@@ -155,35 +155,29 @@ class ServerConnector extends ServiceWorkerComponent {
 
   registerDevelopedStudioProject(projectName) {
     // register or restore CLID for project
-    const clidPromise = this
+    return this
       .registeredStudioProject()
-      .then(({ clid: { CLID: clid }, package: { name: packageName } }) => {
+      .then(({ connectUrl, clid: { CLID: clid }, package: { name: packageName } }) => {
         const previousKey = this.registrationKeyOf({
-          connectUrl: this.rootUrl,
-          rootUrl: this.rootUrl,
+          connectUrl,
+          nuxeoUrl: this.serverUrl,
           projectName: packageName,
         });
         const nextKey = this.registrationKeyOf({
-          connectUrl: this.rootUrl,
-          rootUrl: this.rootUrl,
+          connectUrl,
+          nuxeoUrl: this.serverUrl,
           projectName
         });
         return this.worker.browserStore.get({ [previousKey]: clid, [nextKey]: undefined })
-          .then((store) => store[nextKey]);
-      });
-
-    // fetch credentials for connect
-    const credentialsPromise = this.worker.connectLocator
-      .asRegistration()
-      .then(({ credentials }) => this.worker.connectLocator.decodeBasicAuth(credentials))
-      .then(([login, token]) => ({ login, token }));
-
-    return Promise.all([clidPromise, credentialsPromise])
-      .then(([clid, { login, token }]) => {
-        console.log('registerDevelopedStudioProject', [login, token, projectName, clid]);
-        return this
-          .executeScript('register-developed-studio-project', [login, token, projectName, clid]);
-      });
+          .then(() => ({
+            connectUrl, clid
+          }));
+      })
+      .then(({ connectUrl, clid }) => this.worker.connectLocator
+        .asRegistration(connectUrl)
+        .then(({ credentials }) => this.worker.connectLocator.decodeBasicAuth(credentials))
+        .then(([login, token]) => this
+          .executeScript('register-developed-studio-project', [login, token, projectName, clid])));
   }
 
   asNuxeo() {
@@ -320,54 +314,38 @@ class ServerConnector extends ServiceWorkerComponent {
   }
 
   restart() {
-    const notifyRestart = (context) => new Promise((resolve) => {
-      this.worker.desktopNotifier.notify('reload', {
+    const notifyRestart = () => new Promise((resolve) => this.worker.desktopNotifier
+      .notify('reload', {
         title: 'Restarting server...',
-        message: 'Attempting to restart Nuxeo server.',
+        message: `Attempting to restart Nuxeo server (${this.serverUrl})`,
         iconUrl: '../images/nuxeo-128.png',
         requireInteraction: false,
       })
-        .then(() => this.worker.tabNavigationHandler.reloadServerTab(context, 10000))
-        .then(() => this.worker.desktopNotifier.cancel('reload'))
-        .then(() => resolve());
-    });
+      .then(() => resolve()));
 
-    const notifyError = (error) => new Promise((resolve) => {
-      console.error(`Error restarting server '${error.message}'`, error);
-      this.worker.desktopNotifier.notify('error', {
+    const cancelNotification = () => new Promise((resolve) => this.worker.desktopNotifier
+      .cancel('reload')
+      .then(() => resolve()));
+
+    const notifyError = (cause) => new Promise((_, reject) => this.worker.desktopNotifier
+      .notify('error', {
         title: 'Something went wrong...',
-        message: 'An error occurred.',
+        message: `An error occurred (${this.serverUrl}) : ${cause.message}`,
         iconUrl: '../images/access_denied.png',
         requireInteraction: false,
-      });
-      resolve();
-    });
+      })
+      .then(() => {
+        const error = new Error(`Error restarting server '${cause.message}'`);
+        error.cause = cause;
+        return reject(error);
+      }));
 
-    const rootUrl = this.rootUrl;
-    const restartUrl = `${this.rootUrl}/site/connectClient/uninstall/restart`;
-    return this.worker.tabNavigationHandler.disableTabExtension()
-      .then((tabInfo) => this
-        .asNuxeo()
-        .then((nuxeo) => nuxeo
-          ._http({
-            method: 'POST',
-            schemas: [],
-            enrichers: [],
-            fetchProperties: [],
-            url: restartUrl,
-          }))
-        .then((res) => {
-          // Handle restart success since 9.10
-          if (res.status && res.status >= 200 && res.status < 300) {
-            return notifyRestart({ rootUrl, tabInfo });
-          } else {
-          // Handle errors for 8.10 and FT up to 9.3
-            return notifyError(res);
-          }
-        })
-        .catch((e) => {
-          notifyError(e);
-        }));
+    return this.asPromise()
+      .then(notifyRestart)
+      .then(() => this.worker.tabNavigationHandler
+        .updateServerTab('site/connectClient/restartView', true))
+      .then(cancelNotification)
+      .catch(notifyError);
   }
 }
 
