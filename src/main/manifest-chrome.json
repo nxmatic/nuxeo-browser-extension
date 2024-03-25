@@ -1,6 +1,7 @@
 {
   "name": "Nuxeo Dev Tools",
-  "version": "3.1.0",
+  "version": "0.0.0",
+  "version_name": "0.0.0-dev",
   "manifest_version": 3,
   "description": "A handy collection of shortcuts and tools for the Nuxeo developer",
   "icons": {

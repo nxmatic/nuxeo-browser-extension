@@ -99,6 +99,8 @@ export default defineConfig(({ mode }) => {
               // Update the manifest with the new service worker file name
               console.log(`Updating manifest for ${file.fileName}...`);
               manifest.background.service_worker = file.fileName;
+              manifest.version = process.env.VITE_BUILD_VERSION;
+              manifest.version_name = process.env.VITE_BUILD_VERSION_NAME;
             }
           });
 

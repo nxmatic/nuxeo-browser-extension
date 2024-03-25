@@ -1,4 +1,5 @@
 {
+  "version": "0.0.0-dev",
   "dependencies": {
     "bootstrap": "^5.3.3",
     "crypto-js": "^4.2.0",
@@ -59,23 +60,21 @@
   "name": "nuxeo-extension",
   "private": true,
   "scripts": {
-    "build:env": "node vite.env.js",
-    "build:chrome:env": "npm run build:env chrome",
+    "env:build": "node vite.env.js",
     "build:chrome:about": "cross-env BUILD_ENTRY=about vite build --mode=chrome",
     "build:chrome:content": "cross-env BUILD_ENTRY=content vite build --mode=chrome",
     "build:chrome:json": "cross-env BUILD_ENTRY=json vite build --mode=chrome",
     "build:chrome:main": "cross-env BUILD_ENTRY=main vite build --mode=chrome",
     "build:chrome:options": "cross-env BUILD_ENTRY=options vite build --mode=chrome",
     "build:chrome:popup": "cross-env BUILD_ENTRY=popup vite build --mode=chrome",
-    "build:chrome": "npm run build:chrome:env && cross-env NODE_ENV=development concurrently --kill-others-on-fail 'npm:build:chrome:*'",
-    "build:firefox:env": "npm run build:env firefox",
+    "build:chrome": "cross-env NODE_ENV=development npm run env:build chrome && concurrently --kill-others-on-fail 'npm:build:chrome:*'",
     "build:firefox:about": "cross-env BUILD_ENTRY=about vite build --mode=firefox",
     "build:firefox:content": "cross-env BUILD_ENTRY=content vite build --mode=firefox",
     "build:firefox:json": "cross-env BUILD_ENTRY=json vite build --mode=firefox",
     "build:firefox:main": "cross-env BUILD_ENTRY=main vite build --mode=firefox",
     "build:firefox:options": "cross-env BUILD_ENTRY=options vite build --mode=firefox",
     "build:firefox:popup": "cross-env BUILD_ENTRY=popup vite build --mode=firefox",
-    "build:firefox": "npm run build:firefox:env && cross-env NODE_ENV=development concurrently --kill-others-on-fail 'npm:build:firefox:*'",
+    "build:firefox": "cross-env NODE_ENV=development npm run env:build  firefox && concurrently --kill-others-on-fail 'npm:build:firefox:*'",
     "release:chrome": "npm run build:chrome:env && cross-env NODE_ENV=production concurrently --kill-others-on-fail 'npm:build:chrome:*'",
     "release:firefox": "npm run build:firefox:env && cross-env NODE_ENV=production concurrently --kill-others-on-fail 'npm:build:firefox:*'"
   },
