@@ -19,19 +19,19 @@ class RuntimeBuildInfo extends ServiceWorkerComponent {
   }
 
   developer() {
-    return this._developer;
+    return Promise.resolve(this._developer);
   }
 
   browserVendor() {
-    return this._browserVendor;
+    return Promise.resolve(this._browserVendor);
   }
 
   buildTime() {
-    return this._buildtime;
+    return Promise.resolve(this._buildtime);
   }
 
   buildVersion() {
-    return this._version;
+    return Promise.resolve(this._version);
   }
 }
 

@@ -180,16 +180,15 @@ function loadPage(worker) {
     });
   };
 
-  const checkDependencyMismatch = () => {
-    const dependenciesMismatch = worker.studioHotReloader.dependenciesMismatch();
-    if (
-      dependenciesMismatch.length > 0
-    ) {
-      showDependencyError(dependenciesMismatch);
-    } else {
-      hideDependencyError();
-    }
-  };
+  const checkDependencyMismatch = () => worker.studioHotReloader
+    .dependenciesMismatch()
+    .then((dependenciesMismatch) => {
+      if (dependenciesMismatch.length > 0) {
+        showDependencyError(dependenciesMismatch);
+      } else {
+        hideDependencyError();
+      }
+    });
 
   const adjustStorageButtons = () => {
     $('.highlight-option').hide();
@@ -209,6 +208,7 @@ function loadPage(worker) {
     })
     // eslint-disable-next-line no-unused-vars
     .then(({ connectUrl, connectCredentials }) => {
+      const pendingPromises = [];
       $(document).ready(() => {
         const browserVendor = worker.buildInfo.browserVendor();
         if (browserVendor === 'Firefox') {
@@ -253,10 +253,6 @@ function loadPage(worker) {
             connectUrl.toString()
           );
         }
-
-        worker.browserStore
-          .get({ highlight: true })
-          .then(({ highlight: isChecked }) => $('#highlight-input').prop('checked', isChecked));
 
         $('#save').click(() => {
           const connectUrlInput = $('#connect-url-input').val();
@@ -310,8 +306,6 @@ function loadPage(worker) {
           });
         });
 
-        checkDependencyMismatch();
-
         // being resolved in promise for handles, better be bound in a dedicated class I think
         let onUI;
         let repository = 'default';
@@ -362,16 +356,31 @@ function loadPage(worker) {
           doGetJson(`id/${input}`);
         }
 
-        worker.serverConnector
+        function hideActionsAndToggles() {
+          $('.buttons').css('display', 'none');
+          $('.toggles').css('display', 'none');
+        }
+
+        pendingPromises.push(
+          worker.browserStore
+            .get({ highlight: true })
+            .then(({ highlight: isChecked }) => $('#highlight-input').prop('checked', isChecked))
+        );
+        pendingPromises.push(checkDependencyMismatch());
+
+        pendingPromises.push(worker.serverConnector
           .asNuxeo()
           .then((nuxeo) => {
-            if (!nuxeo.user.isAdministrator) {
-              $('.buttons').css('display', 'none');
-              $('.toggles').css('display', 'none');
-            }
-          });
+            if (nuxeo.user.isAdministrator) return;
+            hideActionsAndToggles();
+          })
+          .catch((error) => {
+            worker.developmentMode.asConsole()
+              .then((console) => console.warn('Not connected, cannot check user role', error));
+            hideActionsAndToggles();
+          }));
 
-        Promise.resolve($('#studio-package-name-input'))
+        pendingPromises.push(Promise.resolve($('#studio-package-name-input'))
           .then((selectBox) => (selectBox.length === 0 ? undefined : selectBox))
           .then((selectBox) => {
             if (!selectBox) return undefined;
@@ -414,17 +423,17 @@ function loadPage(worker) {
               .catch((error) => {
                 console.error(error);
               });
-          });
+          }));
 
-        worker.serverConnector.executeOperation('Traces.ToggleRecording', { readOnly: true })
+        pendingPromises.push(worker.serverConnector.executeOperation('Traces.ToggleRecording', { readOnly: true })
           // eslint-disable-next-line no-sequences
           .then((json) => json.value)
           .then((value) => Boolean(value))
           .then((isEnabled) => {
             $('#traces-button').toggleClass('enabled', isEnabled);
-          });
+          }));
 
-        worker.serverConnector
+        pendingPromises.push(worker.serverConnector
           .asRuntimeInfo()
           .then((info) => {
             $('#platform-version').text(` ${info.nuxeo.serverVersion.version}`);
@@ -472,9 +481,9 @@ function loadPage(worker) {
                 return registerLink('#api-playground', playgroundUrl);
               });
             return serverUrl;
-          });
+          }));
 
-        worker.tabNavigationHandler
+        pendingPromises.push(worker.tabNavigationHandler
           .asTabParams()
           .then(({ url }) => {
             const jsfMatchs = regexes.jsf.doc.exec(url);
@@ -500,7 +509,7 @@ function loadPage(worker) {
               }
             }
             return url;
-          });
+          }));
 
         registerLink('#nuxeo-status', 'https://status.nuxeo.com/');
         registerLink('#explorer', 'https://explorer.nuxeo.com');
@@ -589,7 +598,7 @@ function loadPage(worker) {
         }
 
         function docSearch(nxqlQuery, input) {
-          worker.serverConnector
+          return worker.serverConnector
             .query({ query: nxqlQuery, sortBy: 'dc:modified' })
             .then((res) => {
               if (res.entries.length > 0) {
@@ -650,8 +659,10 @@ function loadPage(worker) {
 
         let openJsonWindow = (jsonObject) => {
           const jsonString = JSON.stringify(jsonObject, undefined, 2);
-          worker.jsonHighlighter.input(DOMPurify.sanitize(jsonString));
-          worker.tabNavigationHandler.loadNewExtensionTab('json/index.html');
+          return worker.jsonHighlighter
+            .input(DOMPurify.sanitize(jsonString))
+            .then(() => worker.tabNavigationHandler
+              .loadNewExtensionTab('json/index.html'));
         };
 
         $('#restart-button').on('click', () => {
@@ -837,8 +848,15 @@ function loadPage(worker) {
           k();
           console.log('O Canada!');
         });
-      });
-      return worker;
+      }); // end of document.ready
+
+      return Promise
+        .all(pendingPromises)
+        .then(() => worker)
+        .catch((error) => console.error(error));
+    })
+    .catch((error) => {
+      console.error(error);
     });
 }
 

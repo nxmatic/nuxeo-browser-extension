@@ -57,8 +57,7 @@ class ServiceWorkerMessageHandler extends ServiceWorkerComponent {
         .asConsole()
         .then((console) => console
           .log(`ServiceWorkerMessageHandler.handle(${JSON.stringify(request)}) called`));
-      return Promise
-        .resolve(component[request.action](...request.params))
+      return component[request.action](...request.params)
         .then((response) => this.worker.developmentMode
           .asConsole()
           .then((console) => console
