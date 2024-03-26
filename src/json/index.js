@@ -1,3 +1,4 @@
+/* eslint-disable function-paren-newline */
 /*
 Copyright 2016-2024 Nuxeo
 
@@ -21,16 +22,20 @@ import '../../public/styles/mono-blue.css';
 import ServiceWorkerBridge from '../service-worker-bridge';
 
 new ServiceWorkerBridge()
-  .bootstrap()
-  .then((worker) => jQuery(() => {
-    worker.jsonHighlighter
-      .input()
-      .then((input) => {
-        document.getElementById('json-string').textContent = input;
-        try {
-          hljs.highlightAll();
-        } catch (e) {
-          console.log('Sorry! JSON highlighting only available in Chrome.');
-        }
-      });
-  }));
+  .bootstrap(
+    {
+      name: 'json',
+      entrypoint: (worker) => jQuery(() => worker
+        .jsonHighlighter
+        .input()
+        .then((input) => {
+          document.getElementById('json-string').textContent = input;
+          try {
+            hljs.highlightAll();
+          } catch (e) {
+            console.log('Sorry! JSON highlighting only available in Chrome.');
+          }
+        })
+      )
+    }
+  );

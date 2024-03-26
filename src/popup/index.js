@@ -899,22 +899,5 @@ function loadPage(worker) {
 }
 
 new ServiceWorkerBridge()
-  .bootstrap()
-  .then((worker) => {
-    worker.developmentMode
-      .asPromise()
-      .then(() => {
-        // can be used in development mode from the console for now
-        worker.reloadPopup = () => worker.asPromise().then(loadPage);
-        // Check if 'window' is defined, otherwise use 'window'
-        // eslint-disable-next-line no-restricted-globals, no-undef
-        const globalScope = typeof self !== 'undefined' ? self : window;
-        globalScope.nuxeoWebExtension = worker;
-      })
-      .catch((error) => console.error(error));
-    return worker;
-  })
-  .then(loadPage)
-  .catch((e) => {
-    console.error(e);
-  });
+  .bootstrap({ name: 'reloadPopup', entrypoint: loadPage })
+  .catch((error) => console.error(error));
