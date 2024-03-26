@@ -57,7 +57,8 @@ class ServiceWorkerMessageHandler extends ServiceWorkerComponent {
         .asConsole()
         .then((console) => console
           .log(`ServiceWorkerMessageHandler.handle(${JSON.stringify(request)}) called`));
-      return component[request.action](...request.params)
+      return component.asPromise()
+        .then((componentInstance) => componentInstance[request.action](...request.params))
         .then((response) => this.worker.developmentMode
           .asConsole()
           .then((console) => console
@@ -69,8 +70,7 @@ class ServiceWorkerMessageHandler extends ServiceWorkerComponent {
             .asConsole()
             .then((console) => console
               .log(`${JSON.stringify(response)} <- ServiceWorkerMessageHandler.handle(${JSON.stringify(request)})`, cause.stack));
-          return Promise
-            .resolve(response);
+          return response;
         });
     };
 

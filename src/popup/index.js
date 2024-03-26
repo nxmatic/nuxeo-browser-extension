@@ -213,6 +213,14 @@ function loadPage(worker) {
         // reset jQuery event handlers
         $('body').find('*').addBack().off();
 
+        // update the page according to the feature flags
+        pendingPromises.push(worker.developmentMode
+          .isFeatureFlagSet('studio-package-name')
+          .then((isEnabled) => {
+            if (isEnabled) return;
+            $('#studio-package-name-input').remove();
+          }));
+
         // process the page
         const browserVendor = worker.buildInfo.browserVendor();
         if (browserVendor === 'Firefox') {
