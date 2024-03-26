@@ -259,26 +259,39 @@ function loadPage(worker) {
         }
 
         $('#save').click(() => {
-          const connectUrlInput = $('#connect-url-input').val();
-          const highlightInput = $('#highlight-input').prop('checked');
-          const studioPackageNameInput = $('#studio-package-name-input').val();
+          const savingPromises = [];
 
-          const connectUrlPromise = Promise.resolve(connectUrlInput)
-            .then((url) => ($('#connect-url').hide(), url))
-            .then((url) => (url.length !== 0
-              ? worker.connectLocator.asRegistration(url)
-              : worker.connectLocator.asRegistration()))
-            .then(({ location }) => $('#connect-url-input').val(location));
-          const highlightPromise = worker.browserStore
-            .set({ highlight: highlightInput })
-            .then((store) => store.highlight);
-          const studioPackagePromise = Promise.resolve(studioPackageNameInput)
-            .then((name) => ($('#studio-package-name-input').hide(), name))
-            .then((name) => (worker.serverConnector.registerDevelopedStudioProject(name), name));
+          // connect URL
+          savingPromises.push(Promise.resolve($('#connect-url-input'))
+            .then((inputField) => ($('#connect-url').hide(), { field: inputField, value: inputField.val() }))
+            .then(({ field, value }) => {
+              const registration = value.length !== 0
+                ? worker.connectLocator.asRegistration(value)
+                : worker.connectLocator.asRegistration();
+              return registration
+                .then(({ location }) => (field.val(location), location));
+            }));
+
+          // studio package name
+          savingPromises.push(Promise.resolve($('#studio-package-name-input'))
+            .then((selectBox) => (selectBox.length === 0 ? undefined : selectBox.val()))
+            .then((name) => {
+              if (!name) {
+                return undefined;
+              }
+              return worker.serverConnector
+                .registerDevelopedStudioProject(name)
+                .then(() => name);
+            }));
+
+          // highlight
+          savingPromises.push(worker.browserStore
+            .set({ highlight: $('#highlight-input').prop('checked') })
+            .then((store) => store.highlight));
 
           Promise
-            .all([connectUrlPromise, studioPackagePromise, highlightPromise])
-            // eslint-disable-next-line no-shadow, no-unused-vars
+            .all(savingPromises)
+            // eslint-disable-next-line no-unused-vars, no-shadow
             .then(([{ connectUrl }, packageName, highlight]) => {
               studioPackageFound(connectUrl, packageName);
               checkDependencyMismatch();
