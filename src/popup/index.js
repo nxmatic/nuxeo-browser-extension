@@ -210,6 +210,10 @@ function loadPage(worker) {
     .then(({ connectUrl, connectCredentials }) => {
       const pendingPromises = [];
       $(document).ready(() => {
+        // reset jQuery event handlers
+        $('body').find('*').addBack().off();
+
+        // process the page
         const browserVendor = worker.buildInfo.browserVendor();
         if (browserVendor === 'Firefox') {
           adjustStorageButtons();
