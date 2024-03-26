@@ -1,16 +1,6 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Rest of the code -->
-  </head>
-  <body>
-    <!-- Rest of the code -->
-  </body>
-</html>
-<html lang="en">
-  <head>
     <!--
     Copyright 2016-2024 Nuxeo
 
@@ -28,9 +18,23 @@
     -->
     <title>Nuxeo Dev Tools</title>
     <link rel=stylesheet href=/styles/main.css>
+    <style>
+      .content {
+        display: none;
+      }
+      .popup-loading-message {
+        display: block;
+        text-align: center;
+        margin-top: 20%;
+      }
+    </style>
     <script type="module" src="index.js"></script>
   </head>
   <body>
+    <div class="popup-loading-message">
+      <p>Popup loading...</p>
+    </div>
+    <div class="content">
     <div class="shade">
 
     </div>
@@ -78,7 +82,7 @@
               <li><div class="server-name-url"></div></li>
               <li id="connect-url">
                 <form class="search-container" id="options">
-                  <input type="text" id="connect-url-input" class="form" placeholder="https://connect.nuxeo.com" results="5" />
+                  <input type="text" id="connect-url-input" placeholder="https://connect.nuxeo.com/nuxeo/site/" results="5" />
                   <div class="studio-package-select">
                     <label for="studio-package-name-input">Choose a studio package:</label>
                     <select name="name" id="studio-package-name-input">
@@ -220,6 +224,7 @@
 
     </div>
     <div id="loading">
+    </div>
     </div>
   </body>
 </html>
