@@ -92,7 +92,7 @@ class ServerConnector extends ServiceWorkerComponent {
       })
       .catch((cause) => {
         if (cause.response) {
-          this.handleErrors(cause, this.defaultServerError);
+          this.handleErrors(cause);
           return () => {};
         }
         console.warn('Error connecting to Nuxeo', cause);
@@ -197,56 +197,85 @@ class ServerConnector extends ServiceWorkerComponent {
     });
   }
 
-  defaultServerError = {
+  defaultDesktopNotification = {
     id: 'server_error',
-    title: 'Server Error',
-    message: 'Please ensure that Dev Mode is activated.',
-    imageUrl: '../images/access_denied.png',
-    interaction: false,
+    options: {
+      title: 'Server Error',
+      message: 'Please ensure that Dev Mode is activated.',
+      imageUrl: '../images/access_denied.png',
+    }
   };
 
-  handleErrors(error, serverError) {
-    error.response.json().then((json) => {
-      const msg = json.message;
-      const err = error.response.status;
-      if (msg == null) {
-        this.worker.desktopNotifier.notify('no_hot_reload', {
-          title: 'Hot Reload Operation not found.',
-          message: 'Your current version of Nuxeo does not support the Hot Reload function.',
-          iconUrl: '/images/access_denied.png',
-          requireInteraction: false
-        });
-      } else if (err === 401) {
-        this.worker.desktopNotifier.notify('access_denied', {
-          title: 'Access denied!',
-          message: 'You must have Administrator rights to perform this function.',
-          iconUrl: '../images/access_denied.png',
-          requireInteraction: false
-        });
-      } else if (err >= 500) {
-        this.worker.desktopNotifier.notify(serverError.id, {
-          title: serverError.title,
-          message: serverError.message,
-          iconUrl: serverError.imageUrl,
-          requireInteraction: serverError.interaction
-        });
-      } else if (err >= 300 && err < 500) {
-        this.worker.desktopNotifier.notify('bad_login', {
-          title: 'Bad Login',
-          message: 'Your Login and/or Password are incorrect',
-          iconUrl: '/images/access_denied.png',
-          requireInteraction: false
-        });
-      } else {
-        this.worker.desktopNotifier.notify('unknown_error', {
-          title: 'Unknown Error',
-          message: 'An unknown error has occurred. Please try again later.',
-          iconUrl: '/images/access_denied.png',
-          requireInteraction: false
-        });
+  desktopNotify(id, notification) {
+    const { title, message, imageUrl } = notification;
+    console.group(`Notification: ${id}`);
+    console.log(`Title: ${title}`);
+    console.log(`Message: ${message}`);
+    console.log(`Image URL: ${imageUrl}`);
+    console.groupEnd();
+
+    return this.worker
+      .desktopNotifier
+      .notify(id, { ...this.defaultDesktopNotification.options, ...notification });
+  }
+
+  desktopCancelNotification(id) {
+    return this.worker
+      .desktopNotifier
+      .cancel(id);
+  }
+
+  handleErrors(error, defaultNotification = this.defaultDesktopNotification) {
+    const toMessage = (response) => {
+      const contentType = response.headers.get('content-type');
+      if (contentType && !contentType.includes('application/json')) {
+        return error.response
+          .text()
+          .then((text) => ({
+            message: `status: ${response.status} ${response.statusText}\ntext: ${text}`
+          }));
       }
-      return error.response;
-    });
+      return error.response.json();
+    };
+    return toMessage(error.response)
+      .then((json) => {
+        const err = error.response.status;
+        if (json.message === null) {
+          this.desktopNotify('no_hot_reload', {
+            ...defaultNotification.options,
+            title: 'Hot Reload Operation not found.',
+            message: 'Your current version of Nuxeo does not support the Hot Reload function.',
+            iconUrl: '/images/access_denied.png',
+          });
+        } else if (err === 401) {
+          this.desktopNotify('access_denied', {
+            ...defaultNotification.options,
+            title: 'Access denied!',
+            message: 'You must have Administrator rights to perform this function.',
+            iconUrl: '../images/access_denied.png',
+          });
+        } else if (err >= 500) {
+          this.desktopNotify(defaultNotification.id, {
+            ...defaultNotification.options,
+            message: `${defaultNotification.message}...\n${json.message}`,
+          });
+        } else if (err >= 300 && err < 500) {
+          this.desktopNotify('bad_login', {
+            ...defaultNotification.options,
+            title: 'Bad Login',
+            message: 'Your Login and/or Password are incorrect',
+            iconUrl: '/images/access_denied.png',
+          });
+        } else {
+          this.desktopNotify('unknown_error', {
+            ...defaultNotification.options,
+            title: 'Unknown Error',
+            message: `An unknown error has occurred. Please try again later...\n${json.message}`,
+            iconUrl: '/images/access_denied.png',
+          });
+        }
+        return error.response;
+      });
   }
 
   executeScript(name, parms = [], outputType = 'application/json') {
@@ -321,38 +350,28 @@ class ServerConnector extends ServiceWorkerComponent {
   }
 
   restart() {
-    const notifyRestart = () => new Promise((resolve) => this.worker.desktopNotifier
-      .notify('reload', {
-        title: 'Restarting server...',
-        message: `Attempting to restart Nuxeo server (${this.serverUrl})`,
-        iconUrl: '../images/nuxeo-128.png',
-        requireInteraction: false,
-      })
-      .then(() => resolve()));
-
-    const cancelNotification = () => new Promise((resolve) => this.worker.desktopNotifier
-      .cancel('reload')
-      .then(() => resolve()));
-
-    const notifyError = (cause) => new Promise((_, reject) => this.worker.desktopNotifier
-      .notify('error', {
-        title: 'Something went wrong...',
-        message: `An error occurred (${this.serverUrl}) : ${cause.message}`,
-        iconUrl: '../images/access_denied.png',
-        requireInteraction: false,
-      })
-      .then(() => {
-        const error = new Error(`Error restarting server '${cause.message}'`);
-        error.cause = cause;
-        return reject(error);
-      }));
-
     return this.asPromise()
-      .then(notifyRestart)
+      .then(() => this
+        .desktopNotify('reload', {
+          title: 'Restarting server...',
+          message: `Attempting to restart Nuxeo server (${this.serverUrl})`,
+          iconUrl: '../images/nuxeo-128.png',
+        }))
       .then(() => this.worker.tabNavigationHandler
         .updateServerTab('site/connectClient/restartView', true))
-      .then(cancelNotification)
-      .catch(notifyError);
+      .then(() => this
+        .desktopCancelNotification('reload'))
+      .catch((cause) => {
+        this
+          .desktopNotify('error', {
+            title: 'Something went wrong...',
+            message: `An error occurred (${this.serverUrl}) : ${cause.message}`,
+            iconUrl: '../images/access_denied.png',
+          });
+        const error = new Error(`Error restarting server '${cause.message}'`);
+        error.cause = cause;
+        throw error;
+      });
   }
 }
 

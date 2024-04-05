@@ -112,7 +112,12 @@ class StudioHotReloader extends ServiceWorkerComponent {
     return this.worker.serverConnector
       .asRuntimeInfo()
       .then(({ nuxeo, registeredStudioProject }) => {
-        const { package: registeredStudioPackage } = registeredStudioProject;
+        if (!registeredStudioProject) {
+          const newError = new Error('Cannot retrieve registered studio project while reloading studio.');
+          newError.originalError = error;
+          throw newError;
+        }
+        const { package: registeredStudioPackage } = registeredStudioProject || { package: 'unknown' };
         const nuxeoServerVersion = NuxeoServerVersion.create(nuxeo.version);
         const nuxeoLegacyVersion = NuxeoServerVersion.create('9.2');
         if (!nuxeoServerVersion.lte(nuxeoLegacyVersion)) throw error;

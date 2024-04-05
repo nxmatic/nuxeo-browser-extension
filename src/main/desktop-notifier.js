@@ -32,13 +32,26 @@ class DesktopNotifier extends ServiceWorkerComponent {
   }
 
   notify(id, options) {
-    // Ensure options.type is set to 'basic' if not defined
-    options = { type: 'basic', ...options };
+    // Check if options has an imageUrl property
+    const type = options.imageUrl ? 'image' : 'basic';
+
+    // Ensure options.type is set to 'basic' or 'image' depending on whether options has an imageUrl property
+    options = { type, requireInteraction: false, ...options };
 
     return new Promise((resolve, reject) => {
       chrome.notifications.create(namespacedIdOf(id), options, (notificationId) => {
         if (chrome.runtime.lastError) {
-          return reject(chrome.runtime.lastError);
+          console.groupCollapsed('Notification Error');
+          console.warn('Failed to create notification');
+          console.error(chrome.runtime.lastError);
+          console.info('Notification ID:', notificationId);
+          console.info('Options:', options);
+          console.groupEnd();
+
+          const error = new Error('Failed to create notification');
+          error.cause = chrome.runtime.lastError;
+          error.info = { id: notificationId, options };
+          return reject(error);
         }
         if (!options.requireInteraction) {
           return resolve(notificationId);
