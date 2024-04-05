@@ -256,14 +256,6 @@ function loadPage(worker) {
         }
       }
 
-      $('#searchclear').click(() => {
-        $('#search').val('');
-        $('.no-result').css('display', 'none');
-        $('#search-results').empty();
-        $('body').css('overflow-y', 'hidden');
-        $('html').outerHeight(height + 66);
-      });
-
       $('#nxql-clear').click(() => {
         $('#nxql-docid').val('');
       });
@@ -774,9 +766,13 @@ function loadPage(worker) {
             .catch(() => false);
         }));
 
-      $('#search').keydown(() => {
+      $('#search').keydown((event) => {
         $('#loading-gif').css({ display: 'inline' });
         $('#search').css('text-indent', '23px');
+        if (event.keyCode === 13) {
+          // prevent submit on enter
+          event.preventDefault();
+        }
       });
 
       $('#search').keyup(
@@ -835,11 +831,11 @@ function loadPage(worker) {
         document.addEventListener('keydown', (e) => {
           input += `${e.keyCode}`;
           if (input === key) {
-            return cb();
+            cb();
+            return;
           }
-          if (!key.indexOf(input)) return true;
+          if (!key.indexOf(input)) return;
           input = `${e.keyCode}`;
-          return true;
         });
       }
 
