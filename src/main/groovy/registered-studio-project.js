@@ -47,6 +47,7 @@ export default function registedStudioProject() {
       nx: nxInstance.asString(),
       clid: clid,
       connectUrl: connectUrl,
+      developmentMode: Framework.isDevModeSet(),
       match: isMatching(snapshotPackage, nxInstance),
       package: studioPackage,
     ]

@@ -28,13 +28,21 @@ export default function developedStudioProjects(login = '', token = '') {
     }
     packageNames.retainAll(developedPackages);
 
-    // compute JSON response
-    List<Map> output = packageNames.collect { packageName ->
+    // compute packages JSON output
+    List<Map> projectsOutput = packageNames.collect { packageName ->
       [
         packageName: packageName,
         isRegistered: (registeredPackage != null && packageName == registeredPackage.name) || false
       ]
     };
+
+    // compute the final output
+    boolean developmentMode = Framework.isDevMode();
+
+    Map output = [
+      projects: packagesOutput,
+      developmentMode: developmentMode
+    ];
 
     println JsonOutput.toJson(output)
   `;

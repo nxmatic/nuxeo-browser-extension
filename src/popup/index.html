@@ -36,33 +36,48 @@
       <p>Popup loading...</p>
     </div>
     <div class="content">
-    <div class="shade">
-
-    </div>
-    <div class="no-studio-buttons">
-      <div class="no-studio-description">No studio package registered.</div>
-      <div class="no-studio-instruction">To register one, stop your Nuxeo server and run the following
-      <span class="monospace">nuxeoctl</span> command:
-        <div class="nuxeoctl-command monospace"><p>nuxeoctl register</p></div>
+    <div class="shade"></div>
+    <div class="shade-popup" id="no-studio-package-registered">
+      <div class="nx-row">
+        <div class="shade-warning">
+          NO STUDIO PACKAGE REGISTERED
+        </div>
+      </div>
+      <div class="shade-description">No studio package registered on connect.</div>
+      <div class="instruction">To register one, stop your Nuxeo server and run the following
+      <span class="shade-monospace">nuxeoctl</span> command:
+        <div class="shade-nuxeoctl-command monospace"><p>nuxeoctl register</p></div>
       </div>
     </div>
-    <div class="deps-popup">
+    <div class="shade-popup" id="development-mode-disabled">
       <div class="nx-row">
-        <div class="deps-warning">
+        <div class="shade-warning">
+          DEVELOPMENT MODE DISABLED
+        </div>
+      </div>
+      <div class="shade-description">Your server (<span class="monospace" id="serverUrl"></span>) is not in development mode.</div>
+      <div class="shade-instruction">To activate the development mode, define the 
+        <span class="monospace">org.nuxeo.dev=true</span> in your <span class="monospace">nuxeo.conf</span>
+        and restart your server.
+      </div>
+    </div>
+    <div class="shade-popup" id="deps-mismatch">
+      <div class="nx-row">
+        <div class="shade-warning">
           DEPENDENCY MISMATCH
         </div>
       </div>
-      <div class="deps-description">
+      <div class="shade-description">
         Your Studio configuration requires additional dependencies:
       </div>
-      <div class="deps-list">
+      <div class="shade-list">
         <ul id="deps-list">
         </ul>
       </div>
-      <div class="deps-instructions">
+      <div class="shade-instructions">
         To install these dependencies, stop your Nuxeo server and run the following
         <span class="monospace">nuxeoctl</span> command:
-        <div class="nuxeoctl-command monospace">
+        <div class="shade-nuxeoctl-command monospace">
         </div>
         To force the Hot Reload anyway, click the button below. To abort the Hot
         Reload, click Cancel.

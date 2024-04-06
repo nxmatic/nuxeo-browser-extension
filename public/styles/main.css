@@ -682,7 +682,7 @@ ABOUT
 }
 
 /*==============================================================================
-DEPENDENCY POPUP
+SHADE POPUP
 ==============================================================================*/
 
 div.shade {
@@ -696,7 +696,7 @@ div.shade {
   position:   fixed;
 }
 
-div.deps-popup {
+div.shade-popup {
     position: absolute;
     left: 50%;
     top: 40%;
@@ -713,18 +713,18 @@ div.deps-popup {
     z-index: 11;
 }
 
-div.deps-warning {
+div.shade-warning {
   color: #FF0044;
   font-size: 18px;
 }
 
-div.deps-warning,
-div.deps-description {
+div.shade-warning,
+div.shade-description {
   margin: 10px 20px;
 }
 
-div.deps-instructions,
-div.nuxeoctl-command {
+div.shade-instructions,
+div.shade-nuxeoctl-command {
   margin: 10px 20px;
 }
 
@@ -732,8 +732,20 @@ div.nuxeoctl-command {
   font-family: monospace;
 }
 
-div.deps-list,
+div.shade-list,
 div.monospace {
   color: #0D112A;
   font-weight: 500;
+}
+
+#no-studio-package-registered {
+  display: none;
+}
+
+#development-mode-disabled {
+  display: none;
+}
+
+#deps-mismatch {
+  display: none;
 }

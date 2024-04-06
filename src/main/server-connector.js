@@ -72,6 +72,13 @@ class ServerConnector extends ServiceWorkerComponent {
   }
 
   connect(serverUrl) {
+    const url = new URL(serverUrl);
+    const forbiddenDomains = ['connect.nuxeo.com', 'nos-preprod-connect.nuxeo.com'];
+    if (forbiddenDomains.includes(url.host)) {
+      const error = new Error(`Connection to ${url.host} is forbidden`);
+      error.isForbidden = true;
+      throw error;
+    }
     this.nuxeo = new Nuxeo({ baseURL: serverUrl });
     this.serverUrl = serverUrl;
     return this.nuxeo
@@ -99,7 +106,6 @@ class ServerConnector extends ServiceWorkerComponent {
         throw cause;
       });
   }
-
   isConnected() {
     return Promise.resolve(this.disconnect != null);
   }
@@ -124,7 +130,9 @@ class ServerConnector extends ServiceWorkerComponent {
   }
 
   asRegisteredStudioProject() {
-    return this.executeScript('registered-studio-project');
+    return this
+      .executeScript('registered-studio-project')
+      .then((result) => ({ ...result, serverUrl: this.serverUrl }));
   }
 
   asInstalledAddons() {
@@ -139,20 +147,24 @@ class ServerConnector extends ServiceWorkerComponent {
         : ['', '']))
       .then(([login, token]) => this
         .executeScript('developed-studio-projects', [login, token])
-        .then((projects) => Promise
+        .then(({ developmentMode, projects }) => Promise
           .all(projects
             .map(({ packageName, isRegistered }) => this.worker.designerLivePreview
               .isEnabled(packageName)
               .then((isDesignerLivePreviewEnabled) => ({
                 packageName,
                 isRegistered,
-                isDesignerLivePreviewEnabled
+                isDesignerLivePreviewEnabled,
+                developmentMode,
+                serverUrl: this.serverUrl
               }))
               .catch((error) => (
                 {
                   packageName,
                   isRegistered,
                   isDesignerLivePreviewEnabled: false,
+                  developmentMode,
+                  serverUrl: this.serverUrl,
                   inError: {
                     message: error.message,
                     stack: error.stack,

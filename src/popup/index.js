@@ -72,7 +72,7 @@ function loadPage(worker) {
     });
     $('div.nuxeoctl-command').append(nuxeoctlCommand);
     $('div.shade').show();
-    $('div.deps-popup').show();
+    $('div.deps-mismatch').show();
     const msgHeight = document.getElementsByClassName('deps-popup')[0].offsetHeight;
     const htmlHeight = $('html').height();
     if (msgHeight > 360) {
@@ -87,7 +87,7 @@ function loadPage(worker) {
     $('deps-list').empty();
     $('div.nuxeoctl-command').empty();
     $('div.shade').hide();
-    $('div.deps-popup').hide();
+    $('div.deps-mismatch').hide();
     resolve();
   });
 
@@ -166,6 +166,7 @@ function loadPage(worker) {
     $('#no-studio-buttons').css('display', 'block');
     $('div.nuxeoctl-command').append('nuxeoctl register');
     $('div.shade').show();
+    $('#no-studio-package-registered').show();
     worker.desktopNotifier.notify(
       'no_studio_project',
       {
@@ -412,24 +413,26 @@ function loadPage(worker) {
           if (!selectBox) {
             return worker.serverConnector
               .asRegisteredStudioProject()
-              .then(({ package: studioPackage }) => {
-                if (!studioPackage) return undefined;
-                return studioPackage.name;
+              .then((registration) => {
+                const { package: studioPackage } = registration;
+                if (!studioPackage) return registration;
+                return { ...registration, package: studioPackage.name };
               });
           }
-
           return worker.serverConnector
             .asDevelopedStudioProjects()
-            .then((projects) => {
+            .then((info) => {
               // Remove any existing options
               while (selectBox[0].firstChild) {
                 selectBox[0].removeChild(selectBox[0].firstChild);
               }
-              return projects;
+              return info;
             })
-            .then((projects) => {
+            .then((info) => {
+              const { projects } = info;
+
               // skip if no projects
-              if (!projects) return undefined;
+              if (!projects) return info;
 
               // Add an option for each studio package
               let registeredPackageFound = null;
@@ -445,18 +448,21 @@ function loadPage(worker) {
               });
 
               // Return whether an enabled package was found
-              return registeredPackageFound;
+              return { ...info, package: registeredPackageFound };
             });
         })
-        .then((registeredPackage) => ({
-          handle: (registeredPackage
-            ? studioPackageFound
-            : noStudioPackageFound),
-          parms: [connectUrl, registeredPackage]
-        }))
-        .then(({ handle, parms }) => handle(...parms))
-        .catch((error) => {
-          console.error(error);
+        // eslint-disable-next-line no-shadow
+        .then(({ serverUrl, developmentMode, package: registeredPackage }) => {
+          if (!developmentMode) {
+            $('div.shade').show();
+            $('#development-mode-disabled').show();
+            $('#development-mode-disabled #serverUrl').text(serverUrl);
+          }
+          if (registeredPackage) {
+            studioPackageFound(connectUrl, registeredPackage);
+          } else {
+            noStudioPackageFound();
+          }
         }));
 
       pendingPromises.push(worker.serverConnector.executeOperation('Traces.ToggleRecording', { readOnly: true })

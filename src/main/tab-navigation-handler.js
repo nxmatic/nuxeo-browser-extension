@@ -133,7 +133,12 @@ class TabNavigationHandler extends ServiceWorkerComponent {
                 .log(`Handled tab activation <- serverUrl=${serverUrl}, extension=${isEnabled ? 'enabled' : 'disabled'}`, tabInfo)))
             .then(() => serverUrl);
         })
-        .catch((cause) => console.error('Handled tab activation <- caught error', tabInfo, cause)));
+        .catch((cause) => {
+          if (cause.isForbidden) {
+            return;
+          }
+          console.error('Handled tab activation <- caught error', tabInfo, cause);
+        }));
   }
 
   asServerUrl(tabInfo) {
