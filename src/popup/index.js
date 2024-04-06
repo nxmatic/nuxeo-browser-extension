@@ -124,7 +124,6 @@ function loadPage(worker) {
         });
       })
       .catch((cause) => {
-        console.log('Error getting designer live preview status', cause);
         toogleDesignerLivePreviewMessage(cause);
       });
 
@@ -164,6 +163,9 @@ function loadPage(worker) {
   };
 
   const noStudioPackageFound = () => {
+    $('#no-studio-buttons').css('display', 'block');
+    $('div.nuxeoctl-command').append('nuxeoctl register');
+    $('div.shade').show();
     worker.desktopNotifier.notify(
       'no_studio_project',
       {
@@ -410,7 +412,10 @@ function loadPage(worker) {
           if (!selectBox) {
             return worker.serverConnector
               .asRegisteredStudioProject()
-              .then(({ package: { name: packageName } }) => packageName);
+              .then(({ package: studioPackage }) => {
+                if (!studioPackage) return undefined;
+                return studioPackage.name;
+              });
           }
 
           return worker.serverConnector
@@ -571,8 +576,6 @@ function loadPage(worker) {
         '#style-guide',
         'http://showcase.nuxeo.com/nuxeo/styleGuide/'
       );
-
-      let height = $('html').height();
 
       function showSearchResults(icon, title, path, uid, vMajor, vMinor) {
         const iconLink = serverUrl.concat(icon);

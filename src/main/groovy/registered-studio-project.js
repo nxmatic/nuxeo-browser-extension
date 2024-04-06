@@ -28,6 +28,13 @@ export default function registedStudioProject() {
       ]
     }
 
+    def isMatching(snapshotPackage, nxInstance) {
+      if (snapshotPackage == null) {
+        return false
+      }
+      return snapshotPackage.targetPlatforms.any { it == nxInstance.asString() }
+    }
+
     ConnectRegistrationService registrations = Framework.getService(ConnectRegistrationService.class)
     String connectUrl = ConnectUrlConfig.getBaseUrl()
     LogicalInstanceIdentifier clid = registrations.getCLID()
@@ -40,7 +47,7 @@ export default function registedStudioProject() {
       nx: nxInstance.asString(),
       clid: clid,
       connectUrl: connectUrl,
-      match: TargetPlatformFilterHelper.isCompatibleWithTargetPlatform(snapshotPackage, nxInstance),
+      match: isMatching(snapshotPackage, nxInstance),
       package: studioPackage,
     ]
 
