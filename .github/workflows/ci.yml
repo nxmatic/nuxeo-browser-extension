@@ -1,0 +1,68 @@
+name: CI Build
+
+on: 
+  pull_request:
+
+  push:
+    branches:
+      - 'master'
+      - 'develop' # gitflow mainly on hosted runner
+      - '*-maintenance'
+    tags:
+      - 'v*'
+
+  workflow_dispatch:
+    
+  workflow_call:
+
+jobs:
+  build:
+    runs-on:
+      - ${{ github.repository_owner != github.actor && 'ubuntu-latest' || 'self-hosted' }}
+  
+    steps:
+
+      - name: Checkout Commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+      
+      - name: Install pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@next-8 --activate
+      
+      - name: Install dependencies
+        run: pnpm install
+      
+      - name: Build
+        run: pnpm build:chrome
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: chrome
+          path: ./dist/chrome
+
+      - name: Zip artifact
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          cd ./dist/chrome
+          zip -r ../BrowserDeveloperExtension-Chrome-$VERSION.zip .
+
+      - name: Create Release and Upload Asset
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./dist/BrowserDeveloperExtension-Chrome-*.zip
+          draft: true
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
