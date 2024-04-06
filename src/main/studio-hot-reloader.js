@@ -105,17 +105,23 @@ class StudioHotReloader extends ServiceWorkerComponent {
         .then((store) => this.worker.desktopNotifier
           .notify('hot_reload', notification)
           .then(() => ({ response, dependenciesMismatch: store.studioDependenciesMismatch }))))
-      .catch((error) => this.handleLegacyError(error));
+      .catch((error) => this.handleLegacyErrors(error));
   }
 
-  handleLegacyError(error) {
+  handleLegacyErrors(error) {
     return this.worker.serverConnector
       .asRuntimeInfo()
       .then(({ nuxeo, registeredStudioProject }) => {
         if (!registeredStudioProject) {
-          const newError = new Error('Cannot retrieve registered studio project while reloading studio.');
-          newError.originalError = error;
-          throw newError;
+          const notification = {
+            id: 'studio-not-registered',
+            options: {
+              title: 'Studio Project Not Registered',
+              message: 'Cannot retrieve registered studio project while reloading studio.',
+              iconUrl: '../images/access_denied.png',
+            }
+          };
+          return this.worker.serverConnector.handleErrors(error, notification);
         }
         const { package: registeredStudioPackage } = registeredStudioProject || { package: 'unknown' };
         const nuxeoServerVersion = NuxeoServerVersion.create(nuxeo.version);
@@ -123,56 +129,61 @@ class StudioHotReloader extends ServiceWorkerComponent {
         if (!nuxeoServerVersion.lte(nuxeoLegacyVersion)) throw error;
         // Error handling for Nuxeo 9.2 and older
 
-        let message = '';
-        let dependencyError = {};
+        let dependencyErrorNotification = null;
         if (registeredStudioProject.nx !== registeredStudioPackage.studioDistrib[0]) {
-          message += `${registeredStudioPackage.name} - ${registeredStudioPackage.studioDistrib[0]} cannot be installed on Nuxeo ${nuxeo.version}.`;
-          dependencyError = {
-            id: 'dependenciesMismatch',
-            title: 'Dependency Mismatch',
-            message,
-            imageUrl: '../images/access_denied.png',
-            interaction: true,
+          const message = `${registeredStudioPackage.name} - ${registeredStudioPackage.studioDistrib[0]} cannot be installed on Nuxeo ${nuxeo.version}.`;
+          dependencyErrorNotification = {
+            id: 'dependencies-ismatch',
+            options: {
+              title: 'Dependency Mismatch',
+              message,
+              iconUrl: '../images/access_denied.png',
+              interaction: true,
+            }
           };
-        } else {
-          dependencyError = this.worker.serverConnector.defaultServerError;
         }
-        if (!registeredStudioProject.match) {
-          this.handleErrors(error, dependencyError);
+        if (!registeredStudioProject.match && registeredStudioPackage.deps.length > 0) {
           const deps = registeredStudioPackage.deps;
-          if (deps.length > 0) {
-            const items = [];
-            deps.forEach((dep) => {
-              items.push({ title: '', message: dep.name });
-            });
-            this.worker.desktopNotifier
-              .notify(
-                'dependency-check',
-                {
-                  type: 'list',
-                  title: 'Check Dependencies',
-                  message: 'Please check that the following dependencies are installed:',
-                  items,
-                  iconUrl: '../images/access_denied.png',
-                  requireInteraction: true,
-                }
-              ).catch((e) => console.error(e));
-          }
-        } else {
-          this.worker.serverConnector
-            .executeOperation('Service.HotReloadStudioSnapshot')
-            .then(() => {
-              this.worker.desktopNotifier.notify('hot-reload', {
-                title: 'Success!',
-                message: 'A Hot Reload has successfully been completed.',
-                iconUrl: '../images/nuxeo-128.png',
-              });
-              return this.worker.tabNavigationHandler.reloadServerTab();
-            })
-            .catch((er) => {
-              this.handleErrors(er, this.worker.serverConnector.defasultServerError);
-            });
+          const items = [];
+          deps.forEach((dep) => {
+            items.push({ title: '', message: dep.name });
+          });
+          dependencyErrorNotification = {
+            id: 'dependency-check',
+            options: {
+              type: 'list',
+              title: 'Check Dependencies',
+              message: 'Please check that the following dependencies are installed:',
+              items,
+              iconUrl: '../images/access_denied.png',
+              requireInteraction: true,
+            }
+          };
         }
+        if (dependencyErrorNotification) {
+          return this
+            .worker
+            .serverConnector
+            .handleErrors(error, dependencyErrorNotification);
+        }
+        return this
+          .worker
+          .serverConnector
+          .executeOperation('Service.HotReloadStudioSnapshot')
+          .then(() => {
+            this.worker.desktopNotifier.notify('hot-reload', {
+              title: 'Success!',
+              message: 'A Hot Reload has successfully been completed.',
+              iconUrl: '../images/nuxeo-128.png',
+            });
+            return this.worker.tabNavigationHandler.reloadServerTab();
+          })
+          .catch((er) => {
+            this
+              .worker
+              .serverConnector
+              .handleErrors(er);
+          });
       }); // End of executeScript callback
   } // End of the reloadLegacy method
 }

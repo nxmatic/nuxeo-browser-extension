@@ -36,7 +36,12 @@ class DesktopNotifier extends ServiceWorkerComponent {
     const type = options.imageUrl ? 'image' : 'basic';
 
     // Ensure options.type is set to 'basic' or 'image' depending on whether options has an imageUrl property
-    options = { type, requireInteraction: false, ...options };
+    options = {
+      type,
+      requireInteraction: false,
+      iconUrl: '../images/nuxeo-128.png',
+      ...options
+    };
 
     return new Promise((resolve, reject) => {
       chrome.notifications.create(namespacedIdOf(id), options, (notificationId) => {

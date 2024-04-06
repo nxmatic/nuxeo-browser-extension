@@ -197,12 +197,12 @@ class ServerConnector extends ServiceWorkerComponent {
     });
   }
 
-  defaultDesktopNotification = {
+  serverErrorDesktopNotification = {
     id: 'server_error',
     options: {
       title: 'Server Error',
       message: 'Please ensure that Dev Mode is activated.',
-      imageUrl: '../images/access_denied.png',
+      iconUrl: '../images/access_denied.png',
     }
   };
 
@@ -216,7 +216,7 @@ class ServerConnector extends ServiceWorkerComponent {
 
     return this.worker
       .desktopNotifier
-      .notify(id, { ...this.defaultDesktopNotification.options, ...notification });
+      .notify(id, { ...this.serverErrorDesktopNotification.options, ...notification });
   }
 
   desktopCancelNotification(id) {
@@ -225,7 +225,7 @@ class ServerConnector extends ServiceWorkerComponent {
       .cancel(id);
   }
 
-  handleErrors(error, defaultNotification = this.defaultDesktopNotification) {
+  handleErrors(error, defaultNotification = this.serverErrorDesktopNotification) {
     const toMessage = (response) => {
       const contentType = response.headers.get('content-type');
       if (contentType && !contentType.includes('application/json')) {
