@@ -371,6 +371,7 @@ function loadPage(worker) {
       function hideActionsAndToggles() {
         $('.buttons').css('display', 'none');
         $('.toggles').css('display', 'none');
+        $('.search').css('display', 'none');
       }
 
       pendingPromises.push(
@@ -387,8 +388,7 @@ function loadPage(worker) {
           hideActionsAndToggles();
         })
         .catch((error) => {
-          worker.developmentMode.asConsole()
-            .then((console) => console.warn('Not connected, cannot check user role', error));
+          console.warn('Not connected, cannot check user role', error);
           hideActionsAndToggles();
         }));
 
