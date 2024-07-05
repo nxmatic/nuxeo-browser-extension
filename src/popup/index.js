@@ -394,10 +394,10 @@ function loadPage(worker) {
         doGetJson(`id/${input}`);
       }
 
-      function hideActionsAndToggles() {
+      function hideActionsAndToggles(messageId = 'no-admin-rights') {
         $('.buttons').css('display', 'none');
         $('.toggles').css('display', 'none');
-        $('.search').css('display', 'none');
+        $(`#messages > #${messageId}`).css('display', 'block');
       }
 
       pendingPromises.push(

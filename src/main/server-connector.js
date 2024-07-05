@@ -162,7 +162,8 @@ class ServerConnector extends ServiceWorkerComponent {
   asConnectRegistration() {
     return this
       .executeScript('connect-registration')
-      .then((result) => ({ ...result, serverUrl: this.serverUrl }));
+      .then((result) => ({ ...result, serverUrl: this.serverUrl }))
+      .catch((cause) => ({ cause, serverUrl: this.serverUrl }));
   }
 
   asInstalledAddons() {
