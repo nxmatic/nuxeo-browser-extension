@@ -20,7 +20,7 @@ import ServiceWorker from './service-worker';
 const buildTime = import.meta.env.VITE_BUILD_TIMESTAMP;
 const buildVersion = import.meta.env.VITE_BUILD_VERSION;
 const browserVendor = import.meta.env.VITE_BROWSER_VENDOR;
-const developmentMode = import.meta.env.VITE_DEVELOPMENT_MODE;
+const developmentMode = import.meta.env.VITE_DEVELOPMENT_MODE === 'true';
 
 self.addEventListener('activate', new ServiceWorker(developmentMode, buildTime, buildVersion, browserVendor)
   .asPromise()

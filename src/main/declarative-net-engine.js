@@ -3,7 +3,7 @@ import ServiceWorkerComponent from './service-worker-component';
 
 class BaseRule {
   constructor() {
-    this.priority = 1;
+    this.priority = 100;
   }
 
   hashCode() {
@@ -106,9 +106,53 @@ class BasicAuthenticationHeaderRule extends BaseRule {
   }
 }
 
+class CacheControlHeaderRule extends BaseRule {
+  constructor(url, cacheControlHeader) {
+    super();
+
+    // Set properties
+    this.cacheControlHeader = cacheControlHeader;
+    this.url = url;
+
+    // Bind methods
+    Object.getOwnPropertyNames(Object.getPrototypeOf(this))
+      .filter((prop) => typeof this[prop] === 'function' && prop !== 'constructor')
+      .forEach((method) => {
+        this[method] = this[method].bind(this);
+      });
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  key() {
+    return `cacheControlHeader-${this.url}`;
+  }
+
+  toJson(priority = 1) {
+    return {
+      id: this.hashCode(),
+      priority,
+      condition: {
+        urlFilter: this.url.toString(),
+      },
+      action: {
+        type: 'modifyHeaders',
+        requestHeaders: [
+          {
+            header: 'Cache-Control',
+            operation: 'set',
+            value: this.cacheControlHeader,
+          },
+        ],
+      },
+    };
+  }
+}
+
 class RedirectRule extends BaseRule {
   constructor(from, to) {
     super();
+
+    this.priority -= 10;
 
     // Set properties
     this.from = from;
@@ -175,22 +219,23 @@ class DeclarativeNetEngine extends ServiceWorkerComponent {
   activate() {
     return this.asPromise()
       .then(() => {
-        this.worker.developmentMode
-          .asConsole()
-          .then((console) => console.log('DeclarativeNetEngine activated'));
-        const debugListener = (info) => {
-          console.log('Rule matched:', info);
-        };
-        if (!chrome.declarativeNetRequest.onRuleMatchedDebug) {
-          console.warn('Cannot listen on rules matched in declarative net engine');
-          return () => {};
-        }
-        chrome.declarativeNetRequest.onRuleMatchedDebug.addListener(debugListener);
-        return () => {
-          if (chrome.declarativeNetRequest && chrome.declarativeNetRequest.onRuleMatchedDebug) {
-            chrome.declarativeNetRequest.onRuleMatchedDebug.removeListener(debugListener);
-          }
-        };
+        this
+          .asDevelopmentMode()
+          // eslint-disable-next-line no-unused-vars
+          .then((developmentMode) => {
+            console.log('DeclarativeNetEngine activated');
+            const debugListener = (info) => {
+              console.log('Rule matched:', info);
+            };
+            if (!chrome.declarativeNetRequest.onRuleMatchedDebug) {
+              console.warn('Cannot listen on rules matched in declarative net engine');
+              return () => {};
+            }
+            chrome.declarativeNetRequest
+              .onRuleMatchedDebug.addListener(debugListener);
+            return () => chrome.declarativeNetRequest
+              .onRuleMatchedDebug.removeListener(debugListener);
+          });
       });
   }
 
@@ -202,7 +247,7 @@ class DeclarativeNetEngine extends ServiceWorkerComponent {
         return r;
       })
       .then((r) => {
-        this.worker.developmentMode
+        this.worker
           .asConsole()
           .then((console) => console
             .log(`Pushed rule: ${JSON.stringify(r.toJson())}`));
@@ -219,7 +264,7 @@ class DeclarativeNetEngine extends ServiceWorkerComponent {
         return rule;
       })
       .then((rule) => {
-        this.worker.developmentMode
+        this
           .asConsole()
           .then((console) => console
             .log(`Popped rule: ${JSON.stringify(rule.toJson())}`));
@@ -236,7 +281,8 @@ class DeclarativeNetEngine extends ServiceWorkerComponent {
       .then(({ pendingRules, undoRules }) => chrome.declarativeNetRequest
         .updateSessionRules(pendingRules)
         .catch((cause) => {
-          this.worker.developmentMode.asConsole()
+          this
+            .asConsole()
             .then((console) => console
               .log(`Failed to flush rules: ${JSON.stringify(pendingRules)}`, cause));
           throw cause;
@@ -247,7 +293,8 @@ class DeclarativeNetEngine extends ServiceWorkerComponent {
         })
         .then(() => () => chrome.declarativeNetRequest
           .updateSessionRules(undoRules))
-        .then((undo) => this.worker.developmentMode.asConsole()
+        .then((undo) => this
+          .asConsole()
           .then((console) => console.log(`Successfully flushed rules: ${JSON.stringify(pendingRules)}`))
           .then(() => undo)));
   }
@@ -260,11 +307,13 @@ class DeclarativeNetEngine extends ServiceWorkerComponent {
   undo(rules) {
     return chrome.declarativeNetRequest
       .updateSessionRules(rules)
-      .then(() => this.worker.developmentMode.asConsole()
+      .then(() => this
+        .asConsole()
         .then((console) => console
           .log(`Successfully undid flush of rules: ${JSON.stringify(rules)}`)))
       .catch((cause) => {
-        this.worker.developmentMode.asConsole()
+        this
+          .asConsole()
           .then((console) => console
             .log(`Failed to undo flush of rules: ${JSON.stringify(rules)}`, cause));
         throw cause;
@@ -275,7 +324,7 @@ class DeclarativeNetEngine extends ServiceWorkerComponent {
     return Promise.resolve()
       .then(() => chrome.declarativeNetRequest.getSessionRules())
       .then((rules) => {
-        this.worker.developmentMode
+        this
           .asConsole()
           .then((console) => console
             .log(`Flushed rules: ${JSON.stringify(rules)}`));
@@ -320,5 +369,5 @@ class DeclarativeNetEngine extends ServiceWorkerComponent {
 }
 
 export default {
-  BasicAuthenticationHeaderRule, CookieHeaderRule, RedirectRule, DeclarativeNetEngine,
+  BasicAuthenticationHeaderRule, CookieHeaderRule, CacheControlHeaderRule, RedirectRule, DeclarativeNetEngine,
 };

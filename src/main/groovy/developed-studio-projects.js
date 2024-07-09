@@ -37,10 +37,10 @@ export default function developedStudioProjects(login = '', token = '') {
     };
 
     // compute the final output
-    boolean developmentMode = Framework.isDevMode();
+    boolean developmentMode = Framework.isDevModeSet();
 
     Map output = [
-      projects: packagesOutput,
+      projects: projectsOutput,
       developmentMode: developmentMode
     ];
 

@@ -1,6 +1,3 @@
-/* eslint-disable no-return-assign */
-/* eslint-disable no-sequences */
-
 class ServiceWorkerComponent {
   constructor(worker = this) {
     this.worker = worker;
@@ -71,38 +68,49 @@ class ServiceWorkerComponent {
   }
 
   // overidden in components which need to check for availability
-  checkAvailability(self = this) {
-    return Promise.resolve(self);
+  // eslint-disable-next-line class-methods-use-this
+  isAvailable() {
+    return true;
   }
 
   // bootstrapping asynch logic
   asPromise() {
-    if (this._isProxy) {
+    const isProxyKey = Symbol(`${this.constructor.name}:isProxy`);
+    if (this[isProxyKey]) {
       return Promise.resolve(this);
     }
-    const checkAvailability = (target, origProperty) => Promise.resolve()
+    if (this._proxy) {
+      return Promise.resolve(this._proxy);
+    }
+    const checkAvailabilityOn = (target, key) => Promise.resolve()
       .then(() => {
-        if (origProperty && typeof origProperty === 'object') {
-          console.log(`Checking availability of ${origProperty.constructor.name}`);
+        if (!target.isAvailable()) {
+          return Promise.reject(new Error(`${target.constructor.name}.${key} unavailale`));
         }
-        console.log(`Target constructor: ${target.constructor.name}`);
-        if (!target.checkAvailability()) {
-          throw new Error(`${origProperty && origProperty.constructor ? origProperty.constructor.name : 'Property'} is not available`);
-        }
+        return Promise.resolve();
       });
-    const proxy = new Proxy(this, {
+    this._proxy = new Proxy(this, {
       // eslint-disable-next-line no-unused-vars
       get(target, propKey, receiver) {
+        if (propKey === isProxyKey) {
+          return true;
+        }
+        if (propKey === 'then' || propKey === 'catch' || propKey === 'finally') {
+          const origMethod = Reflect.get(target, propKey, receiver);
+          return typeof origMethod === 'function' ? origMethod.bind(target) : origMethod;
+        }
+        if (target.constructor.name === 'DevelopmentMode') {
+          if (propKey === 'toJSON') {
+            const origMethod = Reflect.get(target, propKey, receiver);
+            return typeof origMethod === 'function' ? origMethod.bind(target) : origMethod;
+          }
+        }
         const origProperty = target[propKey];
-        const promise = checkAvailability(target, origProperty);
+        const promise = checkAvailabilityOn(target, propKey);
         if (typeof origProperty === 'function') {
           return function (...args) {
             return promise
-              .then(() => origProperty.apply(target, args))
-              .then((result) => {
-                console.log(`${origProperty.constructor.name} with arguments: ${JSON.stringify(args)} <- ${JSON.stringify(result)}`);
-                return result;
-              });
+              .then(() => origProperty.apply(target, args));
           };
         }
         // Wrap property in a Promise
@@ -110,27 +118,35 @@ class ServiceWorkerComponent {
       },
       // eslint-disable-next-line no-unused-vars
       set(target, propKey, value, receiver) {
-        checkAvailability(target, value)
+        if (propKey === isProxyKey) {
+          return false;
+        }
+        checkAvailabilityOn(target, value)
           .then(() => ({ previous: target[propKey], next: value }))
           .then(({ previous, next }) => {
             target[propKey] = value;
             return { previous, next };
           })
           .then(({ previous, next }) => {
-            const consolePromise = target.worker.developmentMode
-              ? target.worker.developmentMode.asConsole()
-              : Promise.resolve(console);
-            consolePromise
+            target
+              .asConsole()
               .then((console) => {
-                console.log(`Setting value '${value}' to property '${propKey}'`);
-                return { previous, next };
+                console.log(`Setting value '${value}' to property '${target.constructor.name}.${propKey}'`);
               });
+            return { previous, next };
           });
         return true; // Indicates that the assignment succeeded
       },
     });
-    proxy._isProxy = true;
-    return Promise.resolve(proxy);
+    return Promise.resolve(this._proxy);
+  }
+
+  asDevelopmentMode() {
+    return this.worker.developmentMode.asPromise();
+  }
+
+  asConsole(options = { force: false }) {
+    return this.worker.developmentMode.asConsole(options);
   }
 }
 

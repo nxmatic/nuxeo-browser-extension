@@ -216,6 +216,13 @@ HEADINGS
   color: #fff;
 }
 
+.server-name:empty::before,
+.server-name-url:empty::before,
+.studio-package-name:empty::before {
+  content: '\00a0'; /* Non-breaking space */
+  display: inline-block;
+}
+
 .reset,
 .save,
 .grant {
@@ -257,8 +264,15 @@ HEADINGS
   right: 90px;
 }
 
+.highlight-option {
+  display: flex;
+  align-items: center; /* Centers items vertically in the container */
+  justify-content: left; /* Centers items horizontally in the container */
+  gap: 5px; /* Adjust this value as needed to increase or decrease the space */
+  height: 15px; /* Optional: Define a specific height if needed */
+}
+
 #highlight-label {
-  height: 15px;
   padding-top: 0.1em;
   padding-left: 0.1em;
   color: #006CFA;
@@ -275,6 +289,26 @@ label[for="studio-package-name-input"] {
 
 #connect-url-input {
   width: 380px;
+}
+
+#connect-url #buttons {
+  gap: .1em; /* Adjusts the space between the buttons */
+}
+
+/*==============================================================================
+FORMS
+==============================================================================*/
+
+.read-only-form input,
+.read-only-form textarea,
+.read-only-form select {
+  background-color: #f3f3f3; /* Light grey background */
+  color: #666; /* Darker text */
+  border: 1px solid #ccc; /* Light grey border */
+}
+
+.read-only-form select {
+  pointer-events: none; /* Prevent opening dropdown */
 }
 
 /*==============================================================================

@@ -1,3 +1,4 @@
+/* eslint-disable no-sequences */
 /* eslint-disable function-paren-newline */
 /* eslint-disable implicit-arrow-linebreak */
 /* eslint-disable max-classes-per-file */
@@ -23,6 +24,7 @@ import ServiceWorkerComponent from './service-worker-component';
 
 const BasicAuthenticationHeaderRule = DeclarativeNetComponents.BasicAuthenticationHeaderRule;
 const CookieHeaderRule = DeclarativeNetComponents.CookieHeaderRule;
+const CacheControlHeaderRule = DeclarativeNetComponents.CacheControlHeaderRule;
 const RedirectRule = DeclarativeNetComponents.RedirectRule;
 
 class DesignerLivePreview extends ServiceWorkerComponent {
@@ -54,6 +56,10 @@ class DesignerLivePreview extends ServiceWorkerComponent {
         .declarativeNetEngine.push(new CookieHeaderRule(domain, cookieHeader)));
   }
 
+  pushNoCacheControlHeaderOf(url) {
+    return this.worker.declarativeNetEngine.push(new CacheControlHeaderRule(url, 'no-cache, no-store, must-revalidate'));
+  }
+
   pushRedirectionsOf(json, credentials = undefined, runtimeInfo = this.worker.serverConnector.runtimeInfo) {
     const { serverUrl: serverLocation, connectRegistration: { connectUrl: connectLocation } } = runtimeInfo;
     const serverUrl = new URL(serverLocation);
@@ -74,10 +80,14 @@ class DesignerLivePreview extends ServiceWorkerComponent {
         const resourceConnectUrl = new URL(json[basePath][resourcePath]);
         const updatedResourceConnectUrl = new URL(`${resourceConnectUrl.pathname}${resourceConnectUrl.search}${resourceConnectUrl.hash}`, connectUrl);
 
+        const subPromises = [
+          this.pushNoCacheControlHeaderOf(resourceConnectUrl),
+          this.pushRedirection(resourceNuxeoUrl, updatedResourceConnectUrl),
+        ];
         if (credentials) {
-          this.pushAuthentication(updatedResourceConnectUrl, credentials);
+          subPromises.push(this.pushAuthentication(updatedResourceConnectUrl, credentials));
         }
-        return this.pushRedirection(resourceNuxeoUrl, updatedResourceConnectUrl);
+        return Promise.all(subPromises);
       });
     });
 
@@ -151,10 +161,10 @@ class DesignerLivePreview extends ServiceWorkerComponent {
     return this.worker.connectLocator
       .asRegistration()
       .then(({ location, credentials }) => {
-        const url = new URL(`studio/v2/project/${projectName}/workspace/ws.resources`, location);
-        return { url, credentials };
+        const workspaceUrl = new URL(`studio/v2/project/${projectName}/workspace/ws.resources`, location);
+        return { workspaceUrl, credentials };
       })
-      .then(({ url: workspaceUrl, credentials }) => fetch(workspaceUrl, {
+      .then(({ workspaceUrl, credentials }) => fetch(workspaceUrl, {
         credentials: 'include',
       })
         .then((response) => ({ workspaceUrl, response, credentials })))
@@ -195,6 +205,7 @@ class DesignerLivePreview extends ServiceWorkerComponent {
           .then(() => this.pushCookieHeaderOf(workspaceUrl))
           .then(() => this.pushRedirectionsOf(json, credentials))
           .then(() => this.worker.declarativeNetEngine.flush())
+          .then((undo) => (this.worker.tabNavigationHandler.reloadServerTab({ byPassCache: true }), undo))
           .then((undo) => this.undoByProjectNames.set(projectName, undo))
           .then(() => true));
   }

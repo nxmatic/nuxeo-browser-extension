@@ -51,52 +51,52 @@ class TabNavigationHandler extends ServiceWorkerComponent {
       .then(([tabInfo]) => tabInfo);
   }
 
-  reloadServerTab(context = {
-    rootUrl: this.worker.serverConnector.serverUrl,
-    tabInfo: this.tabInfo
-  }, maxAttempts = 1, waitingTime = 4000, hasReloaded = false) {
-    return Promise.resolve(context)
-      .then(({ rootUrl, tabInfo }) => {
-        if (!tabInfo) {
-          throw new Error('No nuxeo server tab info selected');
-        }
-        return { rootUrl, tabInfo };
-      }).then(({ rootUrl }) => {
-        const runningStatusUrl = `${rootUrl}/runningstatus`;
-        let attempts = 0;
-        const checkStatus = () => {
-          attempts += 1;
-          if (attempts > maxAttempts) {
-            throw new Error(`Maximum number of attempts reached on ${rootUrl}...`);
+  reloadServerTab(overrideOptions = {}) {
+    const defaultOptions = {
+      rootUrl: this.worker.serverConnector.serverUrl,
+      tabInfo: this.tabInfo,
+      maxAttempts: 1,
+      waitingTime: 4000,
+      bypassCache: false
+    };
+    const {
+      rootUrl, tabInfo, maxAttempts, waitingTime, bypassCache
+    } = { ...defaultOptions, ...overrideOptions };
+    if (!tabInfo) {
+      return Promise.reject(new Error('No nuxeo server tab info selected'));
+    }
+    const runningStatusUrl = `${rootUrl}/runningstatus`;
+    let attempts = 0;
+    const checkStatus = () => {
+      attempts += 1;
+      if (attempts > maxAttempts) {
+        throw new Error(`Maximum number of attempts reached on ${rootUrl}...`);
+      }
+      return fetch(runningStatusUrl)
+        .then((response) => {
+          if (!response.ok) {
+            // If the status page is not available, check again after a delay
+            return new Promise((resolve) => setTimeout(resolve, waitingTime))
+              .then(checkStatus);
           }
-          return fetch(runningStatusUrl)
-            .then((response) => {
-              if (!response.ok) {
-              // If the status page is not available, check again after a delay
-                return new Promise((resolve) => setTimeout(resolve, waitingTime))
-                  .then(checkStatus);
-              }
-              // Reload the tab only if it has not been reloaded yet
-              if (!hasReloaded) {
-              // chrome.tabs.reload(tabInfo.id);
-                hasReloaded = true; // Update the flag to prevent further reloads
-              }
-              return response;
-            })
-            .catch(() => new Promise((resolve) => setTimeout(resolve, waitingTime))
-              .then(checkStatus));
-        };
-        // Start checking the status
-        return checkStatus();
-      });
+          chrome.tabs.reload(tabInfo.id, { bypassCache });
+          return response;
+        })
+        .catch(() => new Promise((resolve) => setTimeout(resolve, waitingTime))
+          .then(checkStatus));
+    };
+    // Start checking the status
+    return checkStatus();
   }
 
   updateServerTab(inputUrl, appendNuxeBasePath = false) {
     return this.asTabParams(inputUrl, appendNuxeBasePath)
-      .then((tabParams) => chrome.tabs.update(tabParams.openerTabId, {
-        url: tabParams.url,
-        selected: true
-      }));
+      .then((tabParams) => chrome.tabs
+        .update(tabParams.openerTabId, {
+          url: tabParams.url,
+          active: true,
+          highlighted: true,
+        }));
   }
 
   loadNewExtensionTab(inputUrl, appendNuxeBasePath = false) {
@@ -114,8 +114,9 @@ class TabNavigationHandler extends ServiceWorkerComponent {
         if (!appendNuxeBasePath) return { url: inputUrl, openerTabId: tabInfo.id };
         if (!inputUrl) return { url: tabInfo.url, openerTabId: tabInfo.id };
         return this.worker.serverConnector.asPromise()
-          .then((serverConnector) => ({
-            url: `${serverConnector.serverUrl}/${inputUrl}`,
+          .then((serverConnector) => serverConnector.serverUrl)
+          .then((serverUrl) => ({
+            url: `${serverUrl}/${inputUrl}`,
             openerTabId: tabInfo.id
           }));
       });

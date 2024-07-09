@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 /*
 Copyright 2016-2024 Nuxeo
 
@@ -31,27 +32,27 @@ class RepositoryIndexer extends ServiceWorkerComponent {
   }
 
   reindex(input = undefined) {
+    const errorMessage = `Your repository index is rebuilding (${input ? JSON.stringify(input) : 'all documents'}).`;
     return this.worker.serverConnector
       .executeOperation('Elasticsearch.Index', {}, input)
-      .then(() => {
-        this.worker.desktopNotifier.notify('repository-reindexing', {
-          title: 'Indexing!',
-          message: `Your repository index is rebuilding (${input ? JSON.stringify(input) : 'all documents'}).`,
-          iconUrl: '../images/nuxeo-128.png',
-        });
+      .then(() => this.worker.desktopNotifier.notify('repository-reindexing', {
+        title: 'Indexing!',
+        message: errorMessage,
+        iconUrl: '../images/nuxeo-128.png',
       })
-      .then(() => {
-        this.waiting = this.waitForIndexing();
-        return true;
-      })
-      .catch((cause) => {
-        this.worker.desktopNotifier.notify('repository-reindexing', {
-          title: 'Something went wrong...',
-          message: `${cause.message}\nPlease try again later.`,
-          iconUrl: '../images/access_denied.png',
-        });
-        return false;
-      });
+        .then(() => {
+          this.waiting = this.waitForIndexing();
+          return true;
+        })
+        .catch((cause) => {
+          class IndexingError extends Error {
+            constructor() {
+              super(errorMessage);
+              this.cause = cause;
+            }
+          }
+          throw new IndexingError();
+        }));
   }
 
   waitForIndexing() {
@@ -62,14 +63,7 @@ class RepositoryIndexer extends ServiceWorkerComponent {
       .then((response) => {
         return this.worker.desktopNotifier.cancel('repository-reindexing');
       })
-      .then(() => { this.waiting = undefined; })
-      .catch((cause) => {
-        this.worker.desktopNotifier.notify('repository-reindexing', {
-          title: 'Something went wrong...',
-          message: `${cause.message}\nPlease try again later.`,
-          iconUrl: '../images/access_denied.png',
-        });
-      });
+      .then(() => { this.waiting = undefined; });
     return this.waiting;
   }
 }

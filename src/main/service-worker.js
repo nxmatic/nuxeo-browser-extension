@@ -54,15 +54,44 @@ class ServiceWorkerMessageHandler extends ServiceWorkerComponent {
       if (typeof component[request.action] !== 'function') {
         return Promise.reject(new Error(`Invalid action ${JSON.stringify(request)}`));
       }
-      this.worker.developmentMode
+      this
         .asConsole()
         .then((console) => console
           .log(`ServiceWorkerMessageHandler.handle(${JSON.stringify(request)}) called`));
+
+      const errorResponseOf = async (cause) => {
+        const errorProperties = await Object.getOwnPropertyNames(cause).reduce(async (accPromise, key) => {
+          const acc = await accPromise;
+          const value = cause[key];
+
+          // Check if the property is a promise and await its resolution if it is
+          if (value instanceof Promise) {
+            try {
+              acc[key] = await value;
+            } catch (innerError) {
+              acc[key] = `Error resolving promise for ${key}: ${innerError}`;
+            }
+          } else {
+            acc[key] = value;
+          }
+
+          return acc;
+        }, Promise.resolve({}));
+
+        // Construct and return the error response
+        return {
+          error: {
+            message: cause.message,
+            stack: cause.stack,
+            ...errorProperties
+          }
+        };
+      };
       return component.asPromise()
         .then((componentInstance) => componentInstance[request.action](...request.params))
-        .catch((cause) => ({ error: { message: cause.message, stack: cause.stack, response: cause.response } }))
-        .then((response) => this.worker.developmentMode
-          .asConsole()
+        .catch(errorResponseOf)
+        .then((response) => this
+          .asConsole({ force: true })
           .then((console) => console
             .log(`ServiceWorkerMessageHandler.handle(${JSON.stringify(request)}) <- ${JSON.stringify(response)}`))
           .then(() => response));
@@ -105,7 +134,7 @@ class ServiceWorker extends ServiceWorkerComponent {
     // in order to invoke other services. The order is important as
     // services may be invoked while constructing.
     this.buildInfo = new RuntimeBuildComponent
-      .RuntimeBuildInfo(this, buildTime, buildVersion, browserVendor);
+      .RuntimeBuildInfo(this, buildTime, buildVersion, browserVendor, developmentMode);
     this.browserStore = new BrowserStore(this);
     this.cookieManager = new CookieManager(this);
     this.componentInventory = new ServiceWorkerComponentInventory(this);
@@ -113,7 +142,6 @@ class ServiceWorker extends ServiceWorkerComponent {
     this.declarativeNetEngine = new DeclarativeNetEngine(this);
     this.designerLivePreview = new DesignerLivePreview(this);
     this.desktopNotifier = new DesktopNotifier(this);
-    this.developmentMode = new RuntimeBuildComponent.DevelopmentMode(this, developmentMode);
     this.documentBrowser = new DocumentBrowser(this);
     this.jsonHighlighter = new JSONHighlighter(this);
     this.repositoryIndexer = new RepositoryIndexer(this);
@@ -158,7 +186,8 @@ class ServiceWorker extends ServiceWorkerComponent {
             if (typeof component.activate !== 'function') return () => {};
             return component
               .activate(self)
-              .then((cleanup) => worker.developmentMode.asConsole()
+              .then((cleanup) => this
+                .asConsole()
                 .then((console) => console
                   .log(`ServiceWorkerComponent.activate(${component.constructor.name}) called`))
                 .then(() => cleanup));

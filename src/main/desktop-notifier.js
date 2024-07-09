@@ -22,16 +22,18 @@ const namespacedIdOf = (id) => `nuxeo-web-extension-${id}`;
 class DesktopNotifier extends ServiceWorkerComponent {
   constructor(worker) {
     super(worker);
-
+    // disable timeout in development mode
+    this._notificationTimeout = worker.developmentMode?.isEnabled() ? 0 : 10000;
     // Bind methods
     Object.getOwnPropertyNames(Object.getPrototypeOf(this))
       .filter((prop) => typeof this[prop] === 'function' && prop !== 'constructor')
       .forEach((method) => {
         this[method] = this[method].bind(this);
       });
+    return this;
   }
 
-  notify(id, options) {
+  notify(id, options, notificationTimeout = this._notificationTimeout) {
     // Check if options has an imageUrl property
     const type = options.imageUrl ? 'image' : 'basic';
 
@@ -42,30 +44,43 @@ class DesktopNotifier extends ServiceWorkerComponent {
       iconUrl: '../images/nuxeo-128.png',
       ...options
     };
-
     return new Promise((resolve, reject) => {
       chrome.notifications.create(namespacedIdOf(id), options, (notificationId) => {
+        const notification = { id: notificationId, options };
         if (chrome.runtime.lastError) {
-          console.groupCollapsed('Notification Error');
-          console.warn('Failed to create notification');
+          // log the error
+          console.groupCollapsed('Notification: creation error');
+          console.info('Options', options);
           console.error(chrome.runtime.lastError);
-          console.info('Notification ID:', notificationId);
-          console.info('Options:', options);
           console.groupEnd();
 
           const error = new Error('Failed to create notification');
           error.cause = chrome.runtime.lastError;
-          error.info = { id: notificationId, options };
+          error.info = notification;
           return reject(error);
         }
+
+        // always log the notification
+        console.group(`Notification: ${notificationId}`);
+        console.info(`${JSON.stringify(options)}`);
+        console.groupEnd();
+
         if (!options.requireInteraction) {
-          return resolve(notificationId);
-        }
-        chrome.notifications.onClicked.addListener((clickedId) => {
-          if (clickedId === notificationId) {
-            resolve(notificationId);
+          if (notificationTimeout) {
+            setTimeout(
+              () => chrome.notifications.clear(notificationId, () => {}),
+              notificationTimeout
+            );
           }
-        });
+          return resolve(notification);
+        }
+
+        // wait for user acknowledge
+        const resolveIfMatchingId = (clickedId) => {
+          if (clickedId !== notificationId) return;
+          resolve(notification);
+        };
+        chrome.notifications.onClicked.addListener(resolveIfMatchingId);
         return undefined;
       });
     });

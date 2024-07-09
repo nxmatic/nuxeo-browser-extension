@@ -28,34 +28,31 @@ class GroovyScriptManager {
 }
 
 class ServerConnector extends ServiceWorkerComponent {
+  static noop = () => {};
+
   constructor(worker) {
     super(worker);
 
     this.groovyScriptManager = new GroovyScriptManager();
 
     // Define properties
-    this.disconnect = () => {};
+    this.disconnect = this.noop;
     this.nuxeo = undefined;
     this.serverUrl = undefined;
     this.project = undefined;
 
-    this.nuxeoUrlOf = (tabLocation) => {
-      // eslint-disable-next-line operator-linebreak
-      // Regular expression pattern
-      const nxPattern = new RegExp([
-        '(^https?:\\/\\/[A-Za-z_\\.0-9:-]+\\/[A-Za-z_\\.0-9-]+)', // Match the start of a URL
-        '(',
-        '\\/(?:',
-        '(?:nxdoc|nxpath|nxsearch|nxadmin|nxhome|nxdam|nxdamid|site\\/[A-Za-z_\\.0-9-]+)\\/[A-Za-z_\\.0-9-]+|',
-        'view_documents\\.faces|ui\\/|ui\\/#!\\/|view_domains\\.faces|home\\.html|view_home\\.faces',
-        '))'
-      ].join(''));
-      // match and reject non matching URLs
-      const matchGroups = nxPattern.exec(tabLocation);
-      const isMatching = Boolean(matchGroups && matchGroups[2]);
-      const [, extractedLocation] = isMatching ? matchGroups : [];
+    this.serverUrlOf = (tabLocation) => {
+      // Simplified regular expression pattern to match the web context
+      const pattern = new RegExp('^(https?:\\/\\/[A-Za-z_\\.0-9:-]+\\/)([A-Za-z_\\.0-9-]+)');
 
-      return isMatching ? new URL(extractedLocation) : undefined;
+      // Execute the pattern on the tabLocation
+      const matchGroups = pattern.exec(tabLocation);
+
+      // Check if there is a match
+      const isMatching = Boolean(matchGroups && matchGroups[1] && matchGroups[2]);
+
+      // Extract the web context if matched
+      return isMatching ? new URL(`${matchGroups[1]}${matchGroups[2]}`) : undefined;
     };
 
     // Bind methods
@@ -74,85 +71,110 @@ class ServerConnector extends ServiceWorkerComponent {
     };
   }
 
-  checkAvailability() {
-    return this.isConnected()
-      .then((isConnected) => {
-        if (!isConnected) throw new Error('Not connected to Nuxeo');
-      });
-  }
-
-  onNewLocation(tabLocation) {
-    return this.asPromise()
-      .then((self) => (this.disconnect(), self))
-      .then((self) => {
-        const nuxeoUrl = self.nuxeoUrlOf(tabLocation);
-        if (nuxeoUrl === undefined) {
-          return undefined;
-        }
-        self.connect(nuxeoUrl);
-        return nuxeoUrl;
-      });
-  }
-
-  connect(serverUrl, tabInfo) {
-    const forbiddenDomains = ['connect.nuxeo.com', 'nos-preprod-connect.nuxeo.com'];
-    if (forbiddenDomains.includes(serverUrl.host)) {
-      return Promise.reject(new Error(`Connection to ${serverUrl.host} is forbidden`));
+  checkOperableDomain(serverUrl, connectOptions) {
+    const { forceForbiddenDomains } = connectOptions;
+    const forbiddenDomains = [
+      { host: 'connect.nuxeo.com', production: true },
+      { host: 'nos-preprod-connect.nuxeocloud.com', production: false },
+    ];
+    const forbiddenDomainByHost = forbiddenDomains.reduce((acc, domain) => {
+      acc[domain.host] = domain;
+      return acc;
+    }, {});
+    // check domains
+    if (
+      forceForbiddenDomains ||
+      !(serverUrl.host in forbiddenDomainByHost)) {
+      return Promise.resolve();
     }
-    this.serverUrl = serverUrl;
-    this.nuxeo = new Nuxeo({ baseURL: serverUrl.toString() });
-    return this.nuxeo.connect()
-      // eslint-disable-next-line no-return-assign
-      .then(() => (this.fetchAndSetRuntimeInfo(), this))
-      .then(() => {
-        // Define disconnect logic here or in a separate method
-        this.disconnect = () => {
+    const forbiddenDomain = forbiddenDomainByHost[serverUrl.host];
+    // should use another way to detect a connect server
+    let notification = {
+      id: 'forbidden_domain',
+      options: {
+        ...ServerConnector.serverErrorDesktopNotification.options,
+        message: `
+You are trying to connect to a Nuxeo Connect server.
+This extension is only compatible with Nuxeo Platform servers.
+`
+      }
+    };
+    const isDevelopmentMode = this.worker.developmentMode.isEnabled();
+    if (isDevelopmentMode && !forbiddenDomain.production) {
+      notification = {
+        ...notification,
+        buttons: [
+          { title: 'Force' },
+          { title: 'Close' }
+        ],
+        requireInteraction: true,
+      };
+      notification.requireInteraction = true; // Keep the notification until an action is taken
+    }
+
+    return Promise.reject(this.connectionErrorOf(`Connection to ${serverUrl.host} is forbidden`, notification));
+  }
+
+  connect(serverUrl, tabInfo, connectOptions = { forceForbiddenDomains: false }) {
+    return this.checkOperableDomain(serverUrl, connectOptions)
+      .then(() => new Nuxeo({ baseURL: serverUrl })
+        .connect()
+        .then((nuxeo) => {
+          this.nuxeo = nuxeo;
+          this.serverUrl = serverUrl;
+          return Promise.all([
+            this.asInstalledAddons().catch(() => []), // Return empty array on error
+            this.asConnectRegistration().catch(() => ({})), // Return empty object on error
+          ])
+            .then(([installedAddons, connectRegistration]) => ({
+              nuxeo,
+              serverUrl: nuxeo._baseURL,
+              installedAddons,
+              connectRegistration,
+            }))
+            .then((runtimeInfo) => {
+              this.disconnect = () => {
+                this.nuxeo = undefined;
+                this.runtimeInfo = undefined;
+                this.serverUrl = undefined;
+                this.worker.tabNavigationHandler.disableTabExtension(tabInfo);
+              };
+              this.nuxeo = nuxeo;
+              this.runtimeInfo = runtimeInfo;
+              this.worker.tabNavigationHandler.enableTabExtension(tabInfo);
+            });
+        })
+        .catch((cause) => {
+          this.disconnect = this.noop;
           this.nuxeo = undefined;
           this.runtimeInfo = undefined;
           this.serverUrl = undefined;
-          this.worker.tabNavigationHandler.disableTabExtension(tabInfo);
-        };
-        this.worker.tabNavigationHandler.enableTabExtension(tabInfo);
-        return this;
-      })
-      .catch((cause) => {
-        this.disconnect = () => {};
-        this.nuxeo = undefined;
-        this.serverUrl = undefined;
-        console.warn(`Cannot connect to : ${serverUrl}...`, cause);
-        this.worker.desktopNotifier.notify('error', {
-          title: `Cannot connect to : ${serverUrl}...`,
-          message: `Got errors while accessing nuxeo at ${serverUrl}. Error: ${cause.message}`,
-          iconUrl: '../images/access_denied.png',
-        });
-        return () => {};
-      });
+          const notification = this.notifyError(cause);
+          return Promise.reject(this.connectionErrorOf(`Cannot establish connection with ${serverUrl}`, notification));
+        }));
   }
 
   isConnected() {
-    return Promise.resolve(this.disconnect != null);
+    return Promise
+      .resolve(this.disconnect !== this.noop);
+  }
+
+  checkLiveConnection() {
+    return this.isConnected()
+      .then((isConnected) => {
+        if (!isConnected) return false;
+        return this.nuxeo
+          .users()
+          .fetch(this.nuxeo.user.username)
+          .then(() => true);
+      });
   }
 
   asRuntimeInfo() {
-    if (this.runtimeInfo) {
-      return Promise.resolve(this.runtimeInfo);
+    if (!this.runtimeInfo) {
+      return Promise.reject(this.connectionErrorOf('Not connected to Nuxeo'));
     }
-    return this.fetchAndSetRuntimeInfo();
-  }
-
-  fetchAndSetRuntimeInfo() {
-    return this.asNuxeo()
-      .then((nuxeo) => Promise.all([
-        this.asInstalledAddons().catch(() => []), // Return empty array on error
-        this.asConnectRegistration().catch(() => ({})), // Return empty object on error
-      ])
-        // eslint-disable-next-line no-return-assign
-        .then(([installedAddons, connectRegistration]) => (this.runtimeInfo = {
-          nuxeo,
-          serverUrl: nuxeo._baseURL,
-          installedAddons,
-          connectRegistration,
-        })));
+    return Promise.resolve(this.runtimeInfo);
   }
 
   asConnectLocation() {
@@ -230,69 +252,32 @@ class ServerConnector extends ServiceWorkerComponent {
           .executeScript('register-developed-studio-project', [login, token, projectName, clid])));
   }
 
-  asNuxeo() {
-    return this.worker
-      .tabNavigationHandler.asTabInfo()
-      .then((tabInfo) => this.nuxeoUrlOf(tabInfo.url))
-      .then((nuxeoUrl) => {
-        if (nuxeoUrl === undefined) {
-          return undefined;
+  asNuxeo(connectionOptions) {
+    return this.worker.tabNavigationHandler
+      .asTabInfo()
+      .then((tabInfo) => {
+        const serverUrl = this.serverUrlOf(tabInfo.url);
+        const attemptConnection = () => this.connect(serverUrl, tabInfo, connectionOptions).then(() => this.nuxeo);
+        const urlEquals = (url1, url2) => url1.protocol === url2.protocol &&
+          url1.hostname === url2.hostname &&
+          url1.port === url2.port &&
+          url1.pathname === url2.pathname;
+        if (this.nuxeo !== undefined && urlEquals(this.nuxeo._baseURL, serverUrl) && this.nuxeo.connected) {
+          // Attempt to refetch the logged user to ensure connection is still valid
+          const refetchUser = () => this.nuxeo.users().fetch(this.nuxeo.user.id);
+          return refetchUser()
+            .then(() => this.nuxeo) // Connection is valid
+            .catch((error) => {
+              console.error('Failed to refetch the user, connection might be lost.', error);
+              return attemptConnection();
+            });
         }
-        if (this.nuxeo && this.nuxeo._baseURL === nuxeoUrl.toString()) {
-          return this.nuxeo;
-        }
-        return this.connect(serverUrl, tabInfo)
-          .then(() => {
-            if (this.nuxeo === undefined) {
-              throw Error('Not connected to Nuxeo');
-            }
-            return this.nuxeo;
-          })
-          .catch((error) => {
-            this.nuxeo = undefined;
-            this.serverUrl = undefined;
-            throw error;
-          });
+        // Not connected or different server, attempt to connect
+        return attemptConnection();
       });
   }
 
-  asServerUrl(tabInfo) {
-    return this.asPromise()
-      .then((self) => self.nuxeoUrlOf(tabInfo))
-      .then((nuxeoUrl) => {
-        if (!nuxeoUrl) return undefined;
-        return fetch(`${nuxeoUrl}/site/automation`, {
-          method: 'GET',
-          credentials: 'include', // Include cookies in the request
-        })
-          .then((response) => {
-            if (response.ok || response.status !== 401) return response;
-            this.worker.desktopNotifier.notify('unauthenticated', {
-              title: `Not logged in page: ${tabInfo.url}...`,
-              message: 'You are not authenticated. Please log in and try again.',
-              iconUrl: '../images/access_denied.png',
-            });
-            return this.worker.tabNavigationHandler.reloadServerTab({ rootUrl: nuxeoUrl, tabInfo });
-          })
-          .then((response) => {
-            if (response.ok) return response;
-            response.text().then((errorText) => {
-              this.worker.desktopNotifier.notify('error', {
-                title: `Not a Nuxeo server tab : ${tabInfo.url}...`,
-                message: `Got errors while accessing automation status page at ${response.url}. Error: ${errorText}`,
-                iconUrl: '../images/access_denied.png',
-              });
-            });
-            throw new Error(`Not a nuxeo server tab : ${tabInfo.url}...`);
-          })
-          .then(() => {
-            this.worker.desktopNotifier.cancel('unauthenticated');
-            return nuxeoUrl;
-          });
-      });
-  }
-
-  serverErrorDesktopNotification = {
+  static serverErrorDesktopNotification = {
     id: 'server_error',
     options: {
       title: 'Server Error',
@@ -301,17 +286,21 @@ class ServerConnector extends ServiceWorkerComponent {
     }
   };
 
-  desktopNotify(id, notification) {
-    const { title, message, imageUrl } = notification;
-    console.group(`Notification: ${id}`);
-    console.log(`Title: ${title}`);
-    console.log(`Message: ${message}`);
-    console.log(`Image URL: ${imageUrl}`);
-    console.groupEnd();
+  // eslint-disable-next-line class-methods-use-this
+  connectionErrorOf(message, options = ServerConnector.serverErrorDesktopNotification) {
+    class ConnectionError extends Error {
+      constructor() {
+        super(message);
+        this.notification = options;
+      }
+    }
+    return new ConnectionError(message);
+  }
 
+  desktopNotify(id = ServerConnector.serverErrorDesktopNotification.id, notification) {
     return this.worker
       .desktopNotifier
-      .notify(id, { ...this.serverErrorDesktopNotification.options, ...notification });
+      .notify(id, { ...ServerConnector.serverErrorDesktopNotification.options, ...notification });
   }
 
   desktopCancelNotification(id) {
@@ -320,56 +309,46 @@ class ServerConnector extends ServiceWorkerComponent {
       .cancel(id);
   }
 
-  handleErrors(error, defaultNotification = this.serverErrorDesktopNotification) {
-    const toMessage = (response) => {
+  notifyError(cause) {
+    const jsonErrorOf = (response) => {
       const contentType = response.headers.get('content-type');
       if (contentType && !contentType.includes('application/json')) {
-        return error.response
+        return cause.response
           .text()
           .then((text) => ({
             message: `status: ${response.status} ${response.statusText}\ntext: ${text}`
           }));
       }
-      return error.response.json();
+      return cause.response.json();
     };
-    return toMessage(error.response)
+    return jsonErrorOf(cause.response)
       .then((json) => {
-        const err = error.response.status;
+        const status = cause.response.status;
         if (json.message === null) {
-          this.desktopNotify('no_hot_reload', {
-            ...defaultNotification.options,
+          return this.desktopNotify('no_hot_reload', {
             title: 'Hot Reload Operation not found.',
             message: 'Your current version of Nuxeo does not support the Hot Reload function.',
-            iconUrl: '/images/access_denied.png',
-          });
-        } else if (err === 401) {
-          this.desktopNotify('access_denied', {
-            ...defaultNotification.options,
-            title: 'Access denied!',
-            message: 'You must have Administrator rights to perform this function.',
-            iconUrl: '../images/access_denied.png',
-          });
-        } else if (err >= 500) {
-          this.desktopNotify(defaultNotification.id, {
-            ...defaultNotification.options,
-            message: `${defaultNotification.message}...\n${json.message}`,
-          });
-        } else if (err >= 300 && err < 500) {
-          this.desktopNotify('bad_login', {
-            ...defaultNotification.options,
-            title: 'Bad Login',
-            message: 'Your Login and/or Password are incorrect',
-            iconUrl: '/images/access_denied.png',
-          });
-        } else {
-          this.desktopNotify('unknown_error', {
-            ...defaultNotification.options,
-            title: 'Unknown Error',
-            message: `An unknown error has occurred. Please try again later...\n${json.message}`,
-            iconUrl: '/images/access_denied.png',
           });
         }
-        return error.response;
+        if (status === 401) {
+          return this.desktopNotify('access_denied', {
+            title: 'Access denied!',
+            message: 'You should login to interact with the nuxeo web extension.',
+          });
+        }
+        if (status >= 500) {
+          return this.desktopNotify();
+        }
+        if (status >= 300 && status < 500) {
+          return this.desktopNotify('bad_login', {
+            title: 'Bad Login',
+            message: 'Your Login and/or Password are incorrect',
+          });
+        }
+        return this.desktopNotify('unknown_error', {
+          title: 'Unknown Error',
+          message: `An unknown error has occurred. Please try again later...\n${json.message}`,
+        });
       });
   }
 
@@ -417,7 +396,7 @@ class ServerConnector extends ServiceWorkerComponent {
         if (!cause.response) {
           throw cause;
         }
-        return this.handleErrors(cause, this.defaultServerError);
+        return this.notifyError(cause);
       }));
   }
 
@@ -445,28 +424,17 @@ class ServerConnector extends ServiceWorkerComponent {
   }
 
   restart() {
-    return this.asPromise()
-      .then(() => this
-        .desktopNotify('reload', {
-          title: 'Restarting server...',
-          message: `Attempting to restart Nuxeo server (${this.serverUrl})`,
-          iconUrl: '../images/nuxeo-128.png',
-        }))
+    return Promise.resolve()
       .then(() => this.worker.tabNavigationHandler
-        .updateServerTab('site/connectClient/restartView', true))
-      .then(() => this
-        .desktopCancelNotification('reload'))
-      .catch((cause) => {
-        this
-          .desktopNotify('error', {
-            title: 'Something went wrong...',
-            message: `An error occurred (${this.serverUrl}) : ${cause.message}`,
-            iconUrl: '../images/access_denied.png',
-          });
-        const error = new Error(`Error restarting server '${cause.message}'`);
-        error.cause = cause;
-        throw error;
-      });
+        .updateServerTab(`${this.serverUrl}/site/connectClient/restartView`, false))
+      .catch((cause) => this
+        .desktopNotify('error', {
+          title: 'Something went wrong...',
+          message: `An error occurred (${this.serverUrl}) : ${cause?.message}`,
+          iconUrl: '../images/access_denied.png',
+        })
+        .then((notification) => Promise
+          .reject(new Error(notification.options.message))));
   }
 }
 

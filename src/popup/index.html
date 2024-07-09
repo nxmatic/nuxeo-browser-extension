@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <!--
     Copyright 2016-2024 Nuxeo
 
@@ -21,9 +22,6 @@
     <script type="module" src="index.js"></script>
   </head>
   <body>
-    <div class="popup-loading-message">
-      <p>Popup loading...</p>
-    </div>
     <div class="content">
     <div class="shade"></div>
     <div class="shade-popup" id="no-studio-package-registered">
@@ -92,6 +90,7 @@
             <ul>
               <li class="server-name">Connected to Nuxeo Server<span id="platform-version"></span>:</li>
               <li><div class="server-name-url"></div></li>
+              <li><div class="studio-package-name"></div></li>
               <li id="connect-url">
                 <form class="search-container" id="options">
                   <input type="text" id="connect-url-input" placeholder="https://connect.nuxeo.com/nuxeo/site/" results="5" />
@@ -105,9 +104,11 @@
                     <label for="highlight-input" id="highlight-label">Highlight JSON</label>
                     <input type="checkbox" id="highlight-input" class="form" name="highlight">
                   </div>
-                  <span class="reset" id="reset">	&#128683;</span>
-                  <span class="save" id="save">	&#128190;</span>
-                  <span class="grant" id="grant"><i class="fas fa-lock"></i></span>
+                  <div id="buttons">
+                    <span class="reset" id="reset">	&#128683;</span>
+                    <span class="save" id="save">	&#128190;</span>
+                    <span class="grant" id="grant"><i class="fas fa-lock"></i></span>
+                  </div>
                 </form>
               </li>
             </ul>

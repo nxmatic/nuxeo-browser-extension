@@ -38,7 +38,10 @@ class ConnectLocator extends ServiceWorkerComponent {
       .asRuntimeInfo()
       .then((info) => ({ connectRegistration: { connectUrl: undefined }, ...info }))
       .then((info) => {
-        console.log('connect-locator.asRegistration', info);
+        this
+          .asConsole()
+          .then((console) => console
+            .log('connect-locator.asRegistration', info));
         return info;
       })
       .then(({ serverUrl: nuxeoUrl, connectRegistration: { connectUrl: connectLocation } }) => {
@@ -55,7 +58,6 @@ class ConnectLocator extends ServiceWorkerComponent {
           const credentialsKey = this.credentialsKeyOf(location);
           return this.worker.browserStore
             .set({ [nuxeoKey]: location, [credentialsKey]: credentials })
-            .then((store) => (console.warn('connect-locator.asRegistration', store), store))
             .then(() => this.asRegistration());
         }
         return this.worker.browserStore
