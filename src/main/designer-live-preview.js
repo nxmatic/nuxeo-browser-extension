@@ -49,12 +49,16 @@ class DesignerLivePreview extends ServiceWorkerComponent {
   }
 
   pushCookieHeaderOf(url) {
-    const { domain, cookieHeader } = this.worker.cookieManager.cookieHeaderOf(url);
-    return this.worker.declarativeNetEngine.push(new CookieHeaderRule(domain, cookieHeader));
+    return this.worker.cookieManager.cookieHeaderOf(url)
+      .then(({ domain, cookieHeader }) => this.worker
+        .declarativeNetEngine.push(new CookieHeaderRule(domain, cookieHeader)));
   }
 
-  pushRedirectionsOf(json, credentials = undefined, rootUrl = this.worker.serverConnector.serverUrl) {
-    const nuxeoBase = rootUrl.href.endsWith('/') ? rootUrl.href : `${rootUrl.href}/`;
+  pushRedirectionsOf(json, credentials = undefined, runtimeInfo = this.worker.serverConnector.runtimeInfo) {
+    const { serverUrl: serverLocation, connectRegistration: { connectUrl: connectLocation } } = runtimeInfo;
+    const serverUrl = new URL(serverLocation);
+    const connectUrl = new URL(connectLocation);
+    const nuxeoBase = serverUrl.href.endsWith('/') ? serverUrl.href : `${serverUrl.href}/`;
 
     const promises = Object.keys(json).flatMap((basePath) => {
       const nuxeoBasePath = basePath.replace(
@@ -66,12 +70,14 @@ class DesignerLivePreview extends ServiceWorkerComponent {
       }
       const files = Object.keys(json[basePath]);
       return files.map((resourcePath) => {
-        const connectUrl = new URL(json[basePath][resourcePath]);
-        const nuxeoUrl = new URL(`${nuxeoBasePath}/${resourcePath}`, nuxeoBase);
+        const resourceNuxeoUrl = new URL(`${nuxeoBasePath}/${resourcePath}`, nuxeoBase);
+        const resourceConnectUrl = new URL(json[basePath][resourcePath]);
+        const updatedResourceConnectUrl = new URL(`${resourceConnectUrl.pathname}${resourceConnectUrl.search}${resourceConnectUrl.hash}`, connectUrl);
+
         if (credentials) {
-          this.pushAuthentication(connectUrl, credentials);
+          this.pushAuthentication(updatedResourceConnectUrl, credentials);
         }
-        return this.pushRedirection(nuxeoUrl, connectUrl);
+        return this.pushRedirection(resourceNuxeoUrl, updatedResourceConnectUrl);
       });
     });
 
@@ -107,13 +113,20 @@ class DesignerLivePreview extends ServiceWorkerComponent {
   }
 
   pushRedirection(from, to) {
+    const patchUrlForUIPath = (url) => {
+      const fragments = url.pathname.split('/');
+      if (fragments[2] !== 'ui') {
+        return url;
+      }
+      fragments.splice(3, 0, ''); // Insert '*' after 'ui'
+      // Create a new URL with the modified pathname
+      const modifiedUrl = new URL(url.toString());
+      modifiedUrl.pathname = fragments.join('/');
+      return modifiedUrl;
+    };
+    from = patchUrlForUIPath(from); // Update 'from' with the modified URL string
     return this.worker.declarativeNetEngine
-      .push(new RedirectRule(from, to))
-      .then(() => this.modifyUrlForUIPath(from))
-      .then((modifiedFrom) => {
-        if (modifiedFrom === from) return;
-        this.worker.declarativeNetEngine.push(new RedirectRule(modifiedFrom, to));
-      });
+      .push(new RedirectRule(from, to));
   }
 
   popRedirection(from) {
@@ -124,18 +137,6 @@ class DesignerLivePreview extends ServiceWorkerComponent {
         if (modifiedFrom === from) return;
         this.worker.declarativeNetEngine.pop(modifiedFrom);
       });
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  modifyUrlForUIPath(url) {
-    const fragments = url.pathname.split('/');
-    if (fragments[2] !== 'ui') {
-      return Promise.resolve(url);
-    }
-    fragments.splice(3, 0, ''); // Insert an empty string after 'ui'
-    const newUrl = new URL(url);
-    newUrl.pathname = fragments.join('/');
-    return Promise.resolve(newUrl);
   }
 
   toggle(projectName) {
@@ -188,6 +189,7 @@ class DesignerLivePreview extends ServiceWorkerComponent {
 
   enable(projectName) {
     return this.asWorkspace(projectName)
+      // eslint-disable-next-line no-unused-vars
       .then(({ workspaceUrl, credentials, json }) =>
         this.disable()
           .then(() => this.pushCookieHeaderOf(workspaceUrl))

@@ -60,19 +60,12 @@ class ServiceWorkerMessageHandler extends ServiceWorkerComponent {
           .log(`ServiceWorkerMessageHandler.handle(${JSON.stringify(request)}) called`));
       return component.asPromise()
         .then((componentInstance) => componentInstance[request.action](...request.params))
+        .catch((cause) => ({ error: { message: cause.message, stack: cause.stack, response: cause.response } }))
         .then((response) => this.worker.developmentMode
           .asConsole()
           .then((console) => console
-            .log(`${JSON.stringify(response)} <- ServiceWorkerMessageHandler.handle(${JSON.stringify(request)})`))
-          .then(() => response))
-        .catch((cause) => {
-          const response = { error: { message: cause.message, stack: cause.stack, response: cause.response } };
-          this.worker.developmentMode
-            .asConsole()
-            .then((console) => console
-              .log(`${JSON.stringify(response)} <- ServiceWorkerMessageHandler.handle(${JSON.stringify(request)})`, cause.stack));
-          return response;
-        });
+            .log(`ServiceWorkerMessageHandler.handle(${JSON.stringify(request)}) <- ${JSON.stringify(response)}`))
+          .then(() => response));
     };
 
     withConnectedWorker(this.worker)

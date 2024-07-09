@@ -39,6 +39,25 @@ class ServerConnector extends ServiceWorkerComponent {
     this.serverUrl = undefined;
     this.project = undefined;
 
+    this.nuxeoUrlOf = (tabLocation) => {
+      // eslint-disable-next-line operator-linebreak
+      // Regular expression pattern
+      const nxPattern = new RegExp([
+        '(^https?:\\/\\/[A-Za-z_\\.0-9:-]+\\/[A-Za-z_\\.0-9-]+)', // Match the start of a URL
+        '(',
+        '\\/(?:',
+        '(?:nxdoc|nxpath|nxsearch|nxadmin|nxhome|nxdam|nxdamid|site\\/[A-Za-z_\\.0-9-]+)\\/[A-Za-z_\\.0-9-]+|',
+        'view_documents\\.faces|ui\\/|ui\\/#!\\/|view_domains\\.faces|home\\.html|view_home\\.faces',
+        '))'
+      ].join(''));
+      // match and reject non matching URLs
+      const matchGroups = nxPattern.exec(tabLocation);
+      const isMatching = Boolean(matchGroups && matchGroups[2]);
+      const [, extractedLocation] = isMatching ? matchGroups : [];
+
+      return isMatching ? new URL(extractedLocation) : undefined;
+    };
+
     // Bind methods
     Object.getOwnPropertyNames(Object.getPrototypeOf(this))
       .filter((prop) => typeof this[prop] === 'function' && prop !== 'constructor')
@@ -62,48 +81,51 @@ class ServerConnector extends ServiceWorkerComponent {
       });
   }
 
-  onNewLocation(serverUrl) {
-    return this.isConnected()
-      .then((isConnected) => {
-        if (isConnected) this.disconnect();
-        return false;
-      })
-      .then(() => (serverUrl ? this.connect(serverUrl) : Promise.resolve()));
+  onNewLocation(tabLocation) {
+    return this.asPromise()
+      .then((self) => (this.disconnect(), self))
+      .then((self) => {
+        const nuxeoUrl = self.nuxeoUrlOf(tabLocation);
+        if (nuxeoUrl === undefined) {
+          return undefined;
+        }
+        self.connect(nuxeoUrl);
+        return nuxeoUrl;
+      });
   }
 
-  connect(serverUrl) {
-    const url = new URL(serverUrl);
+  connect(serverUrl, tabInfo) {
     const forbiddenDomains = ['connect.nuxeo.com', 'nos-preprod-connect.nuxeo.com'];
-    if (forbiddenDomains.includes(url.host)) {
-      const error = new Error(`Connection to ${url.host} is forbidden`);
-      error.isForbidden = true;
-      throw error;
+    if (forbiddenDomains.includes(serverUrl.host)) {
+      return Promise.reject(new Error(`Connection to ${serverUrl.host} is forbidden`));
     }
-    this.nuxeo = new Nuxeo({ baseURL: serverUrl });
     this.serverUrl = serverUrl;
-    return this.nuxeo
-      .login()
+    this.nuxeo = new Nuxeo({ baseURL: serverUrl.toString() });
+    return this.nuxeo.connect()
       // eslint-disable-next-line no-return-assign
+      .then(() => (this.fetchAndSetRuntimeInfo(), this))
       .then(() => {
-        chrome.omnibox.onInputChanged.addListener(this.onInputChanged = this.suggestDocument);
-      })
-      .then(() => () => {
-        this.disconnect = undefined;
-        this.nuxeo = undefined;
-        this.serverUrl = undefined;
-        chrome.omnibox.onInputChanged.removeListener(this.suggestDocument);
-      })
-      .then((disconnect) => {
-        this.disconnect = disconnect.bind(this);
-        return this.disconnect;
+        // Define disconnect logic here or in a separate method
+        this.disconnect = () => {
+          this.nuxeo = undefined;
+          this.runtimeInfo = undefined;
+          this.serverUrl = undefined;
+          this.worker.tabNavigationHandler.disableTabExtension(tabInfo);
+        };
+        this.worker.tabNavigationHandler.enableTabExtension(tabInfo);
+        return this;
       })
       .catch((cause) => {
-        if (cause.response) {
-          this.handleErrors(cause);
-          return () => {};
-        }
-        console.warn('Error connecting to Nuxeo', cause);
-        throw cause;
+        this.disconnect = () => {};
+        this.nuxeo = undefined;
+        this.serverUrl = undefined;
+        console.warn(`Cannot connect to : ${serverUrl}...`, cause);
+        this.worker.desktopNotifier.notify('error', {
+          title: `Cannot connect to : ${serverUrl}...`,
+          message: `Got errors while accessing nuxeo at ${serverUrl}. Error: ${cause.message}`,
+          iconUrl: '../images/access_denied.png',
+        });
+        return () => {};
       });
   }
 
@@ -112,16 +134,25 @@ class ServerConnector extends ServiceWorkerComponent {
   }
 
   asRuntimeInfo() {
-    return Promise.all([
-      this.asInstalledAddons(),
-      this.asConnectRegistration(),
-    ])
-      .then(([installedAddons, connectRegistration]) => ({
-        nuxeo: this.nuxeo,
-        serverUrl: this.serverUrl,
-        installedAddons,
-        connectRegistration,
-      }));
+    if (this.runtimeInfo) {
+      return Promise.resolve(this.runtimeInfo);
+    }
+    return this.fetchAndSetRuntimeInfo();
+  }
+
+  fetchAndSetRuntimeInfo() {
+    return this.asNuxeo()
+      .then((nuxeo) => Promise.all([
+        this.asInstalledAddons().catch(() => []), // Return empty array on error
+        this.asConnectRegistration().catch(() => ({})), // Return empty object on error
+      ])
+        // eslint-disable-next-line no-return-assign
+        .then(([installedAddons, connectRegistration]) => (this.runtimeInfo = {
+          nuxeo,
+          serverUrl: nuxeo._baseURL,
+          installedAddons,
+          connectRegistration,
+        })));
   }
 
   asConnectLocation() {
@@ -199,13 +230,65 @@ class ServerConnector extends ServiceWorkerComponent {
   }
 
   asNuxeo() {
-    return new Promise((resolve, reject) => {
-      if (this.nuxeo) {
-        resolve(this.nuxeo);
-      } else {
-        reject(new Error('Not connected to Nuxeo'));
-      }
-    });
+    return this.worker
+      .tabNavigationHandler.asTabInfo()
+      .then((tabInfo) => this.nuxeoUrlOf(tabInfo.url))
+      .then((nuxeoUrl) => {
+        if (nuxeoUrl === undefined) {
+          return undefined;
+        }
+        if (this.nuxeo && this.nuxeo._baseURL === nuxeoUrl.toString()) {
+          return this.nuxeo;
+        }
+        return this.connect(serverUrl, tabInfo)
+          .then(() => {
+            if (this.nuxeo === undefined) {
+              throw Error('Not connected to Nuxeo');
+            }
+            return this.nuxeo;
+          })
+          .catch((error) => {
+            this.nuxeo = undefined;
+            this.serverUrl = undefined;
+            throw error;
+          });
+      });
+  }
+
+  asServerUrl(tabInfo) {
+    return this.asPromise()
+      .then((self) => self.nuxeoUrlOf(tabInfo))
+      .then((nuxeoUrl) => {
+        if (!nuxeoUrl) return undefined;
+        return fetch(`${nuxeoUrl}/site/automation`, {
+          method: 'GET',
+          credentials: 'include', // Include cookies in the request
+        })
+          .then((response) => {
+            if (response.ok || response.status !== 401) return response;
+            this.worker.desktopNotifier.notify('unauthenticated', {
+              title: `Not logged in page: ${tabInfo.url}...`,
+              message: 'You are not authenticated. Please log in and try again.',
+              iconUrl: '../images/access_denied.png',
+            });
+            return this.worker.tabNavigationHandler.reloadServerTab({ rootUrl: nuxeoUrl, tabInfo });
+          })
+          .then((response) => {
+            if (response.ok) return response;
+            response.text().then((errorText) => {
+              this.worker.desktopNotifier.notify('error', {
+                title: `Not a Nuxeo server tab : ${tabInfo.url}...`,
+                message: `Got errors while accessing automation status page at ${response.url}. Error: ${errorText}`,
+                iconUrl: '../images/access_denied.png',
+              });
+            });
+            throw new Error(`Not a nuxeo server tab : ${tabInfo.url}...`);
+          })
+          .then(() => {
+            this.worker.desktopNotifier.cancel('unauthenticated');
+            return nuxeoUrl;
+          });
+      });
   }
 
   serverErrorDesktopNotification = {

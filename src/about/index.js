@@ -16,6 +16,9 @@ limitations under the License.
 */
 
 import $ from 'jquery';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import '@fortawesome/fontawesome-free/css/all.min.css';
+import '../popup/index.css';
 import ServiceWorkerBridge from '../service-worker-bridge';
 
 new ServiceWorkerBridge()

@@ -37,11 +37,16 @@ class ConnectLocator extends ServiceWorkerComponent {
     return this.worker.serverConnector
       .asRuntimeInfo()
       .then((info) => ({ connectRegistration: { connectUrl: undefined }, ...info }))
+      .then((info) => {
+        console.log('connect-locator.asRegistration', info);
+        return info;
+      })
       .then(({ serverUrl: nuxeoUrl, connectRegistration: { connectUrl: connectLocation } }) => {
         if (!connectLocation) {
           return {
             location: 'about:blank',
-            credentials: undefined
+            credentials: undefined,
+            cookiesGranted: false // Assuming no permission needed for 'about:blank'
           };
         }
         const nuxeoKey = this.nuxeoKeyOf(new URL(nuxeoUrl));
@@ -55,12 +60,21 @@ class ConnectLocator extends ServiceWorkerComponent {
         }
         return this.worker.browserStore
           .get({ [nuxeoKey]: connectLocation })
-          .then((store) => new URL(store[nuxeoKey]))
-          .then((location) => ({ location, credentialsKey: this.credentialsKeyOf(location) }))
-          .then(({ location, credentialsKey }) => this.worker.browserStore.get({ [credentialsKey]: undefined })
+          .then((store) => store[nuxeoKey])
+          .then((storedLocation) => chrome.permissions
+            .contains({ origins: [`${storedLocation}/*`], permissions: ['cookies'] })
+            .then((cookiesGranted) => ({
+              location: storedLocation,
+              credentialsKey: this.credentialsKeyOf(storedLocation),
+              cookiesGranted
+            }))
+          )
+          .then(({ location, credentialsKey, cookiesGranted }) => this.worker
+            .browserStore.get({ [credentialsKey]: undefined })
             .then((credentialsStore) => ({
               location,
-              credentials: credentialsStore[credentialsKey]
+              credentials: credentialsStore[credentialsKey],
+              cookiesGranted
             })));
       });
   }

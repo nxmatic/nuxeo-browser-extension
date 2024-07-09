@@ -18,6 +18,8 @@
 
 import $ from 'jquery';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import '@fortawesome/fontawesome-free/css/all.min.css';
+import './index.css';
 import debounce from 'just-debounce';
 import DOMPurify from 'dompurify';
 import NuxeoServerVersion from 'nuxeo/lib/server-version';
@@ -172,7 +174,7 @@ function loadPage(worker) {
       {
         title: 'No associated Studio project',
         message: 'If you\'d like to use this function, please associate your Nuxeo server with a studio project',
-        iconUrl: '/images/access_denied.png'
+        iconUrl: '../images/access_denied.png'
       }
     );
   };
@@ -203,32 +205,56 @@ function loadPage(worker) {
 
   worker.connectLocator
     .asRegistration()
-    .then(({ location, credentials }) => {
+    .then((input) => {
+      const { location, credentials } = input;
       const connectUrl = new URL(location);
       const connectCredentials = credentials;
-      return { connectUrl, connectCredentials };
+      return { connectUrl, connectCredentials, ...input };
     })
     // wait for the document to be ready
-    .then(({ connectUrl, connectCredentials }) => new Promise((resolve) => {
-      $(document).ready(() => resolve({ connectUrl, connectCredentials }));
+    .then((input) => new Promise((resolve) => {
+      $(document).ready(() => resolve(input));
     }))
     // remove the studio package name input if the feature flag is not set
-    .then(({ connectUrl, connectCredentials }) => worker.developmentMode
+    .then((input) => worker.developmentMode
       .isFeatureFlagSet('studio-package-name')
       .then((isEnabled) => {
         if (!isEnabled) {
           $('#studio-package-name-input').remove();
         }
-        return { connectUrl, connectCredentials };
+        return input;
       }))
     // process the page, should split this in multiple functions
     // eslint-disable-next-line no-unused-vars
-    .then(({ connectUrl, connectCredentials }) => {
+    .then(({ connectUrl, connectCredentials, cookiesGranted }) => {
       const pendingPromises = [];
       // reset jQuery event handlers
       $('body').find('*').addBack().off();
-
       $('#connect-url-input').val(connectUrl);
+
+      // Grant cookies permissions to connect if needed
+      // Define a variable in memory to keep track of the permission state
+      // eslint-disable-next-line no-unused-vars
+      let newCookiesGranted = cookiesGranted;
+      const onCookiesGranted = (granted) => {
+        const style = `<i class="fas fa-lock${granted ? '-open' : ''}"/>`;
+        $('#grant').html(style);
+        newCookiesGranted = granted;
+      };
+      onCookiesGranted(cookiesGranted);
+      $('#grant').click(() => {
+        const permissions = { origins: [`${connectUrl.origin}/*`], permissions: ['cookies'] };
+        chrome.permissions.contains(permissions)
+          .then((isGranted) => (
+            isGranted ? chrome.permissions.remove(permissions) : chrome.permissions.request(permissions)))
+          .then(() => chrome.permissions.contains(permissions))
+          .then((granted) => onCookiesGranted(granted))
+          .catch((error) => {
+            console.error('Error handling permissions', permissions, error);
+            // Handle the error appropriately in your extension
+            // For example, you might want to inform the user that the permissions cannot be modified
+          });
+      });
 
       // update the page according to the feature flags
       pendingPromises.push(worker.developmentMode
@@ -439,10 +465,11 @@ function loadPage(worker) {
         // eslint-disable-next-line no-shadow
         .then((registration) => {
           const {
-            // eslint-disable-next-line no-shadow
+            // eslint-disable-next-line no-shadow, no-unused-vars
             serverUrl: serverLocation,
             connectUrl: connectLocation,
             connectSubscription,
+            // eslint-disable-next-line no-unused-vars
             developmentMode,
             package: registeredPackage
           } = registration;
@@ -509,7 +536,7 @@ function loadPage(worker) {
         }));
 
       pendingPromises.push(worker.tabNavigationHandler
-        .asTabParams()
+        .asTabParams(undefined, true)
         .then(({ url }) => {
           const jsfMatchs = regexes.jsf.doc.exec(url);
           const uiMatchs = regexes.ui.doc.exec(url);
@@ -689,29 +716,34 @@ function loadPage(worker) {
       };
 
       $('#restart-button').on('click', () => {
-        if (!serverRuntimeInfo.nuxeo.user.isAdministrator) {
-          Swal.fire({
-            title: 'Warning',
-            text: 'You do not have administrator privileges.',
-            icon: 'warning',
-            confirmButtonText: 'OK',
-          });
-          return;
-        }
-        Swal.fire({
+        // Function to show confirmation dialog
+        const confirmRestart = () => Swal.fire({
           title: 'Warning!',
-          text: 'You have administrator privileges, but are you sure you want to restart the server?',
+          text: `You have administrator privileges but the server is not in development mode.
+                 Are you sure you want to restart the server now ?`,
           showCancelButton: true,
           confirmButtonText: 'Restart',
           cancelButtonText: 'Cancel',
-        }).then((result) => {
-          if (result.isConfirmed) {
-            startLoadingRS()
-              .then(() => worker.serverConnector.restart())
-              .then(stopLoading)
-              .catch(stopLoading);
-          }
         });
+
+        // Main perform function
+        const performRestart = () => {
+          startLoadingRS()
+            .then(() => worker.serverConnector.restart())
+            .then(stopLoading)
+            .catch(stopLoading);
+        };
+
+        // Decision logic for restart
+        if (!serverRuntimeInfo.connectRegistration.developmentMode) {
+          confirmRestart().then((result) => {
+            if (result.isConfirmed) {
+              performRestart();
+            }
+          });
+        } else {
+          performRestart();
+        }
       });
 
       // Handle click events for the radio buttons
@@ -914,7 +946,14 @@ function loadPage(worker) {
         .catch((error) => console.error(error));
     })
     .catch((error) => {
-      console.error(error);
+      worker.desktopNotifier.notify(
+        'error',
+        {
+          title: 'Cannot load popup',
+          message: error.message,
+          iconUrl: '../images/access_denied.png'
+        }
+      );
     });
 }
 

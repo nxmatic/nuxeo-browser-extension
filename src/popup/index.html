@@ -18,17 +18,6 @@
     limitations under the License.
     -->
     <title>Nuxeo Dev Tools</title>
-    <link rel="stylesheet" href="/styles/main.css">
-    <style>
-      .content {
-        display: none;
-      }
-      .popup-loading-message {
-        display: block;
-        text-align: center;
-        margin-top: 20%;
-      }
-    </style>
     <script type="module" src="index.js"></script>
   </head>
   <body>
@@ -118,6 +107,7 @@
                   </div>
                   <span class="reset" id="reset">	&#128683;</span>
                   <span class="save" id="save">	&#128190;</span>
+                  <span class="grant" id="grant"><i class="fas fa-lock"></i></span>
                 </form>
               </li>
             </ul>
@@ -244,8 +234,6 @@
       </div>
 
     </div>
-    <div id="loading">
-    </div>
-    </div>
+    <div id="loading" />
   </body>
 </html>

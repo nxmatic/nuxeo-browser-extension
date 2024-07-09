@@ -127,11 +127,11 @@ class RedirectRule extends BaseRule {
   }
 
   toJson(priority = 1) {
-    return {
+    const json = {
       id: this.hashCode(),
       priority,
       condition: {
-        urlFilter: this.from.toString(),
+        urlFilter: this.from.toString()
       },
       action: {
         type: 'redirect',
@@ -139,12 +139,13 @@ class RedirectRule extends BaseRule {
           transform: {
             scheme: this.to.protocol.slice(0, -1), // Use the scheme from the `to` URL
             host: this.to.host,
-            port: (this.to.port && this.to.port !== '') ? this.to.port : '443', // Handle the case where the port is an empty string
+            port: (this.to.port && this.to.port !== '') ? this.to.port : '', // Use the default port if the port is an empty string
             path: this.to.pathname,
           },
         },
       },
     };
+    return json;
   }
 }
 
@@ -169,6 +170,28 @@ class DeclarativeNetEngine extends ServiceWorkerComponent {
       addRules: rulesToAdd.map((rule) => rule.toJson()),
       removeRuleIds: rulesToRemove.map((rule) => rule.hashCode()),
     });
+  }
+
+  activate() {
+    return this.asPromise()
+      .then(() => {
+        this.worker.developmentMode
+          .asConsole()
+          .then((console) => console.log('DeclarativeNetEngine activated'));
+        const debugListener = (info) => {
+          console.log('Rule matched:', info);
+        };
+        if (!chrome.declarativeNetRequest.onRuleMatchedDebug) {
+          console.warn('Cannot listen on rules matched in declarative net engine');
+          return () => {};
+        }
+        chrome.declarativeNetRequest.onRuleMatchedDebug.addListener(debugListener);
+        return () => {
+          if (chrome.declarativeNetRequest && chrome.declarativeNetRequest.onRuleMatchedDebug) {
+            chrome.declarativeNetRequest.onRuleMatchedDebug.removeListener(debugListener);
+          }
+        };
+      });
   }
 
   push(rule) {

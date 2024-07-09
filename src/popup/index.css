@@ -176,7 +176,7 @@ HEADINGS
   align-self: flex-start;
   width: 36px;
   height: 36px;
-  background-image: url("../images/nuxeo_block-30.png");
+  background-image: url("/images/nuxeo_block-30.png");
   background-size: cover;
   background-repeat: no-repeat;
   background-position: 50% 50%;
@@ -216,19 +216,9 @@ HEADINGS
   color: #fff;
 }
 
-.reset {
-    position: absolute;
-    height: 15px;
-    margin: auto;
-    font-size: 15px;
-    cursor: pointer;
-    font-weight: normal;
-    color: #fff;
-    right: 8px;
-    top: 40px;
-}
-
-.save {
+.reset,
+.save,
+.grant {
     position: absolute;
     height: 15px;
     margin: auto;
@@ -240,9 +230,31 @@ HEADINGS
     top: 40px;
 }
 
+
 .reset:hover,
-.save:hover {
+.save:hover,
+.grant:hover {
   color: #006CFA;
+}
+
+.reset {
+  right: 10px;
+}
+
+.grant {
+  right: 30px;
+}
+
+.save {
+  right: 50px;
+}
+
+.testgrant {
+  right: 70px;
+}
+
+.testgranted {
+  right: 90px;
 }
 
 #highlight-label {
@@ -363,7 +375,7 @@ a.reindex-page {
   height: 55px;
   width: 54px;
   z-index: 9;
-  background: transparent url('../images/loading_big.gif') no-repeat center;
+  background: transparent url('/images/loading_big.gif') no-repeat center;
   opacity: 1;
 }
 
@@ -473,7 +485,7 @@ SEARCH
   position: absolute;
   top: 5px;
   left: 5px;
-  background-image: url("../images/loading-20.gif");
+  background-image: url("/images/loading-20.gif");
   height: 20px;
   min-width: 20px;
   display: none;
@@ -656,7 +668,7 @@ ABOUT
   left: 35%;
   height: 200px;
   width: 160px;
-  background-image: url("../images/1_.png");
+  background-image: url("/images/1_.png");
   background-size: cover;
   background-repeat: no-repeat;
   background-position: 50% 50%;
