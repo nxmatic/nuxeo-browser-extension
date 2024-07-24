@@ -161,7 +161,7 @@ function loadPage(worker, options = { forceForbiddenDomains: false }) {
     resolve();
   });
 
-  const studioPackageFound = (connectUrl, packageName) => {
+  const studioPackageFound = (developmentMode, connectUrl, packageName) => {
     $('div.studio-package-name').text(packageName);
     worker.desktopNotifier.cancel('no_studio_project');
     const toogleDesignerLivePreviewButton = (isEnabled) => {
@@ -209,12 +209,29 @@ function loadPage(worker, options = { forceForbiddenDomains: false }) {
     $('#studio').click(() => {
       worker.tabNavigationHandler.loadNewExtensionTab(packageLocation);
     });
+    if (!developmentMode) {
+      $('#hot-reload-button').css('filter', 'invert(1)');
+      $('#hot-reload-message').css('display', 'block');
+    } else {
+      $('#hot-reload-message').css('display', 'none');
+      $('#hot-reload-message a').text('');
+    }
     $('#hot-reload-button').click(() => {
       startLoadingHR()
         .then(() => worker.studioHotReloader.reload())
         .then(() => stopLoading())
         .then(() => worker.tabNavigationHandler.reloadServerTab())
         .catch((cause) => stopLoading(cause));
+    });
+    $('#hot-reload-message a').click(() => {
+      Swal.fire({
+        title: 'Info!',
+        html: `You are not in development mode,<br/>
+                 you can't hot-reload studio package.<br/><br/>
+                 Please add the following parameters to your <code>nuxeo.conf</code> file:<br/>
+                 <code>org.nuxeo.dev=true</code><br/>
+                 <code>org.nuxeo.runtime.reload_strategy=standby</code>`
+      });
     });
 
     $('#force-hot-reload-button').click(() => {
@@ -557,7 +574,11 @@ function loadPage(worker, options = { forceForbiddenDomains: false }) {
                   });
                 }
                 if (registeredPackage) {
-                  studioPackageFound(new URL(connectLocation), registeredPackage);
+                  studioPackageFound(
+                    developmentMode,
+                    new URL(connectLocation),
+                    registeredPackage
+                  );
                 } else {
                   noStudioPackageFound();
                 }

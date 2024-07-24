@@ -399,6 +399,13 @@ a.reindex-page {
   font-size: 0.75em;
 }
 
+#hot-reload-message {
+  display: none;
+  text-align: center;
+  font-size: 0.75em;
+  text-decoration: underline;
+}
+
 #log-into-studio {
   cursor: pointer;
 }
