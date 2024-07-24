@@ -47,7 +47,7 @@ class TabNavigationHandler extends ServiceWorkerComponent {
       return Promise.resolve(input);
     }
     return chrome.tabs
-      .query({ active: true })
+      .query({ active: true, currentWindow: true })
       .then(([tabInfo]) => tabInfo);
   }
 
